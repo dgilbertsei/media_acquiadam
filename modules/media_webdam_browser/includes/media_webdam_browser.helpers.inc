@@ -117,10 +117,6 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
  *   assets.
  */
 function media_webdam_browser_get_initial_assets($folderId, array $form_state, $perPage) {
-  $result = [
-    'assets' => [],
-    'total_count' => 0,
-  ];
 
   $is_search = !empty($form_state['values']['search']) && ($form_state['values']['op'] == $form_state['values']['search']);
 
@@ -132,7 +128,10 @@ function media_webdam_browser_get_initial_assets($folderId, array $form_state, $
 }
 
 function media_webdam_browser_get_search_results($folderId, array $form_state, $perPage) {
-  $child_assets = [];
+  $child_assets = [
+    'assets' => [],
+    'total_count' => 0,
+  ];
 
   $keywords = !empty($form_state['values']['keywords']) ?
     $form_state['values']['keywords'] :
