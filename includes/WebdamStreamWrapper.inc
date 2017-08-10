@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * @file
+ * Create a Webdam Stream Wrapper class for the Media/Resource module.
+ */
+
+/**
+ * Provides a remote stream wrapper for Webdam assets.
+ *
+ * Create an instance like this:
+ * ```php
+ *   $dam = new WebdamStreamWrapper('webdam://[asset_id].[filetype]');
+ * ```
+ */
+class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
+
+  /**
+   * Fetch the content of the file using drupal_http_request().
+   */
+  protected function getStreamContent() {
+    if (!isset($this->stream_content)) {
+      $this->stream_content = NULL;
+
+      // Translate our webdam:// uri into a remote URL before we make the
+      // request.
+      $uri = file_create_url($this->uri);
+
+      $request = drupal_http_request($uri);
+      if (empty($request->error) && !empty($request->data)) {
+        $this->stream_content = $request->data;
+      }
+    }
+
+    return $this->stream_content;
+  }
+
+  /**
+   * Support for fstat().
+   *
+   * {@inheritDoc}
+   */
+  public function stream_stat() {
+    // Translate our webdam:// uri into a remote URL before we make the request.
+    $uri = file_create_url($this->uri);
+
+    $stat = array();
+    $request = drupal_http_request($uri, array('method' => 'HEAD'));
+
+    if (empty($request->error) && isset($request->headers['content-length'])) {
+      $stat['size'] = $request->headers['content-length'];
+    }
+
+    return !empty($stat) ? $this->getStat($stat) : FALSE;
+  }
+
+  /**
+   * Get the mimetype of the file.
+   *
+   * Overridden to work with the Webdam uri structure.
+   *
+   * {@inheritDoc}
+   */
+  public static function getMimeType($uri, $mapping = NULL) {
+
+    if (!isset($mapping)) {
+      // The default file map, defined in file.mimetypes.inc is quite big.
+      // We only load it when necessary.
+      include_once DRUPAL_ROOT . '/includes/file.mimetypes.inc';
+      $mapping = file_mimetype_mapping();
+    }
+
+    if ($target = file_uri_target($uri)) {
+      $extension = '';
+      $file_parts = explode('.', drupal_basename($target));
+
+      // Remove the first part: a full filename should not match an extension.
+      array_shift($file_parts);
+
+      // Iterate over the file parts, trying to find a match.
+      // For my.awesome.image.jpeg, we try:
+      // - jpeg
+      // - image.jpeg, and
+      // - awesome.image.jpeg
+      while ($additional_part = array_pop($file_parts)) {
+        $extension = strtolower($additional_part . ($extension ? '.' . $extension : ''));
+        if (isset($mapping['extensions'][$extension])) {
+          return $mapping['mimetypes'][$mapping['extensions'][$extension]];
+        }
+      }
+    }
+
+    return 'application/octet-stream';
+  }
+
+  /**
+   * Return the external Url.
+   *
+   * {@inheritDoc}
+   */
+  public function getExternalUrl() {
+
+    if ('webdam' == file_uri_scheme($this->uri)) {
+      $asset = static::getAssetByUri($this->uri);
+
+      if (!empty($asset['thumbnailurls'])) {
+        $thumbnails = $asset['thumbnailurls'];
+        $largest = end($thumbnails);
+
+        return $largest['url'];
+      }
+    }
+    return $this->uri;
+  }
+
+  /**
+   * Get an asset ID from a Webdam Uri.
+   *
+   * @param string $uri
+   *   The URI to parse for an asset ID.
+   *
+   * @return int|false
+   *   The asset ID or FALSE on failure.
+   */
+  protected static function getAssetIdFromUri($uri) {
+    $target = file_uri_target($uri);
+    list($asset_id) = explode('.', drupal_basename($target), 2);
+    $asset_id = intval($asset_id);
+
+    return empty($asset_id) ? FALSE : $asset_id;
+  }
+
+  /**
+   * Load an asset by the Uri.
+   *
+   * @param string $uri
+   *   The Uri to use to look up an asset.
+   *
+   * @return Webdam_Assets_Asset|false
+   *   The asset or FALSE on failure.
+   */
+  protected static function getAssetByUri($uri) {
+
+    $asset_id = static::getAssetIdFromUri($uri);
+    return static::getAssetById($asset_id);
+  }
+
+  /**
+   * Get an asset by ID.
+   *
+   * This requires the file already exist in Drupal and has valid JSON saved
+   * to the database. We cannot directly look up assets using the API because
+   * there is no promise that the user has API access.
+   *
+   * @param int $id
+   *   The asset ID.
+   *
+   * @return Webdam_Assets_Asset|false
+   *   The asset or FALSE on failure.
+   */
+  protected static function getAssetById($id) {
+
+    module_load_include('inc', 'media_webdam', 'includes/media_webdam.helpers');
+    $cache = media_webdam_api_get_asset_cache($id);
+    return $cache;
+  }
+
+}

@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * @file
+ * Drupal install related hooks.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function media_webdam_install() {
+
+  if (!db_field_exists('file_managed', 'webdam_id')) {
+    $schema = drupal_get_schema('file_managed');
+    $indexes = [
+      'webdam_id' => $schema['indexes']['webdam_id'],
+      'fid_webdam_id' => $schema['indexes']['fid_webdam_id'],
+    ];
+    db_add_field('file_managed', 'webdam_id', $schema['fields']['webdam_id'], ['indexes' => $indexes]);
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function media_webdam_uninstall() {
+  variable_del('media_webdam_client_id');
+  variable_del('media_webdam_client_secret');
+
+  if (db_field_exists('file_managed', 'webdam_id')) {
+    $schema = drupal_get_schema('file_managed');
+    db_drop_field('file_managed', 'webdam_id');
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function media_webdam_schema() {
+  $schema = [];
+
+  $schema['webdam_asset_cache'] = [
+    'description' => st('Locally cached Webdam asset information.'),
+    'fields' => [
+      'asset_id' => [
+        'description' => st('The Webdam asset identifier.'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'data' => [
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'Serialized data containing the asset properties that do not warrant a dedicated column.',
+      ],
+      'created' => [
+        'description' => 'The Unix timestamp when the asset was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'changed' => [
+        'description' => 'The Unix timestamp when the asset was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'indexes' => [
+      'created' => ['created'],
+      'changed' => ['changed'],
+    ],
+    'unique keys' => [],
+    'primary key' => ['asset_id'],
+  ];
+
+  return $schema;
+}

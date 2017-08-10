@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * Drupal install related hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function media_webdam_browser_uninstall() {
+  variable_del('media_webdam_browser_per_page');
+}

@@ -1,0 +1,124 @@
+<?php
+
+/**
+ * @file
+ * Drupal hook implementations.
+ */
+
+require_once __DIR__ . '/includes/media_webdam.helpers.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function media_webdam_menu() {
+  $items = [];
+  $items['admin/config/media/webdam'] = [
+    'title' => 'Media: Webdam settings',
+    'description' => 'Configure the API settings for Webdam.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['media_webdam_config_settings'],
+    'access arguments' => ['administer media webdam'],
+    'file' => 'includes/media_webdam.admin.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function media_webdam_menu_alter(&$items) {
+
+  if (module_exists('remote_stream_wrapper')) {
+    // Copy the remote stream wrapper module's setup for image styles.
+    $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
+    $key = $directory_path . '/styles/%image_style/webdam';
+    $items[$key] = $items[$directory_path . '/styles/%image_style/http'];
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function media_webdam_permission() {
+  $perms = [];
+
+  $perms['administer media webdam'] = [
+    'title' => t('Administer Media: Webdam'),
+    'description' => t('Allows administration of Media: Webdam'),
+    'restrict access' => TRUE,
+  ];
+
+  return $perms;
+}
+
+/**
+ * Implements hook_oauth2_clients().
+ */
+function media_webdam_oauth2_clients() {
+
+  global $base_url;
+
+  $client_url = $base_url;
+  $server_url = variable_get('media_webdam_api_endpoint', 'https://apiv2.webdamdb.com');
+
+  // This setup redirects the user to the Webdam OAuth2 endpoint for
+  // authentication instead of passing username/password information from Drupal
+  // to Webdam.
+  $oauth2_clients['webdam-server-auth'] = [
+    'auth_flow' => 'server-side',
+    'token_endpoint' => $server_url . '/oauth2/token',
+    'client_id' => variable_get('media_webdam_client_id'),
+    'client_secret' => variable_get('media_webdam_client_secret'),
+    'authorization_endpoint' => $server_url . '/oauth2/authorize',
+    'redirect_uri' => $client_url . '/oauth2/authorized',
+  ];
+
+  return $oauth2_clients;
+}
+
+/**
+ * Implements hook_stream_wrappers().
+ */
+function media_webdam_stream_wrappers() {
+  return array(
+    'webdam' => array(
+      'name' => t('Webdam files'),
+      'class' => 'WebdamStreamWrapper',
+      'description' => t('Provides read-only paths to webdam files.'),
+      'type' => STREAM_WRAPPERS_REMOTE,
+      'remote' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function media_webdam_schema_alter(&$schema) {
+  // Add an asset_id property to the file_managed table so we can easily find
+  // related cache without having to parse/manipulate strings.
+  $file_managed = &$schema['file_managed'];
+  $file_managed['fields']['webdam_id'] = [
+    'description' => st('The Webdam asset identifier.'),
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+  ];
+  $file_managed['indexes']['webdam_id'] = ['webdam_id'];
+  $file_managed['indexes']['fid_webdam_id'] = ['fid', 'webdam_id'];
+}
+
+/**
+ * Implements hook_cron().
+ */
+function media_webdam_cron() {
+
+  // Clear out cache entries where no file is using the asset.
+  $fq = db_select('file_managed', 'm')
+    ->fields('m', ['webdam_id'])
+    ->distinct();
+  db_delete('webdam_asset_cache')
+    ->condition('asset_id', $fq, 'NOT IN')
+    ->execute();
+}

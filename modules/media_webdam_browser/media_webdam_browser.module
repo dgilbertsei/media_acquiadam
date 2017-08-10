@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @file
+ * Drupal hook implementations.
+ */
+
+require_once 'includes/media_webdam_browser.helpers.inc';
+require_once 'includes/media_webdam_browser.forms.inc';
+require_once 'includes/media_webdam_browser.theme.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function media_webdam_browser_menu() {
+  $items = [];
+
+  $items['admin/content/file/webdam'] = [
+    'title' => 'Webdam',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['media_webdam_browser_choose_asset_form'],
+    'access callback' => 'media_webdam_browser_access',
+    'file' => 'includes/media_webdam_browser.forms.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  ];
+
+  $items['admin/content/file/webdam/saved'] = [
+    'title' => 'Saved Webdam assets',
+    'page callback' => 'media_webdam_browser_choose_asset_saved_landing_page',
+    'access callback' => 'media_webdam_browser_access',
+    'file' => 'includes/media_webdam_browser.forms.inc',
+    'type' => MENU_CALLBACK,
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function media_webdam_browser_permission() {
+  $perms = [];
+
+  $perms['access media webdam browser'] = [
+    'title' => t('Access Media: Webdam Browser'),
+    'description' => t('Allows the user to access the Webdam browser'),
+  ];
+
+  return $perms;
+}
+
+/**
+ * Implements hook_media_browser_plugin_info().
+ */
+function media_webdam_browser_media_browser_plugin_info() {
+  $info = [];
+  $info['webdam'] = [
+    'title' => t('Webdam'),
+    'weight' => -10,
+    'class' => 'WebdamMediaBrowserPlugin',
+  ];
+
+  return $info;
+}
+
+/**
+ * Checks if the given user has access to the media webdam browser.
+ *
+ * @param object $account
+ *   The user account to check. Defaults to the current user.
+ *
+ * @return bool
+ *   TRUE if they have access, FALSE otherwise.
+ */
+function media_webdam_browser_access($account = NULL) {
+
+  $has_user_access = user_access('access media webdam browser', $account);
+  $has_config = variable_get('media_webdam_client_id') && variable_get('media_webdam_client_secret');
+
+  return $has_config && $has_user_access;
+}
