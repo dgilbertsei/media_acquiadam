@@ -27,6 +27,21 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#size' => 5,
     '#required' => TRUE,
   ];
+
+  $form['browser']['media_webdam_browser_thumbnail_size'] = [
+    '#type' => 'select',
+    '#title' => t('Thumbnail source size'),
+    '#description' => t('The source remote thumbnail size to use when creating browser thumbnails locally.'),
+    '#default_value' => 150,
+    '#options' => [
+      100,
+      150,
+      220,
+      310,
+      550,
+      1280,
+    ],
+  ];
 }
 
 /**
