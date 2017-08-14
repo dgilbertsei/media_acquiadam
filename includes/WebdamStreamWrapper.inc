@@ -100,45 +100,44 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
    */
   public function getExternalUrl() {
 
-    if ('webdam' == file_uri_scheme($this->uri)) {
-      $asset = static::getAssetByUri($this->uri);
-      $mime = $this->getMimeType($this->uri);
+    if ('webdam' !== file_uri_scheme($this->uri)) {
+      return $this->uri;
+    }
 
-      // Audio files.
-      if (!empty($asset['audiourl']['url'])) {
-        return url($asset['audiourl']['url']);
-      }
-      // Video files.
-      elseif (!empty($asset['videourls'][0]['url'])) {
-        return url($asset['videourls'][0]['url']);
-      }
-      // PDF files.
-      // Making an assumption here based on the embed markup that is included!
-      elseif ('application/pdf' == $mime && !empty($asset['thumbnailurls'][0]['url'])) {
+    $asset = static::getAssetByUri($this->uri);
+    $mime = $this->getMimeType($this->uri);
 
-        // The embed code returned by the API uses the 550 thumbnail URL as the
-        // base for a CDN link to the document. We can construct that URL by
-        // combining a few elements.
-        foreach ($asset['thumbnailurls'] as $tn) {
-          if (550 == $tn['size']) {
-            $url = drupal_parse_url($tn['url']);
-            $url = sprintf('%s.%s', $url['path'], $asset['filetype']);
-            $url = url($url, ['query' => ['v' => $asset['version']]]);
-            return $url;
-          }
+    // Audio files.
+    if (!empty($asset['audiourl']['url'])) {
+      return url($asset['audiourl']['url']);
+    }
+    // Video files.
+    elseif (!empty($asset['videourls'][0]['url'])) {
+      return url($asset['videourls'][0]['url']);
+    }
+    // PDF files.
+    // Making an assumption here based on the embed markup that is included!
+    elseif ('application/pdf' == $mime && !empty($asset['thumbnailurls'][0]['url'])) {
+
+      // The embed code returned by the API uses the 550 thumbnail URL as the
+      // base for a CDN link to the document. We can construct that URL by
+      // combining a few elements.
+      foreach ($asset['thumbnailurls'] as $tn) {
+        if (550 == $tn['size']) {
+          $url = drupal_parse_url($tn['url']);
+          $url = sprintf('%s.%s', $url['path'], $asset['filetype']);
+          $url = url($url, ['query' => ['v' => $asset['version']]]);
+          return $url;
         }
       }
-      // Images and files that can have thumbnails created.
-      elseif (!empty($asset['thumbnailurls'][0]['url'])) {
-        return url($asset['thumbnailurls'][0]['url']);
-      }
-      // All other files (txt, docx, html, etc.).
-      else {
-
-      }
-
     }
-    return $this->uri;
+    // Images and files that can have thumbnails created.
+    elseif (!empty($asset['thumbnailurls'][0]['url'])) {
+      return url($asset['thumbnailurls'][0]['url']);
+    }
+
+    // All other files (txt, docx, html, etc.).
+    return url('webdam/asset/' . $asset['id']);
   }
 
   /**

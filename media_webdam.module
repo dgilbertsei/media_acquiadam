@@ -21,7 +21,46 @@ function media_webdam_menu() {
     'file' => 'includes/media_webdam.admin.inc',
   ];
 
+  $items['webdam/asset/%'] = [
+    'title' => '',
+    'description' => '',
+    'page callback' => 'media_webdam_asset_download_redirect',
+    'page arguments' => [2],
+    'access arguments' => TRUE,
+    'type' => MENU_CALLBACK,
+  ];
+
   return $items;
+}
+
+/**
+ * Menu callback for redirecting to asset download links.
+ *
+ * @param int $assetId
+ *   The asset ID.
+ *
+ * @return int
+ *   A menu response code.
+ */
+function media_webdam_asset_download_redirect($assetId) {
+
+  $asset = media_webdam_api_get_asset($assetId);
+  if (empty($asset)) {
+    return MENU_NOT_FOUND;
+  }
+
+  try {
+    $url = $asset->getDownloadUrl();
+    if (!empty($url['url'])) {
+      drupal_goto($url['url'], ['external' => TRUE], 303);
+    }
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam', $x);
+    drupal_set_message(t('Unable to get a download URL for @name.', ['@name' => $asset['name']]), 'error');
+  }
+
+  return MENU_ACCESS_DENIED;
 }
 
 /**
