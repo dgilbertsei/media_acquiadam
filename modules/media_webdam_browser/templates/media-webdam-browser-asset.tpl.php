@@ -10,7 +10,7 @@
  *  $thumbnail: The thumbnail markup to use.
  */
 ?>
-<div class="media-item" data-asset-type="<?php echo $asset['type'] ?>" data-asset-id="<?php echo $asset['id'] ?>">
+<div class="media-item" data-asset-type="<?php echo $asset['type'] ?>" data-asset-id="<?php echo $asset['id'] ?>" data-asset-status="<?php echo $asset['status'] ?>">
   <div class="media-thumbnail">
     <?php if ($asset['type'] == 'folder') : ?>
       <a href="<?php print $browser_url; ?>"><?php echo $thumbnail?></a>

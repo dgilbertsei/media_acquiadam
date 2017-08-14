@@ -5,3 +5,7 @@
   padding: 0;
   position: relative;
 }
+
+.media-item[data-asset-status="inactive"] .media-thumbnail img {
+  opacity: .2;
+}

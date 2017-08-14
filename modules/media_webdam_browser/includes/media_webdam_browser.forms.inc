@@ -290,9 +290,9 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
 
     $field = $element[$asset_id];
 
-    // We don't want to show a checkbox for folder assets as it doesn't make
-    // sense to select one in that scenario.
-    if ('folder' == $asset['type']) {
+    // We don't want to show a checkbox for folder or inactive assets as it d
+    // oesn't make sense to select one in that scenario.
+    if ('folder' == $asset['type'] || 'inactive' == $asset['status']) {
       $field['#access'] = FALSE;
     }
 
