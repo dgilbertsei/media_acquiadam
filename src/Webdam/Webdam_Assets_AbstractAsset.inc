@@ -181,17 +181,30 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
    * @return array|false
    *   The request response or FALSE on failure.
    */
-  public function getDownloadUrl(array $options = []) {
+  public function getDownload(array $options = []) {
 
     $this->requireId();
 
     $options += [
-      'sendNotificationsOff' => 1,
-      'trackDownloadsOff' => 1,
-      'geturl' => 1,
+      'sendNotificationsOff' => TRUE,
+      'trackDownloadsOff' => TRUE,
+      'geturl' => FALSE,
     ];
 
     return $this->request(sprintf('%s/%d/download', $this->getEndpointBase(), $this->asset['id']), $options);
+  }
+
+  /**
+   * Get the asset download URL.
+   *
+   * @return string|false
+   *   The asset download URL or FALSE on failure.
+   */
+  public function getDownloadUrl() {
+
+    $result = $this->getDownload(['geturl' => TRUE]);
+
+    return empty($result['url']) ? FALSE : $result['url'];
   }
 
   /**

@@ -30,7 +30,6 @@ class Webdam_Client {
    *   A pre-configured OAuth2 Client object.
    */
   public function __construct(OAuth2Client $oauth2Client) {
-
     $this->oauth2Client = $oauth2Client;
     $this->getToken();
   }
@@ -63,8 +62,22 @@ class Webdam_Client {
    */
   protected function getToken() {
     // Ensure we are authenticated.
-    $this->oauth2Client->getAccessToken(FALSE);
+    $this->authenticate();
     return $this->oauth2Client->token();
+  }
+
+  /**
+   * Returns the OAuth2 Client that is being wrapped.
+   *
+   * @return OAuth2\Client
+   *   The OAuth2 Client being used.
+   */
+  public function &getOAuth2Client() {
+    return $this->oauth2Client;
+  }
+
+  public function authenticate($allowRedirect = FALSE) {
+    return $this->oauth2Client->getAccessToken($allowRedirect);
   }
 
   /**
@@ -110,7 +123,8 @@ class Webdam_Client {
     // Webdam does not return proper error codes for different conditions, so
     // we can't do much beyond checking for "not a success".
     if (200 != $resp->code) {
-      throw new UnexpectedValueException(sprintf('(%d) %s response when accessing %s', $resp->code, $resp->data['message'], $url));
+      $msg = empty($resp->data['message']) ? $resp->error : $resp->data['message'];
+      throw new UnexpectedValueException(sprintf('(%d) %s response when accessing %s', $resp->code, $msg, $url));
     }
 
     return $resp->data;

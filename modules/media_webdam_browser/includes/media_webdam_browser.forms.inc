@@ -86,8 +86,8 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   // Used for building reset and other URLs to the current page.
   $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
 
-  $client = oauth2_client_load('webdam-server-auth');
-  $is_authed = $client->getAccessToken(!empty($qp['allow_auth']));
+  $client = Webdam_API::getClient();
+  $is_authed = $client->authenticate(!empty($qp['allow_auth']));
   unset($qp['allow_auth']);
 
   $is_search = !empty($form_state['values']['search']) && ($form_state['values']['op'] == $form_state['values']['search']);

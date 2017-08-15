@@ -24,8 +24,16 @@ function media_webdam_install() {
  * Implements hook_uninstall().
  */
 function media_webdam_uninstall() {
-  variable_del('media_webdam_client_id');
-  variable_del('media_webdam_client_secret');
+  $del = [
+    'media_webdam_client_id',
+    'media_webdam_client_secret',
+    'media_webdam_background_user',
+    'media_webdam_background_pass',
+    'media_webdam_client_mode',
+  ];
+  foreach ($del as $key) {
+    variable_del($key);
+  }
 
   if (db_field_exists('file_managed', 'webdam_id')) {
     $schema = drupal_get_schema('file_managed');

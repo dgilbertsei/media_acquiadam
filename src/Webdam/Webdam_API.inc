@@ -15,17 +15,25 @@ class Webdam_API {
    * @return Webdam_Client
    *   A client object.
    */
-  public static function getClient() {
+  public static function getClient($key = NULL) {
+
+    $client_mode = variable_get('media_webdam_client_mode', 'mixed');
+    if (empty($key) && 'mixed' == $client_mode) {
+      $key = 'webdam-server-auth';
+    }
+    elseif (empty($key) && 'background' == $client_mode) {
+      $key = 'webdam-user-auth';
+    }
 
     // Reuse the same client instance during the request.
     static $client;
-    if (empty($client)) {
+    if (empty($client[$key])) {
 
-      $oauth2_client = oauth2_client_load('webdam-server-auth');
-      $client = new Webdam_Client($oauth2_client);
+      $oauth2_client = oauth2_client_load($key);
+      $client[$key] = new Webdam_Client($oauth2_client);
     }
 
-    return $client;
+    return $client[$key];
   }
 
 }

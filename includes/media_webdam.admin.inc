@@ -10,16 +10,16 @@
  */
 function media_webdam_config_settings($form, &$form_state) {
 
-  $form['auth'] = [
+  $form['api'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
-    '#description' => t('Settings pertinent to API authentication.'),
+    '#description' => t('Information used for authenticating with the Webdam API in different scenarios.'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => FALSE,
   ];
 
-  $form['auth']['media_webdam_client_id'] = [
+  $form['api']['media_webdam_client_id'] = [
     '#type' => 'textfield',
     '#title' => t('Client ID'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_ID.'),
@@ -27,11 +27,69 @@ function media_webdam_config_settings($form, &$form_state) {
     '#required' => TRUE,
   ];
 
-  $form['auth']['media_webdam_client_secret'] = [
+  $form['api']['media_webdam_client_secret'] = [
     '#type' => 'textfield',
     '#title' => t('Client Secret'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_Secret.'),
     '#default_value' => variable_get('media_webdam_client_secret', ''),
+    '#required' => TRUE,
+  ];
+
+  $form['api']['media_webdam_client_mode'] = [
+    '#type' => 'select',
+    '#title' => t('Cient mode'),
+    '#description' => t('The API client mode to use when making requests. The mixed mode leverages a background API user for specific situations, but will hand off additional authentication to Webdam when necessary. The background only mode will use the background API user for all requests.'),
+    '#default_value' => variable_get('media_webdam_client_mode', 'mixed'),
+    '#options' => [
+      'mixed' => t('Mixed (default)'),
+      'background' => t('Background only'),
+    ],
+    '#required' => TRUE,
+  ];
+
+  $form['api']['background'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Background user'),
+    '#description' => t('The background user is a Webdam user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => FALSE,
+  ];
+
+  $user = variable_get('media_webdam_background_user');
+  $pass = variable_get('media_webdam_background_pass');
+  $needs_config = empty($user) || empty($pass);
+  if ($needs_config) {
+    $config_msg = t('Both %user-key and %pass-key must be configured in your settings.php file to enable complete functionality of this module.', [
+      '%user-key' => 'media_webdam_background_user',
+      '%pass-key' => 'media_webdam_background_pass',
+    ]);
+
+    $code = '<pre><code>$conf[\'media_webdam_background_user\'] = \'example.username\';';
+    $code .= PHP_EOL;
+    $code .= '$conf[\'media_webdam_background_pass\'] = \'example.password\';</code></pre>';
+
+    $form['api']['background']['#description'] .= '<p>' . $config_msg . '</p>';
+    $form['api']['background']['#description'] .= $code;
+
+    $form['api']['background']['#collapsed'] = FALSE;
+
+    drupal_set_message(t('Background user is missing configuration information.'), 'warning');
+  }
+
+  $form['api']['background']['username'] = [
+    '#type' => 'item',
+    '#title' => t('Username'),
+    '#description' => t('The user account being used for background access.'),
+    '#markup' => variable_get('media_webdam_background_user', t('Not configured!')),
+    '#required' => TRUE,
+  ];
+
+  $form['api']['background']['password'] = [
+    '#type' => 'item',
+    '#title' => t('Password'),
+    '#description' => t('The user password being used for background access.'),
+    '#markup' => variable_get('media_webdam_background_pass') ? t('Configured') : t('Not configured!'),
     '#required' => TRUE,
   ];
 

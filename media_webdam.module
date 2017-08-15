@@ -76,16 +76,29 @@ function media_webdam_oauth2_clients() {
   $client_url = $base_url;
   $server_url = variable_get('media_webdam_api_endpoint', 'https://apiv2.webdamdb.com');
 
-  // This setup redirects the user to the Webdam OAuth2 endpoint for
-  // authentication instead of passing username/password information from Drupal
-  // to Webdam.
-  $oauth2_clients['webdam-server-auth'] = [
-    'auth_flow' => 'server-side',
+  $base_auth = [
     'token_endpoint' => $server_url . '/oauth2/token',
     'client_id' => variable_get('media_webdam_client_id'),
     'client_secret' => variable_get('media_webdam_client_secret'),
+  ];
+
+  // This setup redirects the user to the Webdam OAuth2 endpoint for
+  // authentication instead of passing username/password information from Drupal
+  // to Webdam.
+  $oauth2_clients['webdam-server-auth'] = $base_auth + [
+    'auth_flow' => 'server-side',
     'authorization_endpoint' => $server_url . '/oauth2/authorize',
     'redirect_uri' => $client_url . '/oauth2/authorized',
+  ];
+
+  $oauth2_clients['webdam-user-auth'] = $base_auth + [
+    'auth_flow' => 'user-password',
+    'username' => variable_get('media_webdam_background_user', ''),
+    'password' => variable_get('media_webdam_background_pass', ''),
+  ];
+
+  $oauth2_clients['webdam-client-auth'] = $base_auth + [
+    'auth_flow' => 'client-credentials',
   ];
 
   return $oauth2_clients;
@@ -148,15 +161,20 @@ function media_webdam_cron() {
  */
 function media_webdam_asset_download_redirect($assetId) {
 
-  $asset = media_webdam_api_get_asset($assetId);
+  // Force the background user mode when serving files to anonymous users.
+  $client = user_is_anonymous() ?
+    Webdam_API::getClient('webdam-user-auth') :
+    NULL;
+
+  $asset = media_webdam_api_get_asset($assetId, ['client' => $client]);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
 
   try {
     $url = $asset->getDownloadUrl();
-    if (!empty($url['url'])) {
-      drupal_goto($url['url'], ['external' => TRUE], 303);
+    if (!empty($url)) {
+      drupal_goto($url, ['external' => TRUE], 303);
     }
   }
   catch (Exception $x) {
