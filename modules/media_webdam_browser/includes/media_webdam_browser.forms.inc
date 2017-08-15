@@ -23,9 +23,8 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#title' => t('Results per page'),
     '#description' => t('Controls the number of assets displayed per page.'),
     '#default_value' => variable_get('media_webdam_browser_per_page', 25),
-    '#element_validation' => ['element_validate_integer_positive'],
+    '#element_validate' => ['element_validate_integer_positive'],
     '#size' => 5,
-    '#required' => TRUE,
   ];
 
   $form['browser']['media_webdam_browser_thumbnail_size'] = [
@@ -34,12 +33,12 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#description' => t('The source remote thumbnail size to use when creating browser thumbnails locally.'),
     '#default_value' => 150,
     '#options' => [
-      100,
-      150,
-      220,
-      310,
-      550,
-      1280,
+      100 => 100,
+      150 => 150,
+      220 => 220,
+      310 => 310,
+      550 => t('550 (Medium)'),
+      1280 => 1280,
     ],
   ];
 }
