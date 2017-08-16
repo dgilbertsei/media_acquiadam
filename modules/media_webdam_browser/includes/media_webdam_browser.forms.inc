@@ -251,7 +251,6 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
   // its result and overwriting what we originally got.
   if ($is_root) {
     $initial_assets['total_count'] = count($initial_assets['assets']);
-    $initial_assets['assets'] = [];
 
     if (0 < $initial_assets['total_count']) {
       $chunked = array_chunk($initial_assets['assets'], $per_page);
