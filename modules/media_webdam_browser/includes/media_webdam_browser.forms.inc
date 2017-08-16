@@ -227,18 +227,22 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
   // doesn't support paging, so we need some special logic to handle faking it.
   $final_assets = [];
 
+  // Fake paging the results of the API for the root folder by splitting up
+  // its result and overwriting what we originally got.
   if ($is_root) {
-    // Fake paging the results of the API for the root folder by splitting up
-    // its result and overwriting what we originally got.
-    $chunked = array_chunk($initial_assets['assets'], $per_page);
-    $current = pager_find_page();
-    if ($current >= count($chunked)) {
-      $current = max(0, count($chunked) - 1);
-    }
     $initial_assets['total_count'] = count($initial_assets['assets']);
-    $initial_assets['assets'] = empty($chunked[$current]) ?
-      [] :
-      $chunked[$current];
+    $initial_assets['assets'] = [];
+
+    if (0 < $initial_assets['total_count']) {
+      $chunked = array_chunk($initial_assets['assets'], $per_page);
+      $current = pager_find_page();
+      if ($current >= count($chunked)) {
+        $current = max(0, count($chunked) - 1);
+      }
+      $initial_assets['assets'] = empty($chunked[$current]) ?
+        [] :
+        $chunked[$current];
+    }
   }
 
   $pager_total = $initial_assets['total_count'];
