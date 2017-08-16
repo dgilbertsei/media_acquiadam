@@ -180,7 +180,8 @@ function media_webdam_asset_download_redirect($assetId) {
   catch (Exception $x) {
     watchdog_exception('media_webdam', $x);
     drupal_set_message(t('Unable to get a download URL for @name.', ['@name' => $asset['name']]), 'error');
+    return MENU_ACCESS_DENIED;
   }
 
-  return MENU_ACCESS_DENIED;
+  return MENU_NOT_FOUND;
 }
