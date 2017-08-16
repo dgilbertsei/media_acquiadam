@@ -118,7 +118,9 @@ class Webdam_Client {
     $options['headers']['Authorization'] = sprintf('%s %s', ucfirst($auth_token['token_type']), $auth_token['access_token']);
 
     $resp = drupal_http_request($url, $options);
-    $resp->data = drupal_json_decode($resp->data);
+    if (!empty($resp->data)) {
+      $resp->data = drupal_json_decode($resp->data);
+    }
 
     // Webdam does not return proper error codes for different conditions, so
     // we can't do much beyond checking for "not a success".
