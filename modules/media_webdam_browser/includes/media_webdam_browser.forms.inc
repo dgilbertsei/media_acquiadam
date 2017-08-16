@@ -172,6 +172,26 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $form['results']['pager'] = ['#theme' => 'pager'];
 
+  try {
+    $me = $client->request('users/me');
+    if (!empty($me)) {
+      $user = $me['username'];
+    }
+    else {
+      $user = t('Not authenticated');
+    }
+  }
+  catch (Exception $x) {
+    // Not a big deal if this fails.
+    $user = t('Error');
+  }
+
+  $form['auth_info'] = [
+    '#type' => 'markup',
+    '#markup' => t('Authenticated as %user.', ['%user' => $user]),
+    '#access' => user_access('administer media webdam'),
+  ];
+
   $form['actions'] = [
     '#type' => 'actions',
     'submit' => [
