@@ -14,7 +14,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
     '#description' => t('Information used for authenticating with the Webdam API in different scenarios.'),
-    '#collapsible' => FALSE,
+    '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#tree' => FALSE,
   ];
@@ -53,7 +53,6 @@ function media_webdam_config_settings($form, &$form_state) {
     '#description' => t('The background user is a Webdam user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#tree' => FALSE,
   ];
 
   $user = variable_get('media_webdam_background_user');
@@ -91,6 +90,39 @@ function media_webdam_config_settings($form, &$form_state) {
     '#description' => t('The user password being used for background access.'),
     '#markup' => variable_get('media_webdam_background_pass') ? t('Configured') : t('Not configured!'),
     '#required' => TRUE,
+  ];
+
+  $form['cache'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Caching'),
+    '#description' => t('Some asset information is stored locally for performance reasons. This cached information is updated and cleared periodically as necessary. You can force all of this information to be cleared by clicking below. Information will be recached the next time the asset is viewed.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  ];
+
+
+  if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {
+    drupal_set_message(t('Cleared cached asset information.'), 'status');
+    db_delete('webdam_asset_cache')->execute();
+
+    if (module_exists('imagecache_external')) {
+      imagecache_external_flush_cache();
+    }
+  }
+
+  $count = db_select('webdam_asset_cache')
+    ->countQuery()
+    ->execute()
+    ->fetchField();
+  $form['cache']['count'] = [
+    '#type' => 'item',
+    '#markup' => format_plural($count, 'There is 1 cached item.', 'There are @count cached items.'),
+  ];
+
+  $form['cache']['clear'] = [
+    '#type' => 'button',
+    '#value' => t('Clear'),
+    '#name' => 'clear',
   ];
 
   return system_settings_form($form);
