@@ -188,8 +188,18 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
   protected static function getAssetById($id) {
 
     module_load_include('inc', 'media_webdam', 'includes/media_webdam.helpers');
-    $cache = media_webdam_api_get_asset_cache($id);
-    return $cache;
+    try {
+      $asset = media_webdam_api_get_asset($id);
+    }
+    catch (Exception $x) {
+      watchdog_exception('webdam_stream_wrapper', $x);
+      drupal_set_message(t('@class: Unable to load remote asset: @id.', [
+        '@class' => __CLASS__,
+        '@id' => $id,
+      ]), 'warning');
+    }
+
+    return $asset;
   }
 
 }
