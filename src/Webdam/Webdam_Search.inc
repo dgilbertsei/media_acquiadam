@@ -50,6 +50,7 @@ class Webdam_Search {
       'offset' => 0,
       'types' => '',
       'searchfield' => '',
+      'facets' => 'all',
     ];
 
     if (is_array($options['types'])) {

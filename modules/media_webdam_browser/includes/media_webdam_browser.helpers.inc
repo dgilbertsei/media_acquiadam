@@ -118,32 +118,28 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
  */
 function media_webdam_browser_get_initial_assets($folderId, array $form_state, $perPage) {
 
-  $is_search = !empty($form_state['values']['search']) && ($form_state['values']['op'] == $form_state['values']['search']);
+  $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
 
-  $result = $is_search ?
-    media_webdam_browser_get_search_results($folderId, $form_state, $perPage) :
+  $result = !empty($qp['search']) ?
+    media_webdam_browser_get_search_results($folderId, $qp['search'], $form_state, $perPage) :
     media_webdam_browser_get_children($folderId, $perPage);
 
   return $result;
 }
 
-function media_webdam_browser_get_search_results($folderId, array $form_state, $perPage) {
+function media_webdam_browser_get_search_results($folderId, array $search, array $form_state, $perPage) {
   $child_assets = [
     'assets' => [],
     'total_count' => 0,
   ];
 
-  $keywords = !empty($form_state['values']['keywords']) ?
-    $form_state['values']['keywords'] :
-    '';
-  $types = !empty($form_state['values']['type_filter']) ?
-    $form_state['values']['type_filter'] :
-    '';
+  $keywords = !empty($search['keywords']) ? $search['keywords'] : '';
+  $types = !empty($search['type']) ? $search['type'] : '';
 
   try {
     $options = [
       'folderid' => $folderId,
-      'limit' => 100,
+      'limit' => $perPage,
       'offset' => pager_find_page() * $perPage,
       'types' => $types,
     ];
@@ -163,4 +159,21 @@ function media_webdam_browser_get_search_results($folderId, array $form_state, $
   }
 
   return $child_assets;
+}
+
+function media_webdam_browser_fake_paged_root(array $initial_assets, $per_page) {
+  $initial_assets['total_count'] = count($initial_assets['assets']);
+
+  if (0 < $initial_assets['total_count']) {
+    $chunked = array_chunk($initial_assets['assets'], $per_page);
+    $current = pager_find_page();
+    if ($current >= count($chunked)) {
+      $current = max(0, count($chunked) - 1);
+    }
+    $initial_assets['assets'] = empty($chunked[$current]) ?
+      [] :
+      $chunked[$current];
+  }
+
+  return $initial_assets;
 }

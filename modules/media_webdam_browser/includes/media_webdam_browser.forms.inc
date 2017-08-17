@@ -90,12 +90,13 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   $is_authed = $client->authenticate(!empty($qp['allow_auth']));
   unset($qp['allow_auth']);
 
-  $is_search = !empty($form_state['values']['search']) && ($form_state['values']['op'] == $form_state['values']['search']);
+  $search = !empty($qp['search']) ? $qp['search'] : [];
+  unset($qp['search']);
   $form['search'] = [
     '#type' => 'fieldset',
     '#title' => t('Search'),
     '#collapsible' => TRUE,
-    '#collapsed' => !$is_search,
+    '#collapsed' => empty($search),
     '#description' => t('You may search for assets by name, metadata, and other properties. If you have navigated into a folder then the search is limited to that folder and below.'),
     '#access' => !empty($is_authed),
   ];
@@ -103,6 +104,8 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   $form['search']['keywords'] = [
     '#type' => 'textfield',
     '#title' => t('Keywords'),
+    '#description' => t('Refine your search using operations like AND, OR, * and -.'),
+    '#default_value' => !empty($search['keywords']) ? $search['keywords'] : '',
   ];
 
   $form['search']['type_filter'] = [
@@ -117,6 +120,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
       'presentation' => t('Presentations'),
       'other' => t('Other'),
     ],
+    '#default_value' => !empty($search['type']) ? $search['type'] : '',
   ];
 
   // Gives the user a way to easily reset their search without losing their
@@ -126,12 +130,13 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#title' => t('Reset'),
     '#href' => current_path(),
     '#options' => ['query' => $qp],
-    '#access' => $is_search,
+    '#access' => !empty($search),
   ];
 
   $form['search']['search'] = [
     '#type' => 'submit',
     '#value' => t('Search'),
+    '#name' => 'search',
   ];
 
   $form['results'] = [
@@ -233,6 +238,7 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
     $qp['folderId'];
   $per_page = variable_get('media_webdam_browser_per_page', 25);
   $is_root = empty($folderId) || Webdam_Assets_Folder::ROOT_FOLDER_ID == $folderId;
+  $is_search = !empty($qp['search']);
 
   // We're not under the root folder so show the breadcrumb trail.
   // This allows users to navigate back up a level if they need to.
@@ -243,38 +249,20 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
   }
 
   $initial_assets = media_webdam_browser_get_initial_assets($folderId, $form_state, $per_page);
-  // Initial assets and final assets are split because the root folder listing
-  // doesn't support paging, so we need some special logic to handle faking it.
-  $final_assets = [];
 
   // Fake paging the results of the API for the root folder by splitting up
   // its result and overwriting what we originally got.
-  if ($is_root) {
-    $initial_assets['total_count'] = count($initial_assets['assets']);
-
-    if (0 < $initial_assets['total_count']) {
-      $chunked = array_chunk($initial_assets['assets'], $per_page);
-      $current = pager_find_page();
-      if ($current >= count($chunked)) {
-        $current = max(0, count($chunked) - 1);
-      }
-      $initial_assets['assets'] = empty($chunked[$current]) ?
-        [] :
-        $chunked[$current];
-    }
+  if ($is_root && !$is_search) {
+    $initial_assets = media_webdam_browser_fake_paged_root($initial_assets, $per_page);
   }
 
-  $pager_total = $initial_assets['total_count'];
-  $final_assets = $initial_assets['assets'];
-  pager_default_initialize($pager_total, $per_page);
-
-  if (!empty($final_assets)) {
+  if (!empty($initial_assets['assets'])) {
     $result_assets = &$form['results']['assets'];
 
     // Hide the 'no assets' message.
     $form['results']['empty_message']['#access'] = FALSE;
 
-    foreach ($final_assets as $asset) {
+    foreach ($initial_assets['assets'] as $asset) {
       $result_assets['#options'][$asset['id']] = $asset['name'];
       $result_assets['#assets'][$asset['id']] = $asset->toArray();
     }
@@ -287,6 +275,8 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
     }, $result_assets['#assets']);
     $form_state['storage']['assets'] = array_combine($keys, $result_assets['#assets']);
   }
+
+  pager_default_initialize($initial_assets['total_count'], $per_page);
 }
 
 /**
@@ -375,8 +365,17 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
 function media_webdam_browser_choose_asset_form_submit(array &$form, array &$form_state) {
   // When we are searching we don't need to do any other processing in the
   // submit handler. Just rebuild the form and leave.
-  if ($form_state['values']['op'] == $form_state['values']['search']) {
-    $form_state['rebuild'] = TRUE;
+  $is_search = !empty($form_state['triggering_element']) && $form_state['triggering_element']['#name'] == 'search';
+  if ($is_search) {
+    $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+    $qp['search'] = [
+      'keywords' => $form_state['values']['keywords'],
+      'type' => $form_state['values']['type_filter'],
+    ];
+    $form_state['redirect'] = [
+      current_path(),
+      ['query' => $qp],
+    ];
     return;
   }
 
