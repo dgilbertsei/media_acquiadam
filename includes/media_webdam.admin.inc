@@ -10,12 +10,15 @@
  */
 function media_webdam_config_settings($form, &$form_state) {
 
+  $client_id = variable_get('media_webdam_client_id', '');
+  $client_secret = variable_get('media_webdam_client_secret', '');
+
   $form['api'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
     '#description' => t('Information used for authenticating with the Webdam API in different scenarios.'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    '#collapsed' => !empty($client_id) && !empty($client_secret),
     '#tree' => FALSE,
   ];
 
@@ -23,7 +26,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Client ID'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_ID.'),
-    '#default_value' => variable_get('media_webdam_client_id', ''),
+    '#default_value' => $client_id,
     '#required' => TRUE,
   ];
 
@@ -31,7 +34,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Client Secret'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_Secret.'),
-    '#default_value' => variable_get('media_webdam_client_secret', ''),
+    '#default_value' => $client_secret,
     '#required' => TRUE,
   ];
 
@@ -45,6 +48,20 @@ function media_webdam_config_settings($form, &$form_state) {
       'background' => t('Background only'),
     ],
     '#required' => TRUE,
+  ];
+
+  $form['api']['client_warning'] = [
+    '#type' => 'container',
+    '#states' => [
+      'visible' => [
+        ':input#edit-media-webdam-client-mode' => ['value' => 'mixed'],
+      ],
+    ],
+    'message' => [
+      '#markup' => '<p>' . t('In mixed mode it is possible for a user to add an asset that the API user does not have access to. Please ensure the API user has access to both view and download any assets that are expected to be used on the website.') . '</p>',
+      '#prefix' => '<div class="messages warning">',
+      '#suffix' => '</div>',
+    ],
   ];
 
   $form['api']['background'] = [
@@ -72,6 +89,7 @@ function media_webdam_config_settings($form, &$form_state) {
     $form['api']['background']['#description'] .= $code;
 
     $form['api']['background']['#collapsed'] = FALSE;
+    $form['api']['#collapsed'] = FALSE;
 
     drupal_set_message(t('Background user is missing configuration information.'), 'warning');
   }
@@ -99,7 +117,6 @@ function media_webdam_config_settings($form, &$form_state) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   ];
-
 
   if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {
     drupal_set_message(t('Cleared cached asset information.'), 'status');

@@ -13,8 +13,8 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#type' => 'fieldset',
     '#title' => t('Media Browser'),
     '#description' => t('Settings pertinent to the Media browser.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
     '#tree' => FALSE,
   ];
 
