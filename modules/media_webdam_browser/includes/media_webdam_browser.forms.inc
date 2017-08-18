@@ -44,31 +44,6 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
- */
-function media_webdam_browser_form_file_entity_add_upload_alter(&$form, &$form_state) {
-  $step = $form['#step'];
-  $options = $form['#options'];
-
-  array_unshift($form['#submit'], 'media_webdam_browser_add_upload_submit');
-}
-
-/**
- * Submit handler for the add file form.
- */
-function media_webdam_browser_add_upload_submit(array $form, array &$form_state) {
-  $step = $form['#step'];
-  $options = $form['#options'];
-
-  if (!empty($form_state['storage']['upload'])) {
-    $file = file_load($form_state['storage']['upload']);
-    if ($file) {
-
-    }
-  }
-}
-
-/**
  * Webdam browser form.
  *
  * @param array $form
