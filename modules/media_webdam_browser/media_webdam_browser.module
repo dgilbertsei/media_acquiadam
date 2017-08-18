@@ -29,7 +29,7 @@ function media_webdam_browser_menu() {
     'title' => 'Saved Webdam assets',
     'page callback' => 'media_webdam_browser_choose_asset_saved_landing_page',
     'access callback' => 'media_webdam_browser_access',
-    'file' => 'includes/media_webdam_browser.forms.inc',
+    'file' => 'includes/media_webdam_browser.pages.inc',
     'type' => MENU_CALLBACK,
   ];
 
