@@ -253,7 +253,7 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
 
   // Fake paging the results of the API for the root folder by splitting up
   // its result and overwriting what we originally got.
-  if ($is_root && !$is_search) {
+  if ($is_root && !$is_search && is_array($initial_assets)) {
     $initial_assets = media_webdam_browser_fake_paged_root($initial_assets, $per_page);
   }
 
