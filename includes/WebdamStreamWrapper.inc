@@ -44,6 +44,11 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
     // Translate our webdam:// uri into a remote URL before we make the request.
     $uri = file_create_url($this->uri);
 
+    $scheme = file_uri_scheme($uri);
+    if (empty($scheme)) {
+      $uri = url($uri, ['absolute' => TRUE]);
+    }
+
     $stat = array();
     $request = drupal_http_request($uri, array('method' => 'HEAD'));
 
