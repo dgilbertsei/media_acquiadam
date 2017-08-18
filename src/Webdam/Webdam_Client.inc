@@ -98,7 +98,7 @@ class Webdam_Client {
    *   TRUE if authenticated, FALSE otherwise.
    */
   public function isAuthenticated() {
-    $token = $this->getToken();
+    $token = $this->oauth2Client->token();
     return !empty($token['access_token']);
   }
 

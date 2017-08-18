@@ -59,14 +59,13 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
 function media_webdam_browser_choose_asset_form(array $form, array &$form_state, array $options = []) {
 
   // Used for building reset and other URLs to the current page.
-  $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+  $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'code']);
 
   $client = Webdam_API::getClient();
-  $is_authed = $client->isAuthenticated();
   $is_authing = !empty($qp['aa']) || !empty($qp['state']);
-  $needs_auth = empty($is_authed) && !$client->hasAuthenticationError();
+  $needs_auth = !$client->isAuthenticated() && !$client->hasAuthenticationError();
   if ($needs_auth && $is_authing) {
-    $is_authed = $client->authenticate(TRUE);
+    $client->authenticate(TRUE);
   }
 
   $search = !empty($qp['search']) ? $qp['search'] : [];
@@ -77,7 +76,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#collapsible' => TRUE,
     '#collapsed' => empty($search),
     '#description' => t('You may search for assets by name, metadata, and other properties. If you have navigated into a folder then the search is limited to that folder and below.'),
-    '#access' => !empty($is_authed),
+    '#access' => $client->isAuthenticated(),
   ];
 
   $form['search']['keywords'] = [
@@ -104,11 +103,15 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   // Gives the user a way to easily reset their search without losing their
   // place.
+  $cancel_query = [];
+  if (!empty($qp['folderId'])) {
+    $cancel_query['folderId'] = $qp['folderId'];
+  }
   $form['search']['cancel'] = [
     '#type' => 'link',
     '#title' => t('Reset'),
     '#href' => current_path(),
-    '#options' => ['query' => $qp],
+    '#options' => ['query' => $cancel_query],
     '#access' => !empty($search),
   ];
 
@@ -156,22 +159,24 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $form['results']['pager'] = ['#theme' => 'pager'];
 
-  $user = t('Not authenticated');
   try {
     $me = $client->getUser();
-    if (!empty($me['username'])) {
-      $user = $me['username'];
-    }
+    $user = !empty($me['username']) ?
+      $me['username'] :
+      t('Not authenticated');
   }
   catch (Exception $x) {
     // Not a big deal if this fails.
     $user = t('Error');
   }
-
-  $form['auth_info'] = [
-    '#type' => 'markup',
-    '#markup' => '<p>' . t('Authenticated as %user.', ['%user' => $user]) . '</p>',
+  $form['admin'] = [
+    '#type' => 'container',
     '#access' => user_access('administer media webdam'),
+    'user' => [
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('Authenticated as %user.', ['%user' => $user]) . '</p>',
+      '#access' => user_access('administer media webdam'),
+    ],
   ];
 
   $form['actions'] = [
@@ -179,11 +184,11 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     'submit' => [
       '#type' => 'submit',
       '#value' => t('Submit'),
-      '#access' => !empty($is_authed),
+      '#access' => $client->isAuthenticated(),
     ],
   ];
 
-  if (!empty($is_authed)) {
+  if ($client->isAuthenticated()) {
     media_webdam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
   }
   else {
