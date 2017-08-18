@@ -174,7 +174,7 @@ function media_webdam_asset_download_redirect($assetId) {
   try {
     $url = $asset->getDownloadUrl();
     if (!empty($url)) {
-      drupal_goto($url, ['external' => TRUE], 303);
+      drupal_goto($url, ['external' => TRUE], 307);
     }
   }
   catch (Exception $x) {
