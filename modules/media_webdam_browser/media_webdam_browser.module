@@ -33,6 +33,15 @@ function media_webdam_browser_menu() {
     'type' => MENU_CALLBACK,
   ];
 
+  $items['user/%user/webdam/deauth'] = [
+    'title' => 'Clear DAM access token',
+    'description' => 'Removes the current users DAM OAuth2 access token.',
+    'page callback' => 'media_webdam_browser_deauth_page',
+    'access arguments' => ['access media webdam browser'],
+    'file' => 'includes/media_webdam_browser.pages.inc',
+    'type' => MENU_LOCAL_ACTION,
+  ];
+
   return $items;
 }
 

@@ -170,12 +170,19 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     $user = t('Error');
   }
   $form['admin'] = [
-    '#type' => 'container',
+    '#type' => 'fieldset',
+    '#title' => t('Administration options'),
+    '#description' => t('Only Drupal DAM administrators can see these options.'),
     '#access' => user_access('administer media webdam'),
     'user' => [
       '#type' => 'markup',
       '#markup' => '<p>' . t('Authenticated as %user.', ['%user' => $user]) . '</p>',
-      '#access' => user_access('administer media webdam'),
+    ],
+    'clear' => [
+      '#type' => 'markup',
+      '#markup' => '<p>' . l(t('Clear access token'), 'user/' . $GLOBALS['user']->uid . '/webdam/deauth', [
+        'query' => ['destination' => current_path()],
+      ]) . '</p>',
     ],
   ];
 

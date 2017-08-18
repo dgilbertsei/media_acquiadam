@@ -48,3 +48,38 @@ function media_webdam_browser_choose_asset_saved_landing_page($selected = NULL) 
 
   return $build;
 }
+
+/**
+ * Clears the current user's authentication token.
+ *
+ * @return array
+ *   A page render array.
+ */
+function media_webdam_browser_deauth_page($account = NULL) {
+
+  try {
+    $client = Webdam_API::getClient('webdam-server-auth');
+    $client->getOAuth2Client()->clearToken();
+    unset($_SESSION['oauth2_client']);
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam_browser', $x);
+    drupal_set_message(t('There was a problem clearing the token.'), 'error');
+  }
+
+  $success_message = t('Your OAuth2 DAM access token has been cleared.');
+
+  if (!empty($_GET['destination'])) {
+    drupal_set_message($success_message, 'status');
+    drupal_goto($_GET['destination']);
+  }
+
+  $build = [];
+
+  $build['message'] = [
+    '#type' => 'markup',
+    '#markup' => '<p>' . $success_message . '</p>',
+  ];
+
+  return $build;
+}
