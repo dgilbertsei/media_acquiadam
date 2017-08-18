@@ -79,9 +79,6 @@ function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache
 
   $result = FALSE;
 
-  $client = Webdam_API::getClient('webdam-user-auth');
-  $depends = ['client' => $client];
-
   switch ($type) {
     case 'folder':
       $result = new Webdam_Assets_Folder($create_arg, $depends);
