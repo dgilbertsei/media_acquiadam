@@ -183,6 +183,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
       '#markup' => '<p>' . l(t('Clear access token'), 'user/' . $GLOBALS['user']->uid . '/webdam/deauth', [
         'query' => ['destination' => current_path()],
       ]) . '</p>',
+      '#access' => variable_get('media_webdam_client_mode') == 'mixed',
     ],
   ];
 
