@@ -133,7 +133,8 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
     }
     // Images and files that can have thumbnails created.
     elseif (!empty($asset['thumbnailurls'][0]['url'])) {
-      return url($asset['thumbnailurls'][0]['url']);
+      $last = end($asset['thumbnailurls']);
+      return url($last['url']);
     }
 
     // All other files (txt, docx, html, etc.).
