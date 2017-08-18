@@ -78,7 +78,7 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
       $asset_types = $folder->getAssets(array(
         'limit' => $perPage,
         'offset' => pager_find_page() * $perPage,
-      ));
+      ), TRUE);
       $result['total_count'] = $asset_types['total_count'];
     }
     catch (Exception $x) {
@@ -93,6 +93,10 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
   // distinction on the browser side, so combine them into a singular array and
   // return that instead.
   if (!empty($asset_types['folders'])) {
+    // Filter out empty folders.
+    $asset_types['folders'] = array_filter($asset_types['folders'], function ($folder) {
+      return 0 < ($folder['numassets'] + $folder['numchildren']);
+    });
     $result['assets'] = array_merge($result['assets'], $asset_types['folders']);
   }
   if (!empty($asset_types['items'])) {

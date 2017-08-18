@@ -50,11 +50,13 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
    *
    * @param array $options
    *   Options to pass to the API request.
+   * @param bool $fullyLoad
+   *   TRUE to fully load returned assets.
    *
    * @return array
    *   An array containing child folders and asset items.
    */
-  public function getAssets(array $options = []) {
+  public function getAssets(array $options = [], $fullyLoad = FALSE) {
 
     $this->requireId();
 
@@ -66,15 +68,17 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
     ];
 
     $result = $this->request(sprintf('folders/%d/assets', $this->asset['id']), $options);
-    if (!empty($result['items']) && is_array($result['items'])) {
-      $result['items'] = array_map(function ($item) {
-        return new Webdam_Assets_Asset($item, $this->depends);
-      }, $result['items']);
-    }
-    if (!empty($result['folders']) && is_array($result['folders'])) {
-      $result['folders'] = array_map(function ($item) {
-        return new static($item, $this->depends);
-      }, $result['folders']);
+    $mapping = [
+      'items' => 'Webdam_Assets_Asset',
+      'folders' => 'Webdam_Assets_Folder',
+    ];
+    foreach ($mapping as $key => $class) {
+      if (!empty($result[$key]) && is_array($result[$key])) {
+        $result[$key] = array_map(function ($item) use ($class, $fullyLoad) {
+          $id = $fullyLoad ? $item['id'] : $item;
+          return new $class($id, $this->depends);
+        }, $result[$key]);
+      }
     }
 
     return $result;
