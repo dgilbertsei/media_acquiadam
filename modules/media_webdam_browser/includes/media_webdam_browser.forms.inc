@@ -88,7 +88,9 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $client = Webdam_API::getClient();
   $is_authed = $client->isAuthenticated();
-  if (empty($is_authed) && !empty($qp['aa'])) {
+  $is_authing = !empty($qp['aa']) || !empty($qp['state']);
+  $needs_auth = empty($is_authed) && !$client->hasAuthenticationError();
+  if ($needs_auth && $is_authing) {
     $is_authed = $client->authenticate(TRUE);
   }
 

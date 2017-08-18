@@ -103,6 +103,18 @@ class Webdam_Client {
   }
 
   /**
+   * Check if there was an authentication error.
+   *
+   * @return bool|string
+   *   The authentication error key or FALSE if there is no error.
+   */
+  public function hasAuthenticationError() {
+    $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+
+    return empty($qp['error']) ? FALSE : $qp['error'];
+  }
+
+  /**
    * Get the user the client is authenticated as.
    *
    * @return array|false
