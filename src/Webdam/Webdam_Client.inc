@@ -62,7 +62,7 @@ class Webdam_Client {
    */
   protected function getToken() {
     // Ensure we are authenticated.
-    $this->authenticate();
+    $this->authenticate(FALSE);
     return $this->oauth2Client->token();
   }
 
@@ -76,8 +76,41 @@ class Webdam_Client {
     return $this->oauth2Client;
   }
 
-  public function authenticate($allowRedirect = FALSE) {
+  /**
+   * Authenticate the client.
+   *
+   * @param bool $allowRedirect
+   *   TRUE to allow redirection. Used for server side authentication.
+   *
+   * @return string|null
+   *   The authentication token or NULL.
+   *
+   * @see \OAuth2\Client::getAccessToken
+   */
+  public function authenticate($allowRedirect = TRUE) {
     return $this->oauth2Client->getAccessToken($allowRedirect);
+  }
+
+  /**
+   * Check if the client is authenticated.
+   *
+   * @return bool
+   *   TRUE if authenticated, FALSE otherwise.
+   */
+  public function isAuthenticated() {
+    $token = $this->getToken();
+    return !empty($token['access_token']);
+  }
+
+  /**
+   * Get the user the client is authenticated as.
+   *
+   * @return array|false
+   *   The user information or FALSE on no user.
+   */
+  public function getUser() {
+    $user = $this->request('users/me');
+    return empty($user['username']) ? FALSE : $user;
   }
 
   /**

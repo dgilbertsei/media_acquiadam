@@ -87,8 +87,10 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
 
   $client = Webdam_API::getClient();
-  $is_authed = $client->authenticate(!empty($qp['allow_auth']));
-  unset($qp['allow_auth']);
+  $is_authed = $client->isAuthenticated();
+  if (empty($is_authed) && !empty($qp['aa'])) {
+    $is_authed = $client->authenticate(TRUE);
+  }
 
   $search = !empty($qp['search']) ? $qp['search'] : [];
   unset($qp['search']);
@@ -177,13 +179,11 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $form['results']['pager'] = ['#theme' => 'pager'];
 
+  $user = t('Not authenticated');
   try {
-    $me = $client->request('users/me');
-    if (!empty($me)) {
+    $me = $client->getUser();
+    if (!empty($me['username'])) {
       $user = $me['username'];
-    }
-    else {
-      $user = t('Not authenticated');
     }
   }
   catch (Exception $x) {
@@ -193,7 +193,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $form['auth_info'] = [
     '#type' => 'markup',
-    '#markup' => t('Authenticated as %user.', ['%user' => $user]),
+    '#markup' => '<p>' . t('Authenticated as %user.', ['%user' => $user]) . '</p>',
     '#access' => user_access('administer media webdam'),
   ];
 
@@ -210,9 +210,8 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     media_webdam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
   }
   else {
-    $auth_query = ['allow_auth' => TRUE] + $qp;
     drupal_set_message(t('The Webdam browser does not have access to your Webdam account. <a href="@auth-url">Please click here to authorize access to Webdam.</a>', [
-      '@auth-url' => url(current_path(), ['query' => $auth_query]),
+      '@auth-url' => url(current_path(), ['query' => ['aa' => TRUE]]),
     ]), 'warning');
   }
 
@@ -231,7 +230,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
  */
 function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array &$form_state, array $options = []) {
 
-  $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+  $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
 
   $folderId = empty($qp['folderId']) ?
     Webdam_Assets_Folder::ROOT_FOLDER_ID :
@@ -367,7 +366,7 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
   // submit handler. Just rebuild the form and leave.
   $is_search = !empty($form_state['triggering_element']) && $form_state['triggering_element']['#name'] == 'search';
   if ($is_search) {
-    $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+    $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
     $qp['search'] = [
       'keywords' => $form_state['values']['keywords'],
       'type' => $form_state['values']['type_filter'],

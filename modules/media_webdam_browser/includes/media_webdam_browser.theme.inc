@@ -32,7 +32,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
 
   $asset = $variables['asset'];
 
-  $query = drupal_get_query_parameters(NULL, ['q', 'page', 'folderId']);
+  $query = drupal_get_query_parameters(NULL, ['q', 'page', 'folderId', 'aa']);
   $query['folderId'] = $asset['id'];
   // Create a URL for the current page that includes the folder ID so the media
   // browser can filter appropriately.
@@ -79,7 +79,7 @@ function theme_media_webdam_browser_trail(array $variables) {
 
   $link_opts = [
     'attributes' => ['data-asset-type' => 'folder'],
-    'query' => drupal_get_query_parameters(NULL, ['q', 'page', 'folderId']),
+    'query' => drupal_get_query_parameters(NULL, ['q', 'page', 'folderId', 'aa']),
   ];
 
   $links = [];

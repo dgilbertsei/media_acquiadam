@@ -118,7 +118,7 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
  */
 function media_webdam_browser_get_initial_assets($folderId, array $form_state, $perPage) {
 
-  $qp = drupal_get_query_parameters(NULL, ['q', 'page']);
+  $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
 
   $result = !empty($qp['search']) ?
     media_webdam_browser_get_search_results($folderId, $qp['search'], $form_state, $perPage) :
