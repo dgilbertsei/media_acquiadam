@@ -69,14 +69,14 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
 
     $result = $this->request(sprintf('folders/%d/assets', $this->asset['id']), $options);
     $mapping = [
-      'items' => 'Webdam_Assets_Asset',
-      'folders' => 'Webdam_Assets_Folder',
+      'items' => 'asset',
+      'folders' => 'folder',
     ];
-    foreach ($mapping as $key => $class) {
+    foreach ($mapping as $key => $type) {
       if (!empty($result[$key]) && is_array($result[$key])) {
-        $result[$key] = array_map(function ($item) use ($class, $fullyLoad) {
+        $result[$key] = array_map(function ($item) use ($type, $fullyLoad) {
           $id = $fullyLoad ? $item['id'] : $item;
-          return new $class($id, $this->depends);
+          return media_webdam_api_get_helper($type, $id, $this->depends);
         }, $result[$key]);
       }
     }
