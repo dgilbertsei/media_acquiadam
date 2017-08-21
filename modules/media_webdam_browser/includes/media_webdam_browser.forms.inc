@@ -414,31 +414,25 @@ function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, arr
 
   $saved_fids = [];
 
-  try {
-    foreach ($assetIds as $assetId) {
+  foreach ($assetIds as $assetId) {
 
-      // Load the remote asset if it wasn't already.
-      $asset = !empty($loadedAssets[$assetId]) ?
-        media_webdam_api_get_asset($loadedAssets[$assetId]) :
-        media_webdam_api_get_asset($assetId);
+    // Load the remote asset if it wasn't already.
+    $asset = !empty($loadedAssets[$assetId]) ?
+      media_webdam_api_get_asset($loadedAssets[$assetId]) :
+      media_webdam_api_get_asset($assetId);
 
-      if (empty($asset)) {
-        watchdog('media_webdam', 'Unable to load asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
-        continue;
-      }
-
-      $file = media_webdam_api_create_webdam_file($asset);
-      if (!empty($file->fid)) {
-        $saved_fids[] = $file->fid;
-      }
-      else {
-        watchdog('media_webdam', 'Unable to create file for asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
-      }
+    if (empty($asset)) {
+      watchdog('media_webdam', 'Unable to load asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
+      continue;
     }
-  }
-  catch (Exception $x) {
-    drupal_set_message($x->getMessage(), 'error');
-    watchdog_exception('media_webdam', $x);
+
+    $file = media_webdam_api_create_webdam_file($asset);
+    if (!empty($file->fid)) {
+      $saved_fids[] = $file->fid;
+    }
+    else {
+      watchdog('media_webdam', 'Unable to create file for asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
+    }
   }
 
   return $saved_fids;
