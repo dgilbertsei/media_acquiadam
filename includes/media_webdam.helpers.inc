@@ -26,27 +26,13 @@ function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignore
     return FALSE;
   }
 
-  if (empty($ignoreExisting)) {
+  $uri = sprintf('webdam://%d.%s', $asset['id'], $asset['filetype']);;
+  $file = file_uri_to_object($uri, TRUE);
 
-    $result = media_webdam_api_get_file_by_asset_id($asset['id']);
-    if (!empty($result->fid)) {
-      $file = file_load($result->fid);
-    }
-  }
-
-  if (empty($file->fid)) {
-
+  if (!empty($file) && empty($file->fid)) {
     media_webdam_api_set_asset_cache($asset);
-
-    $file = new stdClass();
-    $file->fid = NULL;
-    $file->uri = sprintf('webdam://%d.%s', $asset['id'], $asset['filetype']);
     $file->filename = drupal_basename($asset['name']);
-    $file->filemime = file_get_mimetype($file->uri);
-    $file->uid = $user->uid;
-    $file->status = FILE_STATUS_PERMANENT;
     $file->webdam_id = $asset['id'];
-
     file_save($file);
   }
 

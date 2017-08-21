@@ -41,19 +41,31 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
    * {@inheritDoc}
    */
   public function stream_stat() {
-    // Translate our webdam:// uri into a remote URL before we make the request.
-    $uri = file_create_url($this->uri);
 
-    $scheme = file_uri_scheme($uri);
-    if (empty($scheme)) {
-      $uri = url($uri, ['absolute' => TRUE]);
+    $stat = [];
+
+    // Skip looking up the size if we already have it stored locally.
+    // If we don't do this then file listing pages can issue several requests
+    // and have a delay in loading.
+    $files = entity_load('file', FALSE, array('uri' => $this->uri));
+    $file = !empty($files) ? reset($files) : FALSE;
+    if (!empty($file->filesize)) {
+      $stat = ['size' => $file->filesize];
     }
+    else {
+      // Translate our webdam:// uri into a remote URL before we make the
+      // request.
+      $uri = file_create_url($this->uri);
 
-    $stat = array();
-    $request = drupal_http_request($uri, array('method' => 'HEAD'));
+      $scheme = file_uri_scheme($uri);
+      if (empty($scheme)) {
+        $uri = url($uri, ['absolute' => TRUE]);
+      }
 
-    if (empty($request->error) && isset($request->headers['content-length'])) {
-      $stat['size'] = $request->headers['content-length'];
+      $request = drupal_http_request($uri, array('method' => 'HEAD'));
+      if (empty($request->error) && isset($request->headers['content-length'])) {
+        $stat['size'] = $request->headers['content-length'];
+      }
     }
 
     return !empty($stat) ? $this->getStat($stat) : FALSE;
