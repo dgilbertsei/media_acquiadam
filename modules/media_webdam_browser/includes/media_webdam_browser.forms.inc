@@ -144,8 +144,10 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   // There is logic in the after_build and submit handlers that enable the
   // seamless switching between checkboxes and radios.
+  $allow_multi = !isset($options['multiselect']);
+  $allow_multi |= isset($options['multiselect']) && !empty($options['multiselect']);
   $form['results']['assets'] = [
-    '#type' => !empty($options['multiselect']) ? 'checkboxes' : 'radios',
+    '#type' => $allow_multi ? 'checkboxes' : 'radios',
     '#title' => t('Assets'),
     '#options' => [],
     '#assets' => [],
