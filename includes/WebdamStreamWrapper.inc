@@ -30,6 +30,16 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
       if (empty($request->error) && !empty($request->data)) {
         $this->stream_content = $request->data;
       }
+      elseif (!empty($request->error)) {
+        watchdog('media_webdam',
+          '(@code) Error fetching asset content: @error',
+          [
+            '@code' => $request->code,
+            '@error' => $request->error,
+          ],
+          WATCHDOG_NOTICE,
+          l(t('View'), $uri));
+      }
     }
 
     return $this->stream_content;
@@ -65,6 +75,16 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
       $request = drupal_http_request($uri, array('method' => 'HEAD'));
       if (empty($request->error) && isset($request->headers['content-length'])) {
         $stat['size'] = $request->headers['content-length'];
+      }
+      elseif (!empty($request->error)) {
+        watchdog('media_webdam',
+          '(@code) Error fetching asset size: @error',
+          [
+            '@code' => $request->code,
+            '@error' => $request->error,
+          ],
+          WATCHDOG_NOTICE,
+          l(t('View'), $uri));
       }
     }
 
