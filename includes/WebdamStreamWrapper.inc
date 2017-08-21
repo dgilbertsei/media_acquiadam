@@ -72,7 +72,10 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
         $uri = url($uri, ['absolute' => TRUE]);
       }
 
-      $request = drupal_http_request($uri, array('method' => 'HEAD'));
+      // We have to use a GET request here instead of HEAD because the download
+      // links we receive are not valid for a HEAD-type request and will return
+      // a 403.
+      $request = drupal_http_request($uri, array('method' => 'GET'));
       if (empty($request->error) && isset($request->headers['content-length'])) {
         $stat['size'] = $request->headers['content-length'];
       }
