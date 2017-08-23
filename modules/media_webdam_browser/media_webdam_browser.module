@@ -42,6 +42,16 @@ function media_webdam_browser_menu() {
     'type' => MENU_LOCAL_ACTION,
   ];
 
+  $items['dam/%ctools_js/%/info'] = [
+    'title' => 'Asset information',
+    'page arguments' => [1, 2],
+    'page callback' => 'media_webdam_browser_info_modal_page',
+    'access callback' => 'media_webdam_browser_access',
+    'theme callback' => 'ajax_base_page_theme',
+    'file' => 'includes/media_webdam_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  ];
+
   return $items;
 }
 

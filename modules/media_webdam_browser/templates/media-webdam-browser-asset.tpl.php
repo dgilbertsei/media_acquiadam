@@ -11,6 +11,9 @@
  */
 ?>
 <div class="media-item" data-asset-type="<?php echo $asset['type'] ?>" data-asset-id="<?php echo $asset['id'] ?>" data-asset-status="<?php echo $asset['status'] ?>">
+  <?php if (!empty($jump_list)) : ?>
+    <?php echo $jump_list ?>
+  <?php endif; ?>
   <div class="media-thumbnail">
     <?php if ($asset['type'] == 'folder') : ?>
       <a href="<?php print $browser_url; ?>"><?php echo $thumbnail?></a>

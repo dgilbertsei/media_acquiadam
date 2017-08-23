@@ -83,3 +83,40 @@ function media_webdam_browser_deauth_page($account = NULL) {
 
   return $build;
 }
+
+/**
+ * Callback for the asset information modal.
+ *
+ * @param bool $js
+ *   TRUE if the page was loaded via AJAX.
+ * @param int $assetId
+ *   The asset ID that is being requested.
+ *
+ * @return array|int
+ *   A page render array or a menu response code.
+ */
+function media_webdam_browser_info_modal_page($js, $assetId) {
+  if (empty($assetId)) {
+    return MENU_NOT_FOUND;
+  }
+
+  $asset = media_webdam_api_get_asset($assetId);
+  if (empty($asset)) {
+    return MENU_NOT_FOUND;
+  }
+
+  $build = [];
+
+  $build['preview'] = [
+    '#theme' => 'media_webdam_browser_info_modal',
+    '#asset' => $asset,
+  ];
+
+  if ($js && module_exists('ctools')) {
+    ctools_include('modal');
+    ctools_include('ajax');
+    return ctools_modal_render($asset['name'], render($build));
+  }
+
+  return $build;
+}

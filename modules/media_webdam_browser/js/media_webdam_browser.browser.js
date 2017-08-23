@@ -1,4 +1,5 @@
 (function ($) {
+  'use strict';
 
   var mediaMediaItemSelectToggle = function () {
     // If the media item is clicked anywhere other than on the image itself
@@ -39,4 +40,5 @@
       $('.media-webdam-browser-assets', context).once(mediaMediaItemSelectToggle);
     }
   };
+
 })(jQuery);

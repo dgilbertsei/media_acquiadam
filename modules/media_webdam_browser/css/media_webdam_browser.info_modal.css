@@ -1,0 +1,18 @@
+.asset-info {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.asset-info .preview {
+  width: 550px;
+  vertical-align: top;
+  text-align: center;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.asset-info .properties {
+  display: inline-block;
+  min-width: 300px;
+  text-align: left;
+}

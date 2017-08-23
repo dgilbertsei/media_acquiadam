@@ -22,7 +22,103 @@ function media_webdam_browser_theme($existing, $type, $theme, $path) {
     'variables' => ['assets' => [], 'title' => t('Trail')],
   ];
 
+  $ret['media_webdam_browser_jump_list'] = [
+    'variables' => ['asset' => NULL],
+  ];
+
+  $ret['media_webdam_browser_jump_list_item'] = [
+    'variables' => [
+      'icon' => '',
+      'label' => NULL,
+      'path' => '<front>',
+      'attributes' => [],
+    ],
+  ];
+
+  $ret['media_webdam_browser_info_modal'] = [
+    'variables' => ['asset' => NULL],
+    'template' => 'media-webdam-browser-info-modal',
+    'path' => $path . '/templates',
+  ];
+
   return $ret;
+}
+
+/**
+ * Theme preprocessor for media_webdam_browser_info_modal.
+ */
+function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$variables) {
+
+  $asset = $variables['asset'];
+
+  $path = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.info_modal.css';
+  drupal_add_css($path, 'file');
+
+  // Setup a preview thumbnail if one is available.
+  if (!empty($asset['thumbnailurls'])) {
+    foreach ($asset['thumbnailurls'] as $tnurl) {
+      // Use the largest size we can find up to the medium (550) size.
+      if (!empty($tnurl['url']) && 550 >= $tnurl['size']) {
+        $variables['preview'] = theme('image', [
+          'path' => $tnurl['url'],
+          'title' => $asset['name'],
+          'alt' => $asset['name'],
+        ]);
+      }
+    }
+  }
+
+  // Pull out some asset properties for display in the modal.
+  $properties = [
+    [t('Name'), $asset['name']],
+    [t('Description'), $asset['description']],
+
+    [t('File name'), $asset['filename']],
+    [t('File size'), format_size($asset['filesize'] * 1024 * 1024)],
+    [t('File type'), drupal_strtoupper($asset['filetype'])],
+
+    [t('Color space'), drupal_strtoupper($asset['colorspace'])],
+    [t('Width'), $asset['width']],
+    [t('Height'), $asset['height']],
+
+    [t('Date captured'), $asset['datecaptured']],
+    [t('Date created'), $asset['datecreated']],
+    [t('Date modified'), $asset['datemodified']],
+
+    [t('Photographer'), $asset['user']['name']],
+    [t('Version'), $asset['version']],
+    [t('Status'), $asset['status']],
+  ];
+
+  // Only show properties that have a value set.
+  foreach ($properties as $index => $values) {
+    if (empty($values[1])) {
+      unset($properties[$index]);
+    }
+  }
+
+  try {
+    // Fetch the XMP metadata as this is where the keywords field lives.
+    $xmp = $asset->getXMP();
+    if (!empty($xmp['active_fields'])) {
+      foreach ($xmp['active_fields'] as $field) {
+        if (!empty($field['value'])) {
+          $properties[] = [$field['field_name'], $field['value']];
+        }
+      }
+    }
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam_browser', $x);
+  }
+
+  $variables['properties'] = theme('table', [
+    'header' => [t('Name'), t('Value')],
+    'rows' => $properties,
+    'empty' => t('No information was provided.'),
+    'caption' => t('Details'),
+    'sticky' => FALSE,
+  ]);
 }
 
 /**
@@ -64,6 +160,10 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
       }
     }
   }
+
+  if ('folder' != $asset['type']) {
+    $variables['jump_list'] = theme('media_webdam_browser_jump_list', ['asset' => $asset]);
+  }
 }
 
 /**
@@ -100,4 +200,98 @@ function theme_media_webdam_browser_trail(array $variables) {
 
   $var = ['breadcrumb' => $links];
   return theme('breadcrumb', $var);
+}
+
+/**
+ * Theme a single jump list link.
+ *
+ * @param array $variables
+ *   The theme variables.
+ *
+ * @return string
+ *   The rendered jump list item.
+ */
+function theme_media_webdam_browser_jump_list_item(array $variables) {
+
+  $text = '';
+  if (!empty($variables['icon'])) {
+    $text .= '<i class="icon">' . filter_xss($variables['icon']) . '</i>';
+  }
+
+  if (!empty($variables['label'])) {
+    $text .= filter_xss($variables['label']);
+  }
+
+  return $text;
+}
+
+/**
+ * Theme implementation for the media browser asset jump list.
+ *
+ * @param array $variables
+ *   The theme variables. Must include an assets array.
+ *
+ * @return string
+ *   The rendered media browser asset jump list.
+ */
+function theme_media_webdam_browser_jump_list(array $variables) {
+
+  $asset = $variables['asset'];
+
+  $build = [];
+
+  $css = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.jump_list.css';
+  $build['#attached']['css'][] = $css;
+
+  $links = [];
+
+  $org_domain = variable_get('media_webdam_organization_domain');
+  if (!empty($org_domain)) {
+    $links[] = [
+      'title' => theme('media_webdam_browser_jump_list_item', [
+        'icon' => '&#x279a;',
+        'label' => t('Open in Webdam'),
+      ]),
+      'href' => sprintf('%s/cloud/#folder/%d#%d',
+        $org_domain,
+        $asset['folder']['id'],
+        $asset['id']
+      ),
+      'attributes' => [
+        'target' => '_blank',
+        'rel' => 'external',
+        'data-action' => 'open',
+      ],
+      'html' => TRUE,
+    ];
+  }
+
+  if (module_exists('ctools')) {
+    ctools_include('modal');
+    ctools_include('ajax');
+    ctools_modal_add_js();
+
+    $links[] = [
+      'title' => theme('media_webdam_browser_jump_list_item', [
+        'icon' => '&#x2139;',
+        'label' => t('Get info'),
+      ]),
+      'href' => sprintf('dam/nojs/%d/info', $asset['id']),
+      'attributes' => [
+        'data-action' => 'info',
+        'class' => ['ctools-use-modal'],
+      ],
+      'html' => TRUE,
+    ];
+  }
+
+  $build['jump-list'] = [
+    '#theme' => 'ctools_dropdown',
+    '#title' => '&#x2699;',
+    '#image' => TRUE,
+    '#links' => $links,
+    '#class' => 'jump-list',
+  ];
+
+  return render($build);
 }

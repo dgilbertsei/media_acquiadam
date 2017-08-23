@@ -1,0 +1,9 @@
+.media-list-thumbnails .jump-list {
+  position: absolute;
+  right: 10px;
+  z-index: 100;
+}
+
+.media-list-thumbnails .jump-list a > .icon {
+  margin-right: 10px;
+}

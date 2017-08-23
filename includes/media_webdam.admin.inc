@@ -13,6 +13,13 @@ function media_webdam_config_settings($form, &$form_state) {
   $client_id = variable_get('media_webdam_client_id', '');
   $client_secret = variable_get('media_webdam_client_secret', '');
 
+  $form['media_webdam_organization_domain'] = [
+    '#type' => 'textfield',
+    '#title' => t('Organization domain'),
+    '#description' => t('Enter your Webdam organization domain. For example, <em>https://example.webdamdb.com</em>.'),
+    '#default_value' => variable_get('media_webdam_organization_domain'),
+  ];
+
   $form['api'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
