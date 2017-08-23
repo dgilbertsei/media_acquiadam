@@ -10,14 +10,16 @@
  */
 function media_webdam_config_settings($form, &$form_state) {
 
-  $client_id = variable_get('media_webdam_client_id', '');
-  $client_secret = variable_get('media_webdam_client_secret', '');
-
   $form['media_webdam_organization_domain'] = [
     '#type' => 'textfield',
     '#title' => t('Organization domain'),
     '#description' => t('Enter your Webdam organization domain. For example, <em>https://example.webdamdb.com</em>.'),
     '#default_value' => variable_get('media_webdam_organization_domain'),
+    '#required' => TRUE,
+  ];
+
+  $form['additional_settings'] = [
+    '#type' => 'vertical_tabs',
   ];
 
   $form['api'] = [
@@ -25,15 +27,16 @@ function media_webdam_config_settings($form, &$form_state) {
     '#title' => t('Authentication'),
     '#description' => t('Information used for authenticating with the Webdam API in different scenarios.'),
     '#collapsible' => TRUE,
-    '#collapsed' => !empty($client_id) && !empty($client_secret),
     '#tree' => FALSE,
+    '#group' => 'additional_settings',
   ];
 
   $form['api']['media_webdam_client_id'] = [
     '#type' => 'textfield',
     '#title' => t('Client ID'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_ID.'),
-    '#default_value' => $client_id,
+    '#default_value' => variable_get('media_webdam_client_id'),
+    '#size' => 50,
     '#required' => TRUE,
   ];
 
@@ -41,7 +44,8 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Client Secret'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_Secret.'),
-    '#default_value' => $client_secret,
+    '#default_value' => variable_get('media_webdam_client_secret'),
+    '#size' => 50,
     '#required' => TRUE,
   ];
 
@@ -123,6 +127,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#description' => t('Some asset information is stored locally for performance reasons. This cached information is updated and cleared periodically as necessary. You can force all of this information to be cleared by clicking below. Information will be recached the next time the asset is viewed.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
   ];
 
   if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {

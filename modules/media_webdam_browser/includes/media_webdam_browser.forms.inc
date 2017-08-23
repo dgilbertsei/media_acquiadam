@@ -16,6 +16,7 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#tree' => FALSE,
+    '#group' => 'additional_settings',
   ];
 
   $form['browser']['media_webdam_browser_per_page'] = [
