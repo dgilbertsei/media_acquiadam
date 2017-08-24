@@ -63,6 +63,10 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'code']);
 
   $client = Webdam_API::getClient();
+  // 'aa' parameter is used to determine if the user has clicked the
+  // authenticate link in our warning message. The state parameter is used by
+  // the OAuth2 authentication mechanism and is a way to tell if we're in the
+  // process of authenticating.
   $is_authing = !empty($qp['aa']) || !empty($qp['state']);
   $needs_auth = !$client->isAuthenticated() && !$client->hasAuthenticationError();
   if ($needs_auth && $is_authing) {
@@ -130,6 +134,8 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
         drupal_get_path('module', 'media_webdam_browser') . '/js/media_webdam_browser.browser.js',
       ],
       'css' => [
+        // Bundle the media CSS so we can leverage their styling while mimicing
+        // the layout.
         drupal_get_path('module', 'media') . '/css/media.css',
         drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.browser.css',
       ],
@@ -160,6 +166,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#access' => empty($form['results']['assets']['#assets']),
   ];
 
+  // Pager is primed in media_webdam_browser_choose_asset_form_fill_assets().
   $form['results']['pager'] = ['#theme' => 'pager'];
 
   try {
@@ -313,7 +320,7 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
         '#weight' => -1,
       ],
       // Wrap the checkbox/radio in a <li> to mimic Media themeing more closely.
-      '#prefix' => sprintf('<li data-asset-type="%s" data-asset-id="%d">', $asset['type'], $asset['id']),
+      '#prefix' => sprintf('<li data-asset-type="%s" data-asset-id="%d">', filter_xss($asset['type']), $asset['id']),
       '#suffix' => '</li>',
       // We have to (re)set a weight because of the opening/closing wrappers.
       '#weight' => ++$weight,
@@ -355,8 +362,8 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
  *   The current form state.
  */
 function media_webdam_browser_choose_asset_form_submit(array &$form, array &$form_state) {
-  // When we are searching we don't need to do any other processing in the
-  // submit handler. Just rebuild the form and leave.
+  // Searching shortcircuits a lot of the submission logic. We don't need to
+  // process selected assets, so create the redirect and exit.
   $is_search = !empty($form_state['triggering_element']) && $form_state['triggering_element']['#name'] == 'search';
   if ($is_search) {
     $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
@@ -387,9 +394,12 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
     }
 
     if (!empty($saved_fids)) {
+      // If we're not in the Media browser screen then we need a landing page to
+      // send users.
       $redirect_uri = url('admin/content/file/webdam/saved');
       $query = ['fid' => $saved_fids];
 
+      // This will be set if the user is in a Media browser screen.
       if (!empty($form_state['#media_browser'])) {
         $redirect_uri = url('media/browser/webdam');
       }
@@ -413,7 +423,7 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
  * @return int[]
  *   An array of file IDs that were created.
  */
-function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, array $loadedAssets) {
+function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, array $loadedAssets = []) {
 
   $saved_fids = [];
 

@@ -91,12 +91,16 @@ function media_webdam_oauth2_clients() {
     'redirect_uri' => $client_url . '/oauth2/authorized',
   ];
 
+  // This method requires configuration of a username and password so it is
+  // inherently less secure than handing authentication off to the user. We only
+  // use this for the background user and never regular Drupal users.
   $oauth2_clients['webdam-user-auth'] = $base_auth + [
     'auth_flow' => 'user-password',
-    'username' => variable_get('media_webdam_background_user', ''),
-    'password' => variable_get('media_webdam_background_pass', ''),
+    'username' => variable_get('media_webdam_background_user'),
+    'password' => variable_get('media_webdam_background_pass'),
   ];
 
+  // Client credentials are not supported but still defined here.
   $oauth2_clients['webdam-client-auth'] = $base_auth + [
     'auth_flow' => 'client-credentials',
   ];

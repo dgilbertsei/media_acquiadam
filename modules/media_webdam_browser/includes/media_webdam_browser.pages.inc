@@ -32,9 +32,11 @@ function media_webdam_browser_choose_asset_saved_landing_page($selected = NULL) 
     '#href' => url('admin/content/file/webdam'),
   ];
 
+  // 'fid' will contain a list of files that were saved by the user.
   $qp = drupal_get_query_parameters();
   if (!empty($qp['fid'])) {
     $selected = file_load_multiple($qp['fid']);
+    // Fill out the selections table with this info.
     foreach ($selected as $file) {
       $uri = entity_uri('file', $file);
       $preview = media_get_thumbnail_preview($file);
@@ -60,6 +62,7 @@ function media_webdam_browser_deauth_page($account = NULL) {
   try {
     $client = Webdam_API::getClient('webdam-server-auth');
     $client->getOAuth2Client()->clearToken();
+    // Nuke the oauth2 session data just to be sure we cleared everything.
     unset($_SESSION['oauth2_client']);
   }
   catch (Exception $x) {
@@ -69,6 +72,8 @@ function media_webdam_browser_deauth_page($account = NULL) {
 
   $success_message = t('Your OAuth2 DAM access token has been cleared.');
 
+  // If a destination argument was set we should send the user back to where
+  // they came from.
   if (!empty($_GET['destination'])) {
     drupal_set_message($success_message, 'status');
     drupal_goto($_GET['destination']);
@@ -76,6 +81,7 @@ function media_webdam_browser_deauth_page($account = NULL) {
 
   $build = [];
 
+  // Build a simple status page if someone goes directly to the page.
   $build['message'] = [
     '#type' => 'markup',
     '#markup' => '<p>' . $success_message . '</p>',

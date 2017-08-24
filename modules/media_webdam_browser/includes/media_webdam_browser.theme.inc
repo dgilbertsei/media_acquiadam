@@ -12,29 +12,32 @@ function media_webdam_browser_theme($existing, $type, $theme, $path) {
 
   $ret = [];
 
+  // A singular asset as displayed on the Media Browser form.
   $ret['media_webdam_browser_asset'] = [
     'variables' => ['asset' => NULL, 'thumbnail' => NULL],
     'template' => 'media-webdam-browser-asset',
     'path' => $path . '/templates',
   ];
 
+  // The breadcrumb trail used to navigate folders.
   $ret['media_webdam_browser_trail'] = [
     'variables' => ['assets' => [], 'title' => t('Trail')],
   ];
 
+  // The menu displayed with each asset in the browser.
   $ret['media_webdam_browser_jump_list'] = [
     'variables' => ['asset' => NULL],
   ];
 
+  // Individual menu items displayed in the browser.
   $ret['media_webdam_browser_jump_list_item'] = [
     'variables' => [
       'icon' => '',
       'label' => NULL,
-      'path' => '<front>',
-      'attributes' => [],
     ],
   ];
 
+  // The asset information modal content.
   $ret['media_webdam_browser_info_modal'] = [
     'variables' => ['asset' => NULL],
     'template' => 'media-webdam-browser-info-modal',
@@ -161,9 +164,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
     }
   }
 
-  if ('folder' != $asset['type']) {
-    $variables['jump_list'] = theme('media_webdam_browser_jump_list', ['asset' => $asset]);
-  }
+  $variables['jump_list'] = theme('media_webdam_browser_jump_list', ['asset' => $asset]);
 }
 
 /**
@@ -247,16 +248,16 @@ function theme_media_webdam_browser_jump_list(array $variables) {
 
   $org_domain = variable_get('media_webdam_organization_domain');
   if (!empty($org_domain)) {
+    $open_link = 'folder' == $asset['type'] ?
+      sprintf('%s/cloud/#folder/%d', $org_domain, $asset['id']) :
+      sprintf('%s/cloud/#folder/%d#%d', $org_domain, $asset['folder']['id'], $asset['id']);
+
     $links[] = [
       'title' => theme('media_webdam_browser_jump_list_item', [
         'icon' => '&#x279a;',
         'label' => t('Open in Webdam'),
       ]),
-      'href' => sprintf('%s/cloud/#folder/%d#%d',
-        $org_domain,
-        $asset['folder']['id'],
-        $asset['id']
-      ),
+      'href' => $open_link,
       'attributes' => [
         'target' => '_blank',
         'rel' => 'external',

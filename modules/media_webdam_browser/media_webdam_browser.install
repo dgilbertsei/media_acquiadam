@@ -10,4 +10,5 @@
  */
 function media_webdam_browser_uninstall() {
   variable_del('media_webdam_browser_per_page');
+  variable_del('media_webdam_browser_thumbnail_size');
 }

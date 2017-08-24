@@ -27,7 +27,7 @@ function media_webdam_browser_get_trail($folderId) {
     }
     catch (Exception $x) {
       drupal_set_message($x->getMessage(), 'error');
-      watchdog_exception('media_webdam', $x);
+      watchdog_exception('media_webdam_browser', $x);
     }
   }
 
@@ -131,7 +131,22 @@ function media_webdam_browser_get_initial_assets($folderId, array $form_state, $
   return $result;
 }
 
-function media_webdam_browser_get_search_results($folderId, array $search, array $form_state, $perPage) {
+/**
+ * Perform a search against the API.
+ *
+ * @param int $folderId
+ *   The DAM folder ID to limit searching to. Will include subfolders.
+ * @param array $search
+ *   An array of search properties: keywords, type.
+ * @param array $form_state
+ *   The current form state array.
+ * @param int $perPage
+ *   The number of results to limit the search to.
+ *
+ * @return array
+ *   An keyed array featuring assets and total_count.
+ */
+function media_webdam_browser_get_search_results($folderId, array $search, array $form_state, $perPage = 25) {
   $child_assets = [
     'assets' => [],
     'total_count' => 0,
@@ -165,19 +180,33 @@ function media_webdam_browser_get_search_results($folderId, array $search, array
   return $child_assets;
 }
 
-function media_webdam_browser_fake_paged_root(array $initial_assets, $per_page) {
-  $initial_assets['total_count'] = count($initial_assets['assets']);
+/**
+ * Breaks up the Root folder list into the current page results.
+ *
+ * @param array $initialAssets
+ *   An array of assets.
+ * @param int $perPage
+ *   The number of assets per page.
+ *
+ * @return array
+ *   An keyed array featuring assets and total_count.
+ */
+function media_webdam_browser_fake_paged_root(array $initialAssets, $perPage = 25) {
+  $result = [
+    'assets' => [],
+    'total_count' => count($initialAssets['assets']),
+  ];
 
-  if (0 < $initial_assets['total_count']) {
-    $chunked = array_chunk($initial_assets['assets'], $per_page);
+  if (0 < $result['total_count']) {
+    $chunked = array_chunk($initialAssets['assets'], $perPage);
     $current = pager_find_page();
     if ($current >= count($chunked)) {
       $current = max(0, count($chunked) - 1);
     }
-    $initial_assets['assets'] = empty($chunked[$current]) ?
+    $result['assets'] = empty($chunked[$current]) ?
       [] :
       $chunked[$current];
   }
 
-  return $initial_assets;
+  return $result;
 }

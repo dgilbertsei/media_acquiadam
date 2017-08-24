@@ -26,9 +26,11 @@ function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignore
     return FALSE;
   }
 
-  $uri = sprintf('webdam://%d.%s', $asset['id'], $asset['filetype']);;
+  $uri = sprintf('webdam://%d.%s', $asset['id'], $asset['filetype']);
+  // Reuse an existing file whenever possible.
   $file = file_uri_to_object($uri, TRUE);
 
+  // We got a file object for a new file instead of an existing one.
   if (!empty($file) && empty($file->fid)) {
     media_webdam_api_set_asset_cache($asset);
     $file->filename = drupal_basename($asset['name']);
@@ -56,6 +58,8 @@ function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignore
  */
 function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache = FALSE) {
 
+  // We only want to try and cache when we are given an id instead of an array.
+  // We also need to ignore caching the root folder.
   $use_cache = empty($skipCache) && is_numeric($id) && $id != Webdam_Assets_Folder::ROOT_FOLDER_ID;
   if ($use_cache) {
     $cached_item = media_webdam_api_get_asset_cache($id);
@@ -72,6 +76,10 @@ function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache
 
     case 'asset':
       $result = new Webdam_Assets_Asset($create_arg, $depends);
+      break;
+
+    default:
+      watchdog('media_webdam', t('Unhandled asset type: @type', ['@type' => $type]), WATCHDOG_DEBUG);
       break;
   }
 

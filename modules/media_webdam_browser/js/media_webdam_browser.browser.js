@@ -1,6 +1,7 @@
 (function ($) {
   'use strict';
 
+  // Code borrowed and modified from media.admin.js.
   var mediaMediaItemSelectToggle = function () {
     // If the media item is clicked anywhere other than on the image itself
     // check the checkbox. For the record, JS thinks this is wonky.

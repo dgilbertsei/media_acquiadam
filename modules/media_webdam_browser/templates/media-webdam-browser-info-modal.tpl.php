@@ -7,6 +7,7 @@
  * Variables:
  *  $asset: The asset object being rendered.
  *  $preview: The preview markup to use. Usually an image.
+ *  $properties: The property markup to use. Usually a table.
  */
 ?>
 <div class="asset-info">
