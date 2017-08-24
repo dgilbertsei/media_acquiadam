@@ -99,3 +99,18 @@ function media_webdam_browser_access($account = NULL) {
 
   return $has_config && $has_user_access;
 }
+
+/**
+ * Implements hook_help().
+ */
+function media_webdam_browser_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#media_webdam_browser':
+      $output = '<h3>' . t('About Media: Webdam Browser') . '</h3>';
+      $output .= '<p>' . t('Provides a Media Browser interface that allows users to browse assets from within the Drupal files page and on fields that use the Media style widget.') . '</p>';
+
+      return $output;
+  }
+
+}

@@ -189,3 +189,20 @@ function media_webdam_asset_download_redirect($assetId) {
 
   return MENU_NOT_FOUND;
 }
+
+/**
+ * Implements hook_help().
+ */
+function media_webdam_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#media_webdam':
+      $output = '<h3>' . t('About Media: Webdam') . '</h3>';
+      $output .= '<p>' . t('Media: Webdam provides Webdam integration within the Drupal site. This integration allows Drupal users with Webdam accounts to browse assets they have access to and create Drupal files that reference these assets.') . '</p>';
+      $output .= '<p>' . t('Once an asset is referenced within Drupal normal Drupal permission mechanisms will take over.') . '</p>';
+      $output .= '<p>' . t('DAM permissions will still apply to the CDN-rendered images.') . '</p>';
+
+      return $output;
+  }
+
+}
