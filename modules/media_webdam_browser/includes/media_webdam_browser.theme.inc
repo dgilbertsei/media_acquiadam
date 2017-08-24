@@ -100,19 +100,21 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
     }
   }
 
-  try {
-    // Fetch the XMP metadata as this is where the keywords field lives.
-    $xmp = $asset->getXMP();
-    if (!empty($xmp['active_fields'])) {
-      foreach ($xmp['active_fields'] as $field) {
-        if (!empty($field['value'])) {
-          $properties[] = [$field['field_name'], $field['value']];
+  if ('folder' != $asset['type']) {
+    try {
+      // Fetch the XMP metadata as this is where the keywords field lives.
+      $xmp = $asset->getXMP();
+      if (!empty($xmp['active_fields'])) {
+        foreach ($xmp['active_fields'] as $field) {
+          if (!empty($field['value'])) {
+            $properties[] = [$field['field_name'], $field['value']];
+          }
         }
       }
     }
-  }
-  catch (Exception $x) {
-    watchdog_exception('media_webdam_browser', $x);
+    catch (Exception $x) {
+      watchdog_exception('media_webdam_browser', $x);
+    }
   }
 
   $variables['properties'] = theme('table', [
@@ -277,7 +279,7 @@ function theme_media_webdam_browser_jump_list(array $variables) {
         'icon' => '&#x2139;',
         'label' => t('Get info'),
       ]),
-      'href' => sprintf('dam/nojs/%d/info', $asset['id']),
+      'href' => sprintf('dam/nojs/%s/%d/info', $asset['type'], $asset['id']),
       'attributes' => [
         'data-action' => 'info',
         'class' => ['ctools-use-modal'],

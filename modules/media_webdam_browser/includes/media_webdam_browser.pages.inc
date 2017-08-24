@@ -101,12 +101,12 @@ function media_webdam_browser_deauth_page($account = NULL) {
  * @return array|int
  *   A page render array or a menu response code.
  */
-function media_webdam_browser_info_modal_page($js, $assetId) {
-  if (empty($assetId)) {
+function media_webdam_browser_info_modal_page($js, $assetType, $assetId) {
+  if (empty($assetType) || empty($assetId)) {
     return MENU_NOT_FOUND;
   }
 
-  $asset = media_webdam_api_get_asset($assetId);
+  $asset = media_webdam_api_get_helper($assetType, $assetId);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
