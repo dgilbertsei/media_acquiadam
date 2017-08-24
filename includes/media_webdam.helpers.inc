@@ -68,19 +68,19 @@ function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache
   $create_arg = empty($cached_item) ? $id : $cached_item;
 
   $result = FALSE;
-
-  switch ($type) {
-    case 'folder':
+  try {
+    if ('folder' == $type) {
       $result = new Webdam_Assets_Folder($create_arg, $depends);
-      break;
-
-    case 'asset':
+    }
+    elseif ('asset' == $type) {
       $result = new Webdam_Assets_Asset($create_arg, $depends);
-      break;
-
-    default:
-      watchdog('media_webdam', t('Unhandled asset type: @type', ['@type' => $type]), WATCHDOG_DEBUG);
-      break;
+    }
+    else {
+      watchdog('media_webdam', 'Unhandled asset type: @type', ['@type' => $type], WATCHDOG_DEBUG);
+    }
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam', $x);
   }
 
   $can_cache_result = !empty($result) && empty($cached_item);
