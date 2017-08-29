@@ -105,4 +105,16 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
     return $parents;
   }
 
+  /**
+   * Gets the path to this asset within the DAM web interface.
+   *
+   * {@inheritDoc}
+   */
+  public function getDAMPath() {
+
+    $this->get();
+
+    return sprintf('cloud/#folder/%d', $this->asset['id']);
+  }
+
 }

@@ -19,4 +19,9 @@
   <div class="properties">
     <?php print $properties ?>
   </div>
+  <?php if (!empty($dam_link)) : ?>
+    <div>
+      <?php print $dam_link; ?>
+    </div>
+  <?php endif; ?>
 </div>

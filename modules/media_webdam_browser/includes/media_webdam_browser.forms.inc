@@ -14,7 +14,6 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#title' => t('Media Browser'),
     '#description' => t('Settings pertinent to the Media browser.'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
     '#tree' => FALSE,
     '#group' => 'additional_settings',
   ];
@@ -32,7 +31,7 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#type' => 'select',
     '#title' => t('Thumbnail source size'),
     '#description' => t('The source remote thumbnail size to use when creating browser thumbnails locally.'),
-    '#default_value' => 150,
+    '#default_value' => variable_get('media_webdam_browser_thumbnail_size', 150),
     '#options' => [
       100 => 100,
       150 => 150,
@@ -134,9 +133,6 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
         drupal_get_path('module', 'media_webdam_browser') . '/js/media_webdam_browser.browser.js',
       ],
       'css' => [
-        // Bundle the media CSS so we can leverage their styling while mimicing
-        // the layout.
-        drupal_get_path('module', 'media') . '/css/media.css',
         drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.browser.css',
       ],
     ],
@@ -199,6 +195,17 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
 
   $form['actions'] = [
     '#type' => 'actions',
+    'back' => [
+      '#type' => 'link',
+      '#title' => t('Back'),
+      '#href' => '#',
+      '#options' => ['external' => TRUE],
+      '#attributes' => [
+        'rel' => 'no-follow',
+        'class' => ['back-link'],
+      ],
+      '#access' => FALSE,
+    ],
     'submit' => [
       '#type' => 'submit',
       '#value' => t('Submit'),
@@ -263,7 +270,7 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
 
     foreach ($initial_assets['assets'] as $asset) {
       $result_assets['#options'][$asset['id']] = $asset['name'];
-      $result_assets['#assets'][$asset['id']] = $asset->toArray();
+      $result_assets['#assets'][$asset['id']] = $asset;
     }
 
     // Store the fetched assets so we don't have to do another API lookup on
@@ -274,6 +281,8 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
     }, $result_assets['#assets']);
     $form_state['storage']['assets'] = array_combine($keys, $result_assets['#assets']);
   }
+
+  $form['actions']['back']['#access'] = !$is_root;
 
   pager_default_initialize($initial_assets['total_count'], $per_page);
 }
@@ -330,18 +339,13 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
   $opener_attrs = [
     implode(' ', [
       'media-webdam-browser-assets',
-      'media-display-thumbnails',
-      'media-clear',
       'clearfix',
     ]),
-    drupal_html_id('media-browser-library-list'),
-    implode(' ', [
-      'media-list-thumbnails',
-    ]),
+    drupal_html_id('media-webdam-browser-library-list'),
   ];
 
   $element['open-list'] = [
-    '#markup' => vsprintf('<div class="%s"><ul id="%s" class="%s">', $opener_attrs),
+    '#markup' => vsprintf('<div class="%s"><ul id="%s">', $opener_attrs),
     '#weight' => -1,
   ];
 
@@ -431,7 +435,7 @@ function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, arr
 
     // Load the remote asset if it wasn't already.
     $asset = !empty($loadedAssets[$assetId]) ?
-      media_webdam_api_get_asset($loadedAssets[$assetId]) :
+      $loadedAssets[$assetId] :
       media_webdam_api_get_asset($assetId);
 
     if (empty($asset)) {

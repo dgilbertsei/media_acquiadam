@@ -10,14 +10,6 @@
  */
 function media_webdam_config_settings($form, &$form_state) {
 
-  $form['media_webdam_organization_domain'] = [
-    '#type' => 'textfield',
-    '#title' => t('Organization domain'),
-    '#description' => t('Enter your Webdam organization domain. For example, <em>https://example.webdamdb.com</em>.'),
-    '#default_value' => variable_get('media_webdam_organization_domain'),
-    '#required' => TRUE,
-  ];
-
   $form['additional_settings'] = [
     '#type' => 'vertical_tabs',
   ];

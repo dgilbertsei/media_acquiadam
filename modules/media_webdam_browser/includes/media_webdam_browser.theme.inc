@@ -54,8 +54,28 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
 
   $asset = $variables['asset'];
 
-  $path = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.info_modal.css';
-  drupal_add_css($path, 'file');
+  $css_path = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.info_modal.css';
+  drupal_add_css($css_path, 'file');
+
+  try {
+    $client = Webdam_API::getClient();
+    $sub = $client->getSubscription();
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam_browser', $x);
+  }
+
+  if (!empty($sub['url']) && user_access('view acquia dam links')) {
+    $dam_link = $sub['url'] . '/' . $asset->getDAMPath();
+    $variables['dam_link'] = l(t('View this asset in Acquia DAM.'), $dam_link, [
+      'absolute' => TRUE,
+      'external' => TRUE,
+      'attributes' => [
+        'rel' => 'external',
+        'target' => '_blank',
+      ],
+    ]);
+  }
 
   // Setup a preview thumbnail if one is available.
   if (!empty($asset['thumbnailurls'])) {
@@ -88,7 +108,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
     [t('Date created'), $asset['datecreated']],
     [t('Date modified'), $asset['datemodified']],
 
-    [t('Photographer'), $asset['user']['name']],
+    [t('Uploaded by'), $asset['user']['name']],
     [t('Version'), $asset['version']],
     [t('Status'), $asset['status']],
   ];
@@ -143,7 +163,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
   if (empty($variables['thumbnail'])) {
 
     // Default to a placeholder image in case we can't load one from the asset.
-    $missing = drupal_get_path('module', 'media') . '/images/icons/default/image-x-generic.png';
+    $missing = drupal_get_path('module', 'media_webdam_browser') . '/images/mime_220px.png';
     $variables['thumbnail'] = theme('imagecache_external', [
       'style_name' => 'media_thumbnail',
       'path' => $missing,
@@ -202,7 +222,17 @@ function theme_media_webdam_browser_trail(array $variables) {
   }
 
   $var = ['breadcrumb' => $links];
-  return theme('breadcrumb', $var);
+  $breadcrumb = theme('breadcrumb', $var);
+  $jump = '';
+
+  if (!empty($variables['assets'])) {
+    $last = end($variables['assets']);
+    reset($variables['assets']);
+    $last = media_webdam_api_get_helper($asset['type'], $asset);
+    $jump = theme('media_webdam_browser_jump_list', ['asset' => $last]);
+  }
+
+  return '<div class="media-webdam-browser-trail">' . $breadcrumb . $jump . '</div>';
 }
 
 /**
@@ -218,7 +248,7 @@ function theme_media_webdam_browser_jump_list_item(array $variables) {
 
   $text = '';
   if (!empty($variables['icon'])) {
-    $text .= '<i class="icon">' . filter_xss($variables['icon']) . '</i>';
+    $text .= '<i class="icon">' . ($variables['icon']) . '</i>';
   }
 
   if (!empty($variables['label'])) {
@@ -240,6 +270,7 @@ function theme_media_webdam_browser_jump_list_item(array $variables) {
 function theme_media_webdam_browser_jump_list(array $variables) {
 
   $asset = $variables['asset'];
+  $image_base = drupal_get_path('module', 'media_webdam_browser') . '/images/';
 
   $build = [];
 
@@ -247,17 +278,31 @@ function theme_media_webdam_browser_jump_list(array $variables) {
   $build['#attached']['css'][] = $css;
 
   $links = [];
+  $links[] = [
+    'title' => $asset['name'],
+    'attributes' => [
+      'class' => ['asset-name'],
+    ],
+  ];
 
-  $org_domain = variable_get('media_webdam_organization_domain');
-  if (!empty($org_domain)) {
-    $open_link = 'folder' == $asset['type'] ?
-      sprintf('%s/cloud/#folder/%d', $org_domain, $asset['id']) :
-      sprintf('%s/cloud/#folder/%d#%d', $org_domain, $asset['folder']['id'], $asset['id']);
+  try {
+    $client = Webdam_API::getClient();
+    $sub = $client->getSubscription();
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_webdam_browser', $x);
+  }
+
+  if (!empty($sub['url']) && user_access('view acquia dam links')) {
+    $open_link = url($sub['url'] . '/' . $asset->getDAMPath(), [
+      'absolute' => TRUE,
+      'external' => TRUE,
+    ]);
 
     $links[] = [
       'title' => theme('media_webdam_browser_jump_list_item', [
-        'icon' => '&#x279a;',
-        'label' => t('Open in Webdam'),
+        'icon' => theme('image', ['path' => $image_base . 'ic_launch_black_24dp_1x.png']),
+        'label' => t('Open in Acquia DAM'),
       ]),
       'href' => $open_link,
       'attributes' => [
@@ -276,7 +321,7 @@ function theme_media_webdam_browser_jump_list(array $variables) {
 
     $links[] = [
       'title' => theme('media_webdam_browser_jump_list_item', [
-        'icon' => '&#x2139;',
+        'icon' => theme('image', ['path' => $image_base . 'ic_info_outline_black_24dp_1x.png']),
         'label' => t('Get info'),
       ]),
       'href' => sprintf('dam/nojs/%s/%d/info', $asset['type'], $asset['id']),
@@ -290,7 +335,7 @@ function theme_media_webdam_browser_jump_list(array $variables) {
 
   $build['jump-list'] = [
     '#theme' => 'ctools_dropdown',
-    '#title' => '&#x2699;',
+    '#title' => theme('image', ['path' => $image_base . 'ic_arrow_drop_down_black_24dp_1x.png']),
     '#image' => TRUE,
     '#links' => $links,
     '#class' => 'jump-list',

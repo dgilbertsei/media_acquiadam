@@ -126,6 +126,16 @@ class Webdam_Client {
   }
 
   /**
+   * Get the subscription information.
+   *
+   * @return array
+   *   An array of available sub information.
+   */
+  public function getSubscription() {
+    return $this->request('subscription');
+  }
+
+  /**
    * Make a request to the Webdam API.
    *
    * @param string $endpoint

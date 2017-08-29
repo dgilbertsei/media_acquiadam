@@ -228,6 +228,19 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
   }
 
   /**
+   * Gets the path to this asset within the DAM web interface.
+   *
+   * @return string
+   *   The URL to the asset within the DAM web interface.
+   */
+  public function getDAMPath() {
+
+    $this->get();
+
+    return sprintf('cloud/#folder/%d#%d', $this->asset['folder']['id'], $this->asset['id']);
+  }
+
+  /**
    * Implementation for ArrayAccess.
    *
    * Not implemented.

@@ -66,6 +66,11 @@ function media_webdam_browser_permission() {
     'description' => t('Allows the user to access the Webdam browser'),
   ];
 
+  $perms['view acquia dam links'] = [
+    'title' => t('View Acquia DAM links'),
+    'description' => t('Allows the user to view links to Acquia DAM.'),
+  ];
+
   return $perms;
 }
 

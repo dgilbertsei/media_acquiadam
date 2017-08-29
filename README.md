@@ -18,8 +18,6 @@ $conf['media_webdam_background_pass'] = 'password';
 See "Storing private information securely in Drupal": https://docs.acquia.com/article/storing-private-information-securely-drupal#conf
 
 * Visit the module configuration page and set the Client ID and Secret.
-* Configure the organization domain if different from the default.
-
 
 ## Background user
 

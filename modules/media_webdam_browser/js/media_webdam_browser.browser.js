@@ -5,8 +5,8 @@
   var mediaMediaItemSelectToggle = function () {
     // If the media item is clicked anywhere other than on the image itself
     // check the checkbox. For the record, JS thinks this is wonky.
-    $('.media-item', this).bind('click', function (e) {
-      if ($(e.target).is('img, a')) {
+    $('.browser-asset', this).bind('click', function (e) {
+      if ($(e.target).parents('.jump-list').length) {
         return;
       }
       var checkbox = $(this).parent().find(':checkbox, :radio');
@@ -18,18 +18,18 @@
     });
 
     // Add an extra class to selected thumbnails.
-    $('.media-display-thumbnails :checkbox, .media-display-thumbnails :radio', this).each(function () {
+    $('#media-webdam-browser-library-list :checkbox, #media-webdam-browser-library-list :radio', this).each(function () {
       var checkbox = $(this);
       if (checkbox.is(':checked')) {
-        $(checkbox.parents('li').find('.media-item')).addClass('selected');
+        $(checkbox).parents('li').addClass('selected');
       }
 
       checkbox.bind('change.media', function () {
         if (checkbox.is(':checked')) {
-          $(checkbox.parents('li').find('.media-item')).addClass('selected');
+          $(checkbox).parents('li').addClass('selected');
         }
         else {
-          $(checkbox.parents('li').find('.media-item')).removeClass('selected');
+          $(checkbox).parents('li').removeClass('selected');
         }
       });
     });
@@ -39,6 +39,15 @@
     attach: function (context, settings) {
 
       $('.media-webdam-browser-assets', context).once(mediaMediaItemSelectToggle);
+
+      $('#media-webdam-browser-choose-asset-form .back-link', context)
+        .once(function () {
+
+          $(this).bind('click', function (e) {
+              e.preventDefault();
+              history.back(1);
+            });
+        });
     }
   };
 

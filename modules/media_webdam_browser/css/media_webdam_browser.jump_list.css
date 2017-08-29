@@ -1,9 +1,30 @@
-.media-list-thumbnails .jump-list {
-  position: absolute;
-  right: 10px;
-  z-index: 100;
+.jump-list a > .icon {
+  margin-right: 10px;
 }
 
-.media-list-thumbnails .jump-list a > .icon {
-  margin-right: 10px;
+.jump-list a > .icon > img {
+  display: inline;
+  vertical-align: middle;
+}
+
+.jump-list .asset-name {
+  background-color: #018dc7;
+  color: #fff;
+  width: 175px;
+  padding: 5px;
+  cursor: default;
+  word-break: break-all;
+}
+
+html div.jump-list.ctools-dropdown div.ctools-dropdown-container {
+  width: auto;
+}
+
+.jump-list .ctools-dropdown-container li {
+  margin: 0;
+  padding: 0;
+}
+
+.jump-list .ctools-dropdown-container li a {
+  padding: 10px;
 }
