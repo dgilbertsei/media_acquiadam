@@ -262,6 +262,53 @@ function media_webdam_api_flush_image_cache($assetIds = []) {
 }
 
 /**
+ * Flush expired asset cache.
+ *
+ * @return array
+ *   An array of asset IDs that were cleared out.
+ */
+function media_webdam_api_flush_outdated_cache() {
+  $assetIds = [];
+
+  // We don't use REQUEST_TIME because it won't be set with drush.
+  $time = time();
+
+  $query = db_select('webdam_asset_cache', 'c')
+    ->fields('c', ['asset_id']);
+
+  $or = db_or();
+
+  $cache_expiration = variable_get('media_webdam_cache_expiration');
+  if ($cache_expiration) {
+    // Clear out cache entries where the cache is stale.
+    $or->condition('c.changed', $cache_expiration + $time, '<=');
+  }
+
+  $unused_expiration = variable_get('media_webdam_unused_expiration');
+  if ($unused_expiration) {
+    // Clear out cache entries where no file is using the asset.
+    $fq = db_select('file_managed', 'm')
+      ->fields('m', ['webdam_id'])
+      ->distinct();
+
+    $or->condition(
+      db_and()
+        ->condition('c.asset_id', $fq, 'NOT IN')
+        ->condition('c.changed', $unused_expiration + $time, '<=')
+      );
+  }
+
+  $query->condition($or);
+
+  $assetIds = $query->execute()->fetchCol();
+  if (!empty($assetIds)) {
+    media_webdam_api_clear_from_cache($assetIds);
+  }
+
+  return $assetIds;
+}
+
+/**
  * Get managed files that have associated asset IDs.
  *
  * @param array $assetIds
