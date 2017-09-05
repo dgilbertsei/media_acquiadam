@@ -241,6 +241,83 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
   }
 
   /**
+   * Get the URL to the DAM-provided thumbnail if possible.
+   *
+   * @param int $thumbnailSize
+   *   Find the closest thumbnail size without going over when multiple
+   *   thumbnails are available.
+   *
+   * @return string|false
+   *   The preview URL or FALSE if none available.
+   */
+  public function getThumbnailUrl($thumbnailSize = 550) {
+
+    $this->get();
+
+    if (!empty($this->asset['thumbnailurls'][0]['url'])) {
+      // Copy thumbnail array to variable to avoid a notice about indirect
+      // access.
+      $thumbnails = $this->asset['thumbnailurls'];
+      // Default to first regardless of size.
+      $biggest_matching = $thumbnails[0]['url'];
+      foreach ($thumbnails as $tn) {
+        if (!empty($tn['url']) && $thumbnailSize >= $tn['size']) {
+          $biggest_matching = $tn['url'];
+        }
+      }
+      return $biggest_matching;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Get the URL to the DAM-provided preview if possible.
+   *
+   * @param int $thumbnailSize
+   *   Find the closest thumbnail size without going over when multiple
+   *   thumbnails are available.
+   *
+   * @return string|false
+   *   The preview URL or FALSE if none available.
+   */
+  public function getPreviewUrl($thumbnailSize = 550) {
+
+    $this->get();
+
+    // Audio files.
+    if (!empty($this->asset['audiourl']['url'])) {
+      return $this->asset['audiourl']['url'];
+    }
+    // Video files.
+    elseif (!empty($this->asset['videourls'][0]['url'])) {
+      return $this->asset['videourls'][0]['url'];
+    }
+    // PDF files.
+    // Making an assumption here based on the embed markup that is included!
+    elseif (!empty($this->asset['filetype']) && 'pdf' == $this->asset['filetype'] && !empty($this->asset['thumbnailurls'])) {
+
+      // The embed code returned by the API uses the 550 thumbnail URL as the
+      // base for a CDN link to the document. We can construct that URL by
+      // combining a few elements.
+      foreach ($this->asset['thumbnailurls'] as $tn) {
+        if (!empty($tn['size']) && 550 == $tn['size'] && !empty($tn['url'])) {
+          $url = drupal_parse_url($tn['url']);
+          $url = sprintf('%s.%s', $url['path'], $this->asset['filetype']);
+          $url = url($url, ['query' => ['v' => $this->asset['version']]]);
+          return $url;
+        }
+      }
+    }
+    // Images and files that can have thumbnails created.
+    else {
+      return $this->getThumbnailUrl($thumbnailSize);
+    }
+
+    return FALSE;
+  }
+
+  /**
    * Implementation for ArrayAccess.
    *
    * Not implemented.

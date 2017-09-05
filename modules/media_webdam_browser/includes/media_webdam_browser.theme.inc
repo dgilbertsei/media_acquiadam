@@ -78,17 +78,13 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
   }
 
   // Setup a preview thumbnail if one is available.
-  if (!empty($asset['thumbnailurls'])) {
-    foreach ($asset['thumbnailurls'] as $tnurl) {
-      // Use the largest size we can find up to the medium (550) size.
-      if (!empty($tnurl['url']) && 550 >= $tnurl['size']) {
-        $variables['preview'] = theme('image', [
-          'path' => $tnurl['url'],
-          'title' => $asset['name'],
-          'alt' => $asset['name'],
-        ]);
-      }
-    }
+  $preview = $asset->getThumbnailUrl(550);
+  if (!empty($preview)) {
+    $variables['preview'] = theme('image', [
+      'path' => $preview,
+      'title' => $asset['name'],
+      'alt' => $asset['name'],
+    ]);
   }
 
   // Pull out some asset properties for display in the modal.
@@ -173,15 +169,13 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
     if (module_exists('imagecache_external') && !empty($asset['thumbnailurls'])) {
 
       $browser_tn_size = variable_get('media_webdam_browser_thumbnail_size', 150);
-      foreach ($asset['thumbnailurls'] as $tnurl) {
-        if ($browser_tn_size == $tnurl['size'] && !empty($tnurl['url'])) {
-          $variables['thumbnail'] = theme('imagecache_external', [
-            'style_name' => 'media_thumbnail',
-            'path' => $tnurl['url'],
-            'title' => $asset['name'],
-          ]);
-          break;
-        }
+      $preview = $asset->getThumbnailUrl($browser_tn_size);
+      if (!empty($preview)) {
+        $variables['thumbnail'] = theme('imagecache_external', [
+          'style_name' => 'media_thumbnail',
+          'path' => $preview,
+          'title' => $asset['name'],
+        ]);
       }
     }
   }

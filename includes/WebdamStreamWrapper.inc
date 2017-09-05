@@ -63,31 +63,43 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
       $stat = ['size' => $file->filesize];
     }
     else {
-      // Translate our webdam:// uri into a remote URL before we make the
-      // request.
-      $uri = file_create_url($this->uri);
-
-      $scheme = file_uri_scheme($uri);
-      if (empty($scheme)) {
-        $uri = url($uri, ['absolute' => TRUE]);
+      // If the asset has an overall large size then we skip trying to get the
+      // accurate size of the specific URL we're referencing. This comes into
+      // play when the source image or video might be 15MB but we're trying to
+      // render a thumbnail.
+      $asset = $this->getAssetByUri($this->uri);
+      // @TODO: Make this a configurable cutoff in the UI.
+      // @TODO: Should we limit this check to audio/video files only?
+      if (!empty($asset['filesize']) && $asset['filesize'] >= variable_get('media_webdam_remote_size_cutoff', 1)) {
+        $stat['size'] = $asset['filesize'] * 1024 * 1024;
       }
+      else {
+        // Translate our webdam:// uri into a remote URL before we make the
+        // request.
+        $uri = file_create_url($this->uri);
 
-      // We have to use a GET request here instead of HEAD because the download
-      // links we receive are not valid for a HEAD-type request and will return
-      // a 403.
-      $request = drupal_http_request($uri, array('method' => 'GET'));
-      if (empty($request->error) && isset($request->headers['content-length'])) {
-        $stat['size'] = $request->headers['content-length'];
-      }
-      elseif (!empty($request->error)) {
-        watchdog('media_webdam',
-          '(@code) Error fetching asset size: @error',
-          [
-            '@code' => $request->code,
-            '@error' => $request->error,
-          ],
-          WATCHDOG_NOTICE,
-          l(t('View'), $uri));
+        $scheme = file_uri_scheme($uri);
+        if (empty($scheme)) {
+          $uri = url($uri, ['absolute' => TRUE]);
+        }
+
+        // We have to use a GET request here instead of HEAD because the
+        // download links we receive are not valid for a HEAD-type request and
+        // will return a 403.
+        $request = drupal_http_request($uri, array('method' => 'GET'));
+        if (empty($request->error) && isset($request->headers['content-length'])) {
+          $stat['size'] = $request->headers['content-length'];
+        }
+        elseif (!empty($request->error)) {
+          watchdog('media_webdam',
+            '(@code) Error fetching asset size: @error',
+            [
+              '@code' => $request->code,
+              '@error' => $request->error,
+            ],
+            WATCHDOG_NOTICE,
+            l(t('View'), $uri));
+        }
       }
     }
 
@@ -145,43 +157,14 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
     }
 
     $asset = static::getAssetByUri($this->uri);
-    $mime = $this->getMimeType($this->uri);
+    $preview = $asset->getPreviewUrl(1280);
 
-    // Audio files.
-    if (!empty($asset['audiourl']['url'])) {
-      return url($asset['audiourl']['url']);
-    }
-    // Video files.
-    elseif (!empty($asset['videourls'][0]['url'])) {
-      return url($asset['videourls'][0]['url']);
-    }
-    // PDF files.
-    // Making an assumption here based on the embed markup that is included!
-    elseif ('application/pdf' == $mime && !empty($asset['thumbnailurls'][0]['url'])) {
-
-      // The embed code returned by the API uses the 550 thumbnail URL as the
-      // base for a CDN link to the document. We can construct that URL by
-      // combining a few elements.
-      foreach ($asset['thumbnailurls'] as $tn) {
-        if (550 == $tn['size']) {
-          $url = drupal_parse_url($tn['url']);
-          $url = sprintf('%s.%s', $url['path'], $asset['filetype']);
-          $url = url($url, ['query' => ['v' => $asset['version']]]);
-          return $url;
-        }
-      }
-    }
-    // Images and files that can have thumbnails created.
-    elseif (!empty($asset['thumbnailurls'][0]['url'])) {
-      // Copy thumbnail array to variable to avoid a notice about indirect
-      // access.
-      $thumbnails = $asset['thumbnailurls'];
-      $last = end($thumbnails);
-      return url($last['url']);
+    if (empty($preview)) {
+      // All other files (txt, docx, html, etc.).
+      return url('webdam/asset/' . $asset['id']);
     }
 
-    // All other files (txt, docx, html, etc.).
-    return url('webdam/asset/' . $asset['id']);
+    return $preview;
   }
 
   /**
