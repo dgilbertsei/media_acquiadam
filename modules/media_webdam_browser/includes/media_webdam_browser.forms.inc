@@ -25,6 +25,7 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#default_value' => variable_get('media_webdam_browser_per_page', 25),
     '#element_validate' => ['element_validate_integer_positive'],
     '#size' => 5,
+    '#max_size' => 5,
   ];
 
   $form['browser']['media_webdam_browser_thumbnail_size'] = [

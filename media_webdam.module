@@ -145,13 +145,29 @@ function media_webdam_schema_alter(&$schema) {
  */
 function media_webdam_cron() {
 
-  // Clear out cache entries where no file is using the asset.
-  $fq = db_select('file_managed', 'm')
-    ->fields('m', ['webdam_id'])
-    ->distinct();
-  db_delete('webdam_asset_cache')
-    ->condition('asset_id', $fq, 'NOT IN')
-    ->execute();
+  // We don't use REQUEST_TIME because it won't be set with drush.
+  $time = time();
+
+
+  $cache_expiration = variable_get('media_webdam_cache_expiration');
+  if ($cache_expiration) {
+    // Clear out cache entries where the cache is stale.
+    db_delete('webdam_asset_cache')
+      ->condition('changed', $cache_expiration + $time, '<=')
+      ->execute();
+  }
+
+  $unused_expiration = variable_get('media_webdam_unused_expiration');
+  if ($unused_expiration) {
+    // Clear out cache entries where no file is using the asset.
+    $fq = db_select('file_managed', 'm')
+      ->fields('m', ['webdam_id'])
+      ->distinct();
+    db_delete('webdam_asset_cache')
+      ->condition('asset_id', $fq, 'NOT IN')
+      ->condition('changed', $unused_expiration + $time, '<=')
+      ->execute();
+  }
 }
 
 /**

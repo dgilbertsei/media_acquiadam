@@ -116,9 +116,10 @@ function media_webdam_config_settings($form, &$form_state) {
   $form['cache'] = [
     '#type' => 'fieldset',
     '#title' => t('Caching'),
-    '#description' => t('Some asset information is stored locally for performance reasons. This cached information is updated and cleared periodically as necessary. You can force all of this information to be cleared by clicking below. Information will be recached the next time the asset is viewed.'),
+    '#description' => t('Some asset information is stored locally for performance reasons. This cached information is updated and cleared periodically as necessary. You can force all of this information to be cleared by clicking below. Information will be re-cached the next time the asset is viewed.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
+    '#tree' => FALSE,
     '#group' => 'additional_settings',
   ];
 
@@ -138,6 +139,30 @@ function media_webdam_config_settings($form, &$form_state) {
   $form['cache']['count'] = [
     '#type' => 'item',
     '#markup' => format_plural($count, 'There is 1 cached item.', 'There are @count cached items.'),
+  ];
+
+  $form['cache']['media_webdam_cache_expiration'] = [
+    '#type' => 'textfield',
+    '#title' => t('Used lifetime'),
+    '#description' => t('Used assets are assets that have been added to Drupal. Set to 0 to disable expiration.'),
+    '#default_value' => variable_get('media_webdam_cache_expiration', 1440),
+    '#element_validate' => ['element_validate_integer'],
+    '#field_suffix' => t('minutes'),
+    '#maxlength' => 5,
+    '#required' => TRUE,
+    '#size' => 5,
+  ];
+
+  $form['cache']['media_webdam_unused_expiration'] = [
+    '#type' => 'textfield',
+    '#title' => t('Unused lifetime'),
+    '#description' => t('Unused assets are assets that are no longer referenced by Drupal. A short timespan is recommended for this value. Set to 0 to disable expiration.'),
+    '#default_value' => variable_get('media_webdam_unused_expiration', 10),
+    '#element_validate' => ['element_validate_integer'],
+    '#field_suffix' => t('minutes'),
+    '#maxlength' => 5,
+    '#required' => TRUE,
+    '#size' => 5,
   ];
 
   $form['cache']['clear'] = [

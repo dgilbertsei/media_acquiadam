@@ -30,6 +30,8 @@ function media_webdam_uninstall() {
     'media_webdam_background_user',
     'media_webdam_background_pass',
     'media_webdam_client_mode',
+    'media_webdam_cache_expiration',
+    'media_webdam_unused_expiration',
   ];
   foreach ($del as $key) {
     variable_del($key);
