@@ -159,11 +159,15 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
   if (empty($variables['thumbnail'])) {
 
     // Default to a placeholder image in case we can't load one from the asset.
-    $missing = drupal_get_path('module', 'media_webdam_browser') . '/images/mime_220px.png';
-    $variables['thumbnail'] = theme('imagecache_external', [
+    $placeholder = variable_get('media_webdam_browser_placeholder', '');
+    if (empty($placeholder)) {
+      watchdog('media_webdam_browser', 'Browser placeholder image is missing! Please set the media_webdam_browser_placeholder variable to the placeholder image in the files directory!', NULL, WATCHDOG_NOTICE);
+    }
+    $variables['thumbnail'] = theme('image_style', [
       'style_name' => 'media_thumbnail',
-      'path' => $missing,
+      'path' => $placeholder,
       'title' => $asset['name'],
+      'alt' => $asset['name'],
     ]);
 
     if (module_exists('imagecache_external') && !empty($asset['thumbnailurls'])) {

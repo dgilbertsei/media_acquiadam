@@ -6,9 +6,20 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function media_webdam_browser_install() {
+  $placeholder = drupal_get_path('module', 'media_webdam_browser') . '/images/mime_220px.png';
+  $path = file_unmanaged_copy($placeholder);
+  variable_set('media_webdam_browser_placeholder', $path);
+}
+
+/**
  * Implements hook_uninstall().
  */
 function media_webdam_browser_uninstall() {
+  file_unmanaged_delete(variable_get('media_webdam_browser_placeholder'));
+  variable_del('media_webdam_browser_placeholder');
   variable_del('media_webdam_browser_per_page');
   variable_del('media_webdam_browser_thumbnail_size');
 }
