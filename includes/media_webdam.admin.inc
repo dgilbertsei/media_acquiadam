@@ -129,7 +129,7 @@ function media_webdam_config_settings($form, &$form_state) {
       ->fields('c', ['asset_id'])
       ->execute()
       ->fetchCol();
-    media_webdam_api_clear_from_cache($asset_ids);
+    media_webdam_api_flush_item_cache($asset_ids);
   }
 
   $count = db_select('webdam_asset_cache')

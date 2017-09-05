@@ -213,7 +213,7 @@ function media_webdam_api_get_assets_cache(array $assetIds) {
  * @param array $assetIds
  *   An array of asset IDs.
  */
-function media_webdam_api_clear_from_cache(array $assetIds) {
+function media_webdam_api_flush_item_cache(array $assetIds) {
 
   media_webdam_api_flush_image_cache($assetIds);
 
@@ -302,7 +302,7 @@ function media_webdam_api_flush_outdated_cache() {
 
   $assetIds = $query->execute()->fetchCol();
   if (!empty($assetIds)) {
-    media_webdam_api_clear_from_cache($assetIds);
+    media_webdam_api_flush_item_cache($assetIds);
   }
 
   return $assetIds;
