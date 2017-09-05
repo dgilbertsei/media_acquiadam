@@ -258,7 +258,7 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
    * @return string|false
    *   The preview URL or FALSE if none available.
    */
-  public function getThumbnailUrl($thumbnailSize = 550) {
+  public function getThumbnailUrl($thumbnailSize = 1280) {
 
     $this->get();
 
@@ -289,7 +289,7 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
    * @return string|false
    *   The preview URL or FALSE if none available.
    */
-  public function getPreviewUrl($thumbnailSize = 550) {
+  public function getPreviewUrl($thumbnailSize = 1280) {
 
     $this->get();
 
@@ -323,6 +323,26 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
     }
 
     return FALSE;
+  }
+
+  /**
+   * Get a list of possible pregenerated thumbnail sizes.
+   *
+   * This does not mean that the asset necessarily has these sizes available,
+   * only that these are the supported sizes.
+   *
+   * @return array
+   *   An array of sizes.
+   */
+  public static function getThumbnailSizes() {
+    return [
+      100 => 100,
+      150 => 150,
+      220 => 220,
+      310 => 310,
+      550 => 550,
+      1280 => 1280,
+    ];
   }
 
   /**

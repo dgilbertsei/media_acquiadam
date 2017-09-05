@@ -7,9 +7,7 @@ configure = admin/config/media/webdam
 
 dependencies[] = ctools:ctools
 dependencies[] = file_entity:file_entity
-dependencies[] = imagecache_external:imagecache_external (>=7.x-2.0)
 dependencies[] = media (>=7.x-2.0)
 dependencies[] = media_webdam:media_webdam
-dependencies[] = remote_stream_wrapper:remote_stream_wrapper
 
 files[] = includes/WebdamMediaBrowserPlugin.inc

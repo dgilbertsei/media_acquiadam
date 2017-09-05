@@ -157,7 +157,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
     }
 
     $asset = static::getAssetByUri($this->uri);
-    $preview = $asset->getPreviewUrl(1280);
+    $preview = $asset->getPreviewUrl();
 
     if (empty($preview)) {
       // All other files (txt, docx, html, etc.).

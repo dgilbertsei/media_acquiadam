@@ -26,7 +26,7 @@ function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignore
     return FALSE;
   }
 
-  $uri = sprintf('webdam://%d.%s', $asset['id'], $asset['filetype']);
+  $uri = media_webdam_api_asset_to_uri($asset);
   // Reuse an existing file whenever possible.
   $file = file_uri_to_object($uri, TRUE);
 
@@ -123,6 +123,46 @@ function media_webdam_api_get_folder($id, array $depends = [], $skipCache = FALS
  */
 function media_webdam_api_get_asset($id, array $depends = [], $skipCache = FALSE) {
   return media_webdam_api_get_helper('asset', $id, $depends, $skipCache);
+}
+
+/**
+ * Attempts to load an asset by ID without knowing the type.
+ *
+ * This function should be avoided when possible as it can cause extra API
+ * requests.
+ *
+ * @param int|array $id
+ *   An asset ID or the asset data.
+ * @param array $depends
+ *   An array of dependencies to pass to the class constructors.
+ * @param bool $skipCache
+ *   TRUE to skip the cache mechanism.
+ *
+ * @return Webdam_Assets_AbstractAsset|false
+ *   A Webdam_Assets_AbstractAsset object or FALSE.
+ */
+function media_webdam_api_get_unknown($id, array $depends = [], $skipCache = FALSE) {
+
+  if (is_array($id) && !empty($id['type'])) {
+    if ('asset' == $id['type']) {
+      return media_webdam_api_get_asset($id, $depends, $skipCache);
+    }
+    elseif ('asset' == $id['type']) {
+      return media_webdam_api_get_folder($id, $depends, $skipCache);
+    }
+  }
+
+  $asset = media_webdam_api_get_asset($id, $depends, $skipCache);
+  if (!empty($asset)) {
+    return $asset;
+  }
+
+  $asset = media_webdam_api_get_folder($id, $depends, $skipCache);
+  if (!empty($asset)) {
+    return $asset;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -235,28 +275,18 @@ function media_webdam_api_flush_item_cache(array $assetIds) {
  */
 function media_webdam_api_flush_image_cache($assetIds = []) {
 
-  if (!module_exists('imagecache_external')) {
-    return;
+  if (!is_array($assetIds)) {
+    $assetIds = [$assetIds];
   }
 
-  $query = db_select('file_managed', 'm')
-    ->fields('m', ['uri'])
-    ->condition('m.uri', db_like('webdam://') . '%', 'LIKE')
-    ->distinct();
+  module_load_include('inc', 'media_webdam', 'includes/media_webdam.image');
 
-  if (!empty($assetIds)) {
-    $query->condition('m.webdam_id', $assetIds);
-  }
-
-  $records = $query->execute();
-  foreach ($records as $record) {
-    $uri = file_create_url($record->uri);
-    // We only need to worry about asset URLs that translated to a remote URL.
-    if (!empty($uri) && url_is_external($uri)) {
-      $path = imagecache_external_generate_path($uri);
-      if (!empty($path)) {
-        file_unmanaged_delete_recursive($path);
-      }
+  // Go through each image style and clear out the cached asset folder for it.
+  $styles = image_styles();
+  foreach ($styles as $style) {
+    foreach ($assetIds as $asset_id) {
+      $uri = media_webdam_image_style_path($asset_id, $style, 'webdam', '');
+      file_unmanaged_delete_recursive($uri);
     }
   }
 }
@@ -343,4 +373,25 @@ function media_webdam_api_get_files_by_asset_ids(array $assetIds) {
 function media_webdam_api_get_file_by_asset_id($assetId) {
   $result = media_webdam_api_get_files_by_asset_ids([$assetId]);
   return empty($result) ? FALSE : current($result);
+}
+
+/**
+ * Returns a Drupal URI for the given asset.
+ *
+ * Does not necessarily mean the asset is available to Drupal at this URI.
+ *
+ * @param Webdam_Assets_AbstractAsset $asset
+ *   The asset to return a URI for.
+ *
+ * @return string
+ *   The URI.
+ */
+function media_webdam_api_asset_to_uri(Webdam_Assets_AbstractAsset $asset) {
+
+  $uri = sprintf('webdam://%d', $asset['id']);
+  if (!empty($asset['filetype'])) {
+    $uri = sprintf('%s.%s', $uri, $asset['filetype']);
+  }
+
+  return $uri;
 }

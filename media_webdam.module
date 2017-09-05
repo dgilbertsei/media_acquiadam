@@ -42,7 +42,12 @@ function media_webdam_menu_alter(&$items) {
     // Copy the remote stream wrapper module's setup for image styles.
     $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
     $key = $directory_path . '/styles/%image_style/webdam';
-    $items[$key] = $items[$directory_path . '/styles/%image_style/http'];
+    // We need to override the default https handling because we want to be able
+    // to render asset previews that aren't necessarily in the managed table.
+    $items[$key] = $items[$directory_path . '/styles/%image_style/https'];
+    $items[$key]['page callback'] = 'media_webdam_image_style_deliver';
+    $items[$key]['file'] = 'media_webdam.image.inc';
+    $items[$key]['file path'] = drupal_get_path('module', 'media_webdam') . '/includes';
   }
 }
 

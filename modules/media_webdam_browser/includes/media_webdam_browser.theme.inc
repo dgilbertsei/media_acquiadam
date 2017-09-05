@@ -170,15 +170,15 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
       'alt' => $asset['name'],
     ]);
 
-    if (module_exists('imagecache_external') && !empty($asset['thumbnailurls'])) {
-
+    if (!empty($asset['thumbnailurls'])) {
       $browser_tn_size = variable_get('media_webdam_browser_thumbnail_size', 150);
       $preview = $asset->getThumbnailUrl($browser_tn_size);
       if (!empty($preview)) {
-        $variables['thumbnail'] = theme('imagecache_external', [
+        $variables['thumbnail'] = theme('image_style', [
           'style_name' => 'media_thumbnail',
-          'path' => $preview,
+          'path' => media_webdam_api_asset_to_uri($asset),
           'title' => $asset['name'],
+          'alt' => $asset['name'],
         ]);
       }
     }
