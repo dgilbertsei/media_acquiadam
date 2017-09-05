@@ -161,7 +161,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
 
     if (empty($preview)) {
       // All other files (txt, docx, html, etc.).
-      return url('webdam/asset/' . $asset['id']);
+      return url('webdam/asset/' . $asset['id'], ['absolute' => TRUE]);
     }
 
     return $preview;

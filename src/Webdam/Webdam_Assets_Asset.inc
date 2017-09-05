@@ -20,6 +20,18 @@ class Webdam_Assets_Asset extends Webdam_Assets_AbstractAsset {
   }
 
   /**
+   * Get the asset type identifier.
+   *
+   * {@inheritDoc}
+   *
+   * @return string
+   *   The asset type machine name.
+   */
+  public function getType() {
+    return 'asset';
+  }
+
+  /**
    * Get metadata for the asset.
    *
    * @param string $type

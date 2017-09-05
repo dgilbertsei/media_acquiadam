@@ -125,11 +125,11 @@ function media_webdam_config_settings($form, &$form_state) {
 
   if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {
     drupal_set_message(t('Cleared cached asset information.'), 'status');
-    db_delete('webdam_asset_cache')->execute();
-
-    if (module_exists('imagecache_external')) {
-      imagecache_external_flush_cache();
-    }
+    $asset_ids = db_select('webdam_asset_cache', 'c')
+      ->fields('c', ['asset_id'])
+      ->execute()
+      ->fetchCol();
+    media_webdam_api_clear_from_cache($asset_ids);
   }
 
   $count = db_select('webdam_asset_cache')

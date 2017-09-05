@@ -27,6 +27,18 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
   }
 
   /**
+   * Get the asset type identifier.
+   *
+   * {@inheritDoc}
+   *
+   * @return string
+   *   The asset type machine name.
+   */
+  public function getType() {
+    return 'folder';
+  }
+
+  /**
    * Retrieve the Root folder listing.
    *
    * @return Webdam_Assets_Folder[]

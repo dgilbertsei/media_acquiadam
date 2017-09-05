@@ -142,6 +142,7 @@ function media_webdam_api_set_asset_cache(Webdam_Assets_AbstractAsset $asset) {
     ])
     ->insertFields([
       'asset_id' => $asset['id'],
+      'type' => $asset->getType(),
       'data' => serialize($asset->toArray()),
       'changed' => REQUEST_TIME,
       'created' => REQUEST_TIME,
@@ -180,15 +181,84 @@ function media_webdam_api_get_asset_cache($assetId) {
 }
 
 /**
+ * Retrieve multiple assets from the cache.
+ *
+ * @param array $assetIds
+ *   An array of asset IDs to fetch from cache.
+ *
+ * @return array
+ *   The array of asset data from cache, keyed by ID.
+ */
+function media_webdam_api_get_assets_cache(array $assetIds) {
+
+  $result = db_select('webdam_asset_cache', 'c')
+    ->addTag('webdam')
+    ->fields('c', ['data', 'asset_id', 'type'])
+    ->condition('c.asset_id', $assetIds)
+    ->execute()
+    ->fetchAllAssoc('asset_id');
+
+  if (!empty($result)) {
+    array_walk($result, function (&$item, $key) {
+      $item->data = unserialize($item->data);
+    });
+  }
+
+  return $result;
+}
+
+/**
  * Clears given asset IDs from the local cache.
  *
  * @param array $assetIds
  *   An array of asset IDs.
  */
 function media_webdam_api_clear_from_cache(array $assetIds) {
+
+  media_webdam_api_flush_image_cache($assetIds);
+
   db_delete('webdam_asset_cache')
     ->condition('asset_id', $assetIds)
     ->execute();
+}
+
+/**
+ * Clear the cached external images of assets.
+ *
+ * This does not clear thumbnails for assets that are unused in the system.
+ *
+ * This helper function is in place so we can limit our flushing to just asset
+ * images instead of everything the imagecache external might be used for.
+ *
+ * @param array|int $assetIds
+ *   A asset ID or IDs to limit the flushing to.
+ */
+function media_webdam_api_flush_image_cache($assetIds = []) {
+
+  if (!module_exists('imagecache_external')) {
+    return;
+  }
+
+  $query = db_select('file_managed', 'm')
+    ->fields('m', ['uri'])
+    ->condition('m.uri', db_like('webdam://') . '%', 'LIKE')
+    ->distinct();
+
+  if (!empty($assetIds)) {
+    $query->condition('m.webdam_id', $assetIds);
+  }
+
+  $records = $query->execute();
+  foreach ($records as $record) {
+    $uri = file_create_url($record->uri);
+    // We only need to worry about asset URLs that translated to a remote URL.
+    if (!empty($uri) && url_is_external($uri)) {
+      $path = imagecache_external_generate_path($uri);
+      if (!empty($path)) {
+        file_unmanaged_delete_recursive($path);
+      }
+    }
+  }
 }
 
 /**

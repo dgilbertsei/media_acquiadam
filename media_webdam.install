@@ -58,6 +58,13 @@ function media_webdam_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ],
+      'type' => [
+        'description' => st('The machine name of the asset type.'),
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
       'data' => [
         'type' => 'blob',
         'size' => 'big',
@@ -69,12 +76,14 @@ function media_webdam_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'unsigned' => TRUE,
       ],
       'changed' => [
         'description' => 'The Unix timestamp when the asset was most recently saved.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'unsigned' => TRUE,
       ],
     ],
     'indexes' => [

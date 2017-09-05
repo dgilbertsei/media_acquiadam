@@ -35,6 +35,14 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
   abstract protected function getEndpointBase();
 
   /**
+   * Get the asset type identifier.
+   *
+   * @return string
+   *   The asset type machine name.
+   */
+  abstract public function getType();
+
+  /**
    * Create an Asset.
    *
    * Can load an asset direct from the API when given an ID, or pre-populate the
