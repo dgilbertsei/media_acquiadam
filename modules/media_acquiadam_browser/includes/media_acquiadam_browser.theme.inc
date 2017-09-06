@@ -57,14 +57,7 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
   $css_path = drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.info_modal.css';
   drupal_add_css($css_path, 'file');
 
-  try {
-    $client = AcquiaDAM_API::getClient();
-    $sub = $client->getSubscription();
-  }
-  catch (Exception $x) {
-    watchdog_exception('media_acquiadam_browser', $x);
-  }
-
+  $sub = media_acquiadam_browser_get_subscription_info();
   if (!empty($sub['url']) && user_access('view acquiadam links')) {
     $dam_link = $sub['url'] . '/' . $asset->getDAMPath();
     $variables['dam_link'] = l(t('View this asset in AcquiaDAM.'), $dam_link, [
@@ -283,14 +276,7 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
     ],
   ];
 
-  try {
-    $client = AcquiaDAM_API::getClient();
-    $sub = $client->getSubscription();
-  }
-  catch (Exception $x) {
-    watchdog_exception('media_acquiadam_browser', $x);
-  }
-
+  $sub = media_acquiadam_browser_get_subscription_info();
   if (!empty($sub['url']) && user_access('view acquiadam links')) {
     $open_link = url($sub['url'] . '/' . $asset->getDAMPath(), [
       'absolute' => TRUE,

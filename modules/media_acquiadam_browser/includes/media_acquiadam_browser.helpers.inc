@@ -210,3 +210,28 @@ function media_acquiadam_browser_fake_paged_root(array $initialAssets, $perPage 
 
   return $result;
 }
+
+/**
+ * Get the AcquiaDAM subscription information.
+ *
+ * This is a wrapper to cache the information because it's possible for this to
+ * be called many times on the same page.
+ *
+ * @return array|false
+ *   The subscription information or FALSE on failure.
+ */
+function media_acquiadam_browser_get_subscription_info() {
+  static $sub = FALSE;
+
+  if (empty($sub['url'])) {
+    try {
+      $client = AcquiaDAM_API::getClient();
+      $sub = $client->getSubscription();
+    }
+    catch (Exception $x) {
+      watchdog_exception('media_acquiadam_browser', $x);
+    }
+  }
+
+  return $sub;
+}
