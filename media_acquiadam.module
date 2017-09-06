@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/includes/media_acquiadam.helpers.inc';
+require_once __DIR__ . '/includes/media_acquiadam.cache.inc';
 
 /**
  * Implements hook_menu().
