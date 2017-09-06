@@ -91,10 +91,21 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
    *   The result of the API request.
    */
   protected function request($endpoint, $data = NULL, array $headers = [], $method = 'GET') {
+
+    return $this->getClient()->request($endpoint, $data, $headers, $method);
+  }
+
+  /**
+   * Gets the client object for use.
+   *
+   * @return AcquiaDAM_Client
+   *   The AcquiaDAM_Client client being used.
+   */
+  protected function getClient() {
     if (empty($this->depends['client'])) {
       $this->depends['client'] = AcquiaDAM_API::getClient();
     }
-    return $this->depends['client']->request($endpoint, $data, $headers, $method);
+    return $this->depends['client'];
   }
 
   /**
@@ -246,6 +257,22 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
     $this->get();
 
     return sprintf('cloud/#folder/%d#%d', $this->asset['folder']['id'], $this->asset['id']);
+  }
+
+  /**
+   * Gets the URL to the asset within the DAM provider.
+   *
+   * @return string
+   *   The URL to the asset in the DAM provider.
+   */
+  public function getDAMUrl() {
+
+    $sub_info = $this->getClient()->getSubscription();
+
+    return vsprintf('https://%s/%s', [
+      $sub_info['url'],
+      $this->getDAMPath(),
+    ]);
   }
 
   /**

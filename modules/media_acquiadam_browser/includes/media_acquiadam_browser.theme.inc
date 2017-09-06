@@ -57,10 +57,8 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
   $css_path = drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.info_modal.css';
   drupal_add_css($css_path, 'file');
 
-  $sub = media_acquiadam_browser_get_subscription_info();
-  if (!empty($sub['url']) && user_access('view acquiadam links')) {
-    $dam_link = $sub['url'] . '/' . $asset->getDAMPath();
-    $variables['dam_link'] = l(t('View this asset in AcquiaDAM.'), $dam_link, [
+  if (user_access('view acquiadam links')) {
+    $variables['dam_link'] = l(t('View this asset in AcquiaDAM.'), $asset->getDAMUrl(), [
       'absolute' => TRUE,
       'external' => TRUE,
       'attributes' => [
@@ -276,19 +274,13 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
     ],
   ];
 
-  $sub = media_acquiadam_browser_get_subscription_info();
-  if (!empty($sub['url']) && user_access('view acquiadam links')) {
-    $open_link = url($sub['url'] . '/' . $asset->getDAMPath(), [
-      'absolute' => TRUE,
-      'external' => TRUE,
-    ]);
-
+  if (user_access('view acquiadam links')) {
     $links[] = [
       'title' => theme('media_acquiadam_browser_jump_list_item', [
         'icon' => theme('image', ['path' => $image_base . 'ic_launch_black_24dp_1x.png']),
         'label' => t('Open in AcquiaDAM'),
       ]),
-      'href' => $open_link,
+      'href' => $asset->getDAMUrl(),
       'attributes' => [
         'target' => '_blank',
         'rel' => 'external',

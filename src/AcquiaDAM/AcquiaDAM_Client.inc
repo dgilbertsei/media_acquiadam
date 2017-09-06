@@ -132,7 +132,13 @@ class AcquiaDAM_Client {
    *   An array of available sub information.
    */
   public function getSubscription() {
-    return $this->request('subscription');
+    // Possible for this method to be called a lot in a single request, so we
+    // only want to fetch the info once for performance reasons.
+    static $sub_info = NULL;
+    if (empty($sub_info)) {
+      $sub_info = $this->request('subscription');
+    }
+    return $sub_info;
   }
 
   /**
