@@ -11,7 +11,7 @@
  */
 ?>
 
-<div class="browser-asset" data-asset-type="<?php echo $asset['type'] ?>" data-asset-id="<?php echo $asset['id'] ?>" data-asset-status="<?php echo $asset['status'] ?>">
+<div class="browser-asset" <?php print $attributes ?>>
 
   <div class="preview">
     <?php if ($asset['type'] == 'folder') : ?>

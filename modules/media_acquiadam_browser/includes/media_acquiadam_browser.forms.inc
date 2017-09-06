@@ -315,6 +315,14 @@ function media_acquiadam_browser_checkboxes_after_build(array $element, array &$
     // our asset theme.
     $field['#title_display'] = 'invisible';
 
+    $attributes = [
+      'data-asset-expiration' => !empty($asset['expiration']['dateUnix']) ? $asset['expiration']['dateUnix'] : NULL,
+      'data-asset-id' => intval($asset['id']),
+      'data-asset-status' => $asset['status'],
+      'data-asset-type' => $asset['type'],
+    ];
+    $attributes = array_filter($attributes);
+
     $element[$asset_id] = [
       // Move the original render array into itself.
       $asset_id => $field,
@@ -324,7 +332,7 @@ function media_acquiadam_browser_checkboxes_after_build(array $element, array &$
         '#weight' => -1,
       ],
       // Wrap the checkbox/radio in a <li> to mimic Media themeing more closely.
-      '#prefix' => sprintf('<li data-asset-type="%s" data-asset-id="%d">', filter_xss($asset['type']), $asset['id']),
+      '#prefix' => sprintf('<li %s>', drupal_attributes($attributes)),
       '#suffix' => '</li>',
       // We have to (re)set a weight because of the opening/closing wrappers.
       '#weight' => ++$weight,

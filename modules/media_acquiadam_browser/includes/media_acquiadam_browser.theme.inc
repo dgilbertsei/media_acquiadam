@@ -80,24 +80,26 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
 
   // Pull out some asset properties for display in the modal.
   $properties = [
-    [t('Name'), $asset['name']],
-    [t('Description'), $asset['description']],
+    [t('Name'), !empty($asset['name']) ? $asset['name'] : NULL],
+    [t('Description'), !empty($asset['description']) ? $asset['description'] : NULL],
 
-    [t('File name'), $asset['filename']],
-    [t('File size'), format_size($asset['filesize'] * 1024 * 1024)],
-    [t('File type'), drupal_strtoupper($asset['filetype'])],
+    [t('Expires'), !empty($asset['expiration']['date']) ? $asset['expiration']['date'] : NULL],
 
-    [t('Color space'), drupal_strtoupper($asset['colorspace'])],
-    [t('Width'), $asset['width']],
-    [t('Height'), $asset['height']],
+    [t('File name'), !empty($asset['filename']) ? $asset['filename'] : NULL],
+    [t('File size'), !empty($asset['filesize']) ? format_size($asset['filesize'] * 1024 * 1024) : NULL],
+    [t('File type'), !empty($asset['filetype']) ? drupal_strtoupper($asset['filetype']) : NULL],
 
-    [t('Date captured'), $asset['datecaptured']],
-    [t('Date created'), $asset['datecreated']],
-    [t('Date modified'), $asset['datemodified']],
+    [t('Color space'), !empty($asset['colorspace']) ? drupal_strtoupper($asset['colorspace']) : NULL],
+    [t('Width'), !empty($asset['width']) ? $asset['width'] : NULL],
+    [t('Height'), !empty($asset['height']) ? $asset['height'] : NULL],
 
-    [t('Uploaded by'), $asset['user']['name']],
-    [t('Version'), $asset['version']],
-    [t('Status'), $asset['status']],
+    [t('Date captured'), !empty($asset['datecaptured']) ? $asset['datecaptured'] : NULL],
+    [t('Date created'), !empty($asset['datecreated']) ? $asset['datecreated'] : NULL],
+    [t('Date modified'), !empty($asset['datemodified']) ? $asset['datemodified'] : NULL],
+
+    [t('Uploaded by'), !empty($asset['user']['name']) ? $asset['user']['name'] : NULL],
+    [t('Version'), !empty($asset['version']) ? $asset['version'] : NULL],
+    [t('Status'), !empty($asset['status']) ? drupal_ucfirst($asset['status']) : NULL],
   ];
 
   // Only show properties that have a value set.
@@ -112,6 +114,13 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
       // Fetch the XMP metadata as this is where the keywords field lives.
       $xmp = $asset->getXMP();
       if (!empty($xmp['active_fields'])) {
+        $properties[] = [
+          [
+            'data' => t('Metadata'),
+            'header' => TRUE,
+            'colspan' => 2,
+          ],
+        ];
         foreach ($xmp['active_fields'] as $field) {
           if (!empty($field['value'])) {
             $properties[] = [$field['field_name'], $field['value']];
@@ -128,7 +137,7 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
     'header' => [t('Name'), t('Value')],
     'rows' => $properties,
     'empty' => t('No information was provided.'),
-    'caption' => t('Details'),
+    'caption' => t('Asset information'),
     'sticky' => FALSE,
   ]);
 }
@@ -176,6 +185,16 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_asset(&$vari
   }
 
   $variables['jump_list'] = theme('media_acquiadam_browser_jump_list', ['asset' => $asset]);
+
+  $variables['attributes_array'] = [
+    'data-asset-expiration' => !empty($asset['expiration']['dateUnix']) ? $asset['expiration']['dateUnix'] : NULL,
+    'data-asset-id' => intval($asset['id']),
+    'data-asset-status' => $asset['status'],
+    'data-asset-type' => $asset['type'],
+  ];
+  $variables['attributes_array'] = array_filter($variables['attributes_array']);
+
+  $variables['attributes'] = drupal_attributes($variables['attributes_array']);
 }
 
 /**
