@@ -101,24 +101,38 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
     return FALSE;
   }
 
-  $image_uri = system_retrieve_file($thumbnail, file_directory_temp());
-  if (!empty($image_uri)) {
-    $styles = image_styles();
-    foreach ($styles as $style) {
-
-      $derivative_uri = media_acquiadam_image_style_path($asset['id'], $style, 'acquiadam', $thumbnail);
-      image_style_create_derivative($style, $image_uri, $derivative_uri);
+  $derivatives = [];
+  $styles = image_styles();
+  foreach ($styles as $style) {
+    $uri = media_acquiadam_image_style_path($asset['id'], $style, 'acquiadam', $thumbnail);
+    // Only try and create derivatives that do not exist.
+    if (!is_file($uri)) {
+      $derivatives[] = [
+        'uri' => $uri,
+        'style' => $style,
+      ];
     }
-    file_unmanaged_delete_recursive($image_uri);
   }
-  else {
-    watchdog('media_acquiadam',
-      'Unable to retrieve @thumbnail for @id to create image derivatives.', [
-        '@thumbnail' => $thumbnail,
-        '@id' => $asset['id'],
-      ],
-      WATCHDOG_NOTICE);
-    return FALSE;
+
+  if (!empty($derivatives)) {
+    // We only want to make this call if there is work to do, otherwise it
+    // severely impacts page load performance.
+    $image_uri = system_retrieve_file($thumbnail, file_directory_temp());
+    if (!empty($image_uri)) {
+      foreach ($derivatives as $derivative) {
+        image_style_create_derivative($derivative['style'], $image_uri, $derivative['uri']);
+      }
+      file_unmanaged_delete_recursive($image_uri);
+    }
+    else {
+      watchdog('media_acquiadam',
+        'Unable to retrieve @thumbnail for @id to create image derivatives.', [
+          '@thumbnail' => $thumbnail,
+          '@id' => $asset['id'],
+        ],
+        WATCHDOG_NOTICE);
+      return FALSE;
+    }
   }
 
   return TRUE;
