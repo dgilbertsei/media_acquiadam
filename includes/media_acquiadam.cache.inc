@@ -15,17 +15,23 @@
  */
 function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $asset) {
 
+  $expiration = !empty($asset['expiration']['dateUnix']) ?
+    $asset['expiration']['dateUnix'] :
+    NULL;
+
   db_merge('acquiadam_asset_cache')
     ->key(['asset_id' => $asset['id']])
     ->updateFields([
       'changed' => REQUEST_TIME,
       'data' => serialize($asset->toArray()),
+      'expiration' => $expiration,
     ])
     ->insertFields([
       'asset_id' => $asset['id'],
       'changed' => REQUEST_TIME,
       'created' => REQUEST_TIME,
       'data' => serialize($asset->toArray()),
+      'expiration' => $expiration,
       'type' => $asset->getType(),
     ])
     ->execute();
@@ -138,9 +144,6 @@ function media_acquiadam_api_flush_image_cache($assetIds = []) {
 function media_acquiadam_api_flush_outdated_cache() {
   $assetIds = [];
 
-  // We don't use REQUEST_TIME because it won't be set with drush.
-  $time = time();
-
   $query = db_select('acquiadam_asset_cache', 'c')
     ->fields('c', ['asset_id']);
 
@@ -149,7 +152,7 @@ function media_acquiadam_api_flush_outdated_cache() {
   $cache_expiration = variable_get('media_acquiadam_cache_expiration');
   if ($cache_expiration) {
     // Clear out cache entries where the cache is stale.
-    $or->condition('c.changed', $cache_expiration + $time, '<=');
+    $or->condition('c.changed', $cache_expiration + REQUEST_TIME, '<=');
   }
 
   $unused_expiration = variable_get('media_acquiadam_unused_expiration');
@@ -162,7 +165,7 @@ function media_acquiadam_api_flush_outdated_cache() {
     $or->condition(
       db_and()
         ->condition('c.asset_id', $fq, 'NOT IN')
-        ->condition('c.changed', $unused_expiration + $time, '<=')
+        ->condition('c.changed', $unused_expiration + REQUEST_TIME, '<=')
       );
   }
 

@@ -85,10 +85,18 @@ function media_acquiadam_schema() {
         'default' => 0,
         'unsigned' => TRUE,
       ],
+      'expiration' => [
+        'description' => 'The Unix timestamp when the asset is set to expire.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+        'unsigned' => TRUE,
+      ],
     ],
     'indexes' => [
       'created' => ['created'],
       'changed' => ['changed'],
+      'expiration' => ['expiration'],
     ],
     'unique keys' => [],
     'primary key' => ['asset_id'],
