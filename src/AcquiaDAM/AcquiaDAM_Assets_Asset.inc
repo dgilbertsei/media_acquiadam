@@ -69,4 +69,38 @@ class AcquiaDAM_Assets_Asset extends AcquiaDAM_Assets_AbstractAsset {
     return $this->getMetadata('exif');
   }
 
+  /**
+   * Get the asset download URL.
+   *
+   * @param array $options
+   *   An array of options to pass to the API call.
+   *
+   * @return array|false
+   *   The request response or FALSE on failure.
+   */
+  public function getDownload(array $options = []) {
+
+    $this->requireId();
+
+    $options += [
+      'sendNotificationsOff' => TRUE,
+      'trackDownloadsOff' => TRUE,
+      'geturl' => FALSE,
+    ];
+
+    return $this->request(sprintf('%s/%d/download', $this->getEndpointBase(), $this->asset['id']), $options);
+  }
+
+  /**
+   * Get the asset download URL.
+   *
+   * @return string|false
+   *   The asset download URL or FALSE on failure.
+   */
+  public function getDownloadUrl() {
+
+    $result = $this->getDownload(['geturl' => TRUE]);
+
+    return empty($result['url']) ? FALSE : $result['url'];
+  }
 }
