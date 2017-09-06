@@ -8,29 +8,29 @@
 /**
  * Implements hook_theme().
  */
-function media_webdam_browser_theme($existing, $type, $theme, $path) {
+function media_acquiadam_browser_theme($existing, $type, $theme, $path) {
 
   $ret = [];
 
   // A singular asset as displayed on the Media Browser form.
-  $ret['media_webdam_browser_asset'] = [
+  $ret['media_acquiadam_browser_asset'] = [
     'variables' => ['asset' => NULL, 'thumbnail' => NULL],
-    'template' => 'media-webdam-browser-asset',
+    'template' => 'media-acquiadam-browser-asset',
     'path' => $path . '/templates',
   ];
 
   // The breadcrumb trail used to navigate folders.
-  $ret['media_webdam_browser_trail'] = [
+  $ret['media_acquiadam_browser_trail'] = [
     'variables' => ['assets' => [], 'title' => t('Trail')],
   ];
 
   // The menu displayed with each asset in the browser.
-  $ret['media_webdam_browser_jump_list'] = [
+  $ret['media_acquiadam_browser_jump_list'] = [
     'variables' => ['asset' => NULL],
   ];
 
   // Individual menu items displayed in the browser.
-  $ret['media_webdam_browser_jump_list_item'] = [
+  $ret['media_acquiadam_browser_jump_list_item'] = [
     'variables' => [
       'icon' => '',
       'label' => NULL,
@@ -38,9 +38,9 @@ function media_webdam_browser_theme($existing, $type, $theme, $path) {
   ];
 
   // The asset information modal content.
-  $ret['media_webdam_browser_info_modal'] = [
+  $ret['media_acquiadam_browser_info_modal'] = [
     'variables' => ['asset' => NULL],
-    'template' => 'media-webdam-browser-info-modal',
+    'template' => 'media-acquiadam-browser-info-modal',
     'path' => $path . '/templates',
   ];
 
@@ -48,26 +48,26 @@ function media_webdam_browser_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Theme preprocessor for media_webdam_browser_info_modal.
+ * Theme preprocessor for media_acquiadam_browser_info_modal.
  */
-function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$variables) {
+function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&$variables) {
 
   $asset = $variables['asset'];
 
-  $css_path = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.info_modal.css';
+  $css_path = drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.info_modal.css';
   drupal_add_css($css_path, 'file');
 
   try {
-    $client = Webdam_API::getClient();
+    $client = AcquiaDAM_API::getClient();
     $sub = $client->getSubscription();
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam_browser', $x);
+    watchdog_exception('media_acquiadam_browser', $x);
   }
 
-  if (!empty($sub['url']) && user_access('view acquia dam links')) {
+  if (!empty($sub['url']) && user_access('view acquiadam links')) {
     $dam_link = $sub['url'] . '/' . $asset->getDAMPath();
-    $variables['dam_link'] = l(t('View this asset in Acquia DAM.'), $dam_link, [
+    $variables['dam_link'] = l(t('View this asset in AcquiaDAM.'), $dam_link, [
       'absolute' => TRUE,
       'external' => TRUE,
       'attributes' => [
@@ -129,7 +129,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
       }
     }
     catch (Exception $x) {
-      watchdog_exception('media_webdam_browser', $x);
+      watchdog_exception('media_acquiadam_browser', $x);
     }
   }
 
@@ -143,9 +143,9 @@ function media_webdam_browser_preprocess_media_webdam_browser_info_modal(&$varia
 }
 
 /**
- * Theme preprocessor for media_webdam_browser_asset.
+ * Theme preprocessor for media_acquiadam_browser_asset.
  */
-function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables) {
+function media_acquiadam_browser_preprocess_media_acquiadam_browser_asset(&$variables) {
 
   $asset = $variables['asset'];
 
@@ -159,9 +159,9 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
   if (empty($variables['thumbnail'])) {
 
     // Default to a placeholder image in case we can't load one from the asset.
-    $placeholder = variable_get('media_webdam_browser_placeholder', '');
+    $placeholder = variable_get('media_acquiadam_browser_placeholder', '');
     if (empty($placeholder)) {
-      watchdog('media_webdam_browser', 'Browser placeholder image is missing! Please set the media_webdam_browser_placeholder variable to the placeholder image in the files directory!', NULL, WATCHDOG_NOTICE);
+      watchdog('media_acquiadam_browser', 'Browser placeholder image is missing! Please set the media_acquiadam_browser_placeholder variable to the placeholder image in the files directory!', NULL, WATCHDOG_NOTICE);
     }
     $variables['thumbnail'] = theme('image_style', [
       'style_name' => 'media_thumbnail',
@@ -171,12 +171,12 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
     ]);
 
     if (!empty($asset['thumbnailurls'])) {
-      $browser_tn_size = variable_get('media_webdam_browser_thumbnail_size', 150);
+      $browser_tn_size = variable_get('media_acquiadam_browser_thumbnail_size', 150);
       $preview = $asset->getThumbnailUrl($browser_tn_size);
       if (!empty($preview)) {
         $variables['thumbnail'] = theme('image_style', [
           'style_name' => 'media_thumbnail',
-          'path' => media_webdam_api_asset_to_uri($asset),
+          'path' => media_acquiadam_api_asset_to_uri($asset),
           'title' => $asset['name'],
           'alt' => $asset['name'],
         ]);
@@ -184,7 +184,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
     }
   }
 
-  $variables['jump_list'] = theme('media_webdam_browser_jump_list', ['asset' => $asset]);
+  $variables['jump_list'] = theme('media_acquiadam_browser_jump_list', ['asset' => $asset]);
 }
 
 /**
@@ -196,7 +196,7 @@ function media_webdam_browser_preprocess_media_webdam_browser_asset(&$variables)
  * @return string
  *   The rendered media browser trail.
  */
-function theme_media_webdam_browser_trail(array $variables) {
+function theme_media_acquiadam_browser_trail(array $variables) {
 
   $link_opts = [
     'attributes' => ['data-asset-type' => 'folder'],
@@ -226,11 +226,11 @@ function theme_media_webdam_browser_trail(array $variables) {
   if (!empty($variables['assets'])) {
     $last = end($variables['assets']);
     reset($variables['assets']);
-    $last = media_webdam_api_get_helper($asset['type'], $asset);
-    $jump = theme('media_webdam_browser_jump_list', ['asset' => $last]);
+    $last = media_acquiadam_api_get_helper($asset['type'], $asset);
+    $jump = theme('media_acquiadam_browser_jump_list', ['asset' => $last]);
   }
 
-  return '<div class="media-webdam-browser-trail">' . $breadcrumb . $jump . '</div>';
+  return '<div class="media-acquiadam-browser-trail">' . $breadcrumb . $jump . '</div>';
 }
 
 /**
@@ -242,7 +242,7 @@ function theme_media_webdam_browser_trail(array $variables) {
  * @return string
  *   The rendered jump list item.
  */
-function theme_media_webdam_browser_jump_list_item(array $variables) {
+function theme_media_acquiadam_browser_jump_list_item(array $variables) {
 
   $text = '';
   if (!empty($variables['icon'])) {
@@ -265,14 +265,14 @@ function theme_media_webdam_browser_jump_list_item(array $variables) {
  * @return string
  *   The rendered media browser asset jump list.
  */
-function theme_media_webdam_browser_jump_list(array $variables) {
+function theme_media_acquiadam_browser_jump_list(array $variables) {
 
   $asset = $variables['asset'];
-  $image_base = drupal_get_path('module', 'media_webdam_browser') . '/images/';
+  $image_base = drupal_get_path('module', 'media_acquiadam_browser') . '/images/';
 
   $build = [];
 
-  $css = drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.jump_list.css';
+  $css = drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.jump_list.css';
   $build['#attached']['css'][] = $css;
 
   $links = [];
@@ -284,23 +284,23 @@ function theme_media_webdam_browser_jump_list(array $variables) {
   ];
 
   try {
-    $client = Webdam_API::getClient();
+    $client = AcquiaDAM_API::getClient();
     $sub = $client->getSubscription();
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam_browser', $x);
+    watchdog_exception('media_acquiadam_browser', $x);
   }
 
-  if (!empty($sub['url']) && user_access('view acquia dam links')) {
+  if (!empty($sub['url']) && user_access('view acquiadam links')) {
     $open_link = url($sub['url'] . '/' . $asset->getDAMPath(), [
       'absolute' => TRUE,
       'external' => TRUE,
     ]);
 
     $links[] = [
-      'title' => theme('media_webdam_browser_jump_list_item', [
+      'title' => theme('media_acquiadam_browser_jump_list_item', [
         'icon' => theme('image', ['path' => $image_base . 'ic_launch_black_24dp_1x.png']),
-        'label' => t('Open in Acquia DAM'),
+        'label' => t('Open in AcquiaDAM'),
       ]),
       'href' => $open_link,
       'attributes' => [
@@ -318,7 +318,7 @@ function theme_media_webdam_browser_jump_list(array $variables) {
     ctools_modal_add_js();
 
     $links[] = [
-      'title' => theme('media_webdam_browser_jump_list_item', [
+      'title' => theme('media_acquiadam_browser_jump_list_item', [
         'icon' => theme('image', ['path' => $image_base . 'ic_info_outline_black_24dp_1x.png']),
         'label' => t('Get info'),
       ]),

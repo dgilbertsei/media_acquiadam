@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Drupal install related hooks.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function media_acquiadam_browser_install() {
+  $placeholder = drupal_get_path('module', 'media_acquiadam_browser') . '/images/mime_220px.png';
+  $path = file_unmanaged_copy($placeholder);
+  variable_set('media_acquiadam_browser_placeholder', $path);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function media_acquiadam_browser_uninstall() {
+  file_unmanaged_delete(variable_get('media_acquiadam_browser_placeholder'));
+  variable_del('media_acquiadam_browser_placeholder');
+  variable_del('media_acquiadam_browser_per_page');
+  variable_del('media_acquiadam_browser_thumbnail_size');
+}

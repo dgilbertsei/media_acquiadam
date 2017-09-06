@@ -2,18 +2,18 @@
 
 /**
  * @file
- * Create a Webdam Stream Wrapper class for the Media/Resource module.
+ * Create an AcquiaDAM Stream Wrapper class for the Media/Resource module.
  */
 
 /**
- * Provides a remote stream wrapper for Webdam assets.
+ * Provides a remote stream wrapper for AcquiaDAM assets.
  *
  * Create an instance like this:
  * ```php
- *   $dam = new WebdamStreamWrapper('webdam://[asset_id].[filetype]');
+ *   $dam = new AcquiaDAMStreamWrapper('acquiadam://[asset_id].[filetype]');
  * ```
  */
-class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
+class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
 
   /**
    * Fetch the content of the file using drupal_http_request().
@@ -22,7 +22,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
     if (!isset($this->stream_content)) {
       $this->stream_content = NULL;
 
-      // Translate our webdam:// uri into a remote URL before we make the
+      // Translate our acquiadam:// uri into a remote URL before we make the
       // request.
       $uri = file_create_url($this->uri);
 
@@ -31,7 +31,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
         $this->stream_content = $request->data;
       }
       elseif (!empty($request->error)) {
-        watchdog('media_webdam',
+        watchdog('media_acquiadam',
           '(@code) Error fetching asset content: @error',
           [
             '@code' => $request->code,
@@ -70,11 +70,11 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
       $asset = $this->getAssetByUri($this->uri);
       // @TODO: Make this a configurable cutoff in the UI.
       // @TODO: Should we limit this check to audio/video files only?
-      if (!empty($asset['filesize']) && $asset['filesize'] >= variable_get('media_webdam_remote_size_cutoff', 1)) {
+      if (!empty($asset['filesize']) && $asset['filesize'] >= variable_get('media_acquiadam_remote_size_cutoff', 1)) {
         $stat['size'] = $asset['filesize'] * 1024 * 1024;
       }
       else {
-        // Translate our webdam:// uri into a remote URL before we make the
+        // Translate our acquiadam:// uri into a remote URL before we make the
         // request.
         $uri = file_create_url($this->uri);
 
@@ -91,7 +91,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
           $stat['size'] = $request->headers['content-length'];
         }
         elseif (!empty($request->error)) {
-          watchdog('media_webdam',
+          watchdog('media_acquiadam',
             '(@code) Error fetching asset size: @error',
             [
               '@code' => $request->code,
@@ -109,7 +109,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
   /**
    * Get the mimetype of the file.
    *
-   * Overridden to work with the Webdam uri structure.
+   * Overridden to work with the AcquiaDAM uri structure.
    *
    * {@inheritDoc}
    */
@@ -152,7 +152,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
    */
   public function getExternalUrl() {
 
-    if ('webdam' !== file_uri_scheme($this->uri)) {
+    if ('acquiadam' !== file_uri_scheme($this->uri)) {
       return $this->uri;
     }
 
@@ -161,14 +161,14 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
 
     if (empty($preview)) {
       // All other files (txt, docx, html, etc.).
-      return url('webdam/asset/' . $asset['id'], ['absolute' => TRUE]);
+      return url('acquiadam/asset/' . $asset['id'], ['absolute' => TRUE]);
     }
 
     return $preview;
   }
 
   /**
-   * Get an asset ID from a Webdam Uri.
+   * Get an asset ID from an AcquiaDAM Uri.
    *
    * @param string $uri
    *   The URI to parse for an asset ID.
@@ -190,7 +190,7 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
    * @param string $uri
    *   The Uri to use to look up an asset.
    *
-   * @return Webdam_Assets_Asset|false
+   * @return AcquiaDAM_Assets_Asset|false
    *   The asset or FALSE on failure.
    */
   protected static function getAssetByUri($uri) {
@@ -209,17 +209,17 @@ class WebdamStreamWrapper extends DrupalRemoteStreamWrapper {
    * @param int $id
    *   The asset ID.
    *
-   * @return Webdam_Assets_Asset|false
+   * @return AcquiaDAM_Assets_Asset|false
    *   The asset or FALSE on failure.
    */
   protected static function getAssetById($id) {
 
-    module_load_include('inc', 'media_webdam', 'includes/media_webdam.helpers');
+    module_load_include('inc', 'media_acquiadam', 'includes/media_acquiadam.helpers');
     try {
-      $asset = media_webdam_api_get_asset($id);
+      $asset = media_acquiadam_api_get_asset($id);
     }
     catch (Exception $x) {
-      watchdog_exception('webdam_stream_wrapper', $x);
+      watchdog_exception('acquiadam_stream_wrapper', $x);
       drupal_set_message(t('@class: Unable to load remote asset: @id.', [
         '@class' => __CLASS__,
         '@id' => $id,

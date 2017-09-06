@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Abstract class base for Webdam assets.
+ * Abstract class base for AcquiaDAM assets.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializable {
+abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerializable {
 
   /**
    * A list of class dependencies.
@@ -92,7 +92,7 @@ abstract class Webdam_Assets_AbstractAsset implements ArrayAccess, JsonSerializa
    */
   protected function request($endpoint, $data = NULL, array $headers = [], $method = 'GET') {
     if (empty($this->depends['client'])) {
-      $this->depends['client'] = Webdam_API::getClient();
+      $this->depends['client'] = AcquiaDAM_API::getClient();
     }
     return $this->depends['client']->request($endpoint, $data, $headers, $method);
   }

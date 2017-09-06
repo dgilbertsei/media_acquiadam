@@ -5,9 +5,9 @@ use OAuth2\Client as OAuth2Client;
 /**
  * Client for making API requests.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-class Webdam_Client {
+class AcquiaDAM_Client {
 
   /**
    * The base API URL.
@@ -24,7 +24,7 @@ class Webdam_Client {
   protected $oauth2Client = NULL;
 
   /**
-   * Construct a Webdam_Client object.
+   * Construct an AcquiaDAM_Client object.
    *
    * @param \OAuth2\Client $oauth2Client
    *   A pre-configured OAuth2 Client object.
@@ -136,7 +136,7 @@ class Webdam_Client {
   }
 
   /**
-   * Make a request to the Webdam API.
+   * Make a request to the AcquiaDAM API.
    *
    * @param string $endpoint
    *   The API endpoint to request.
@@ -177,7 +177,7 @@ class Webdam_Client {
       $resp->data = drupal_json_decode($resp->data);
     }
 
-    // Webdam does not return proper error codes for different conditions, so
+    // AcquiaDAM does not return proper error codes for different conditions, so
     // we can't do much beyond checking for "not a success".
     if (200 != $resp->code) {
       $msg = empty($resp->data['message']) ? $resp->error : $resp->data['message'];

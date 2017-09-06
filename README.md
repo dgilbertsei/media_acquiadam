@@ -1,16 +1,16 @@
-# Media: Acquia DAM
+# Media: AcquiaDAM
 
-Provides a strong integration with the Acquia DAM service, allowing users to easily include Acquia DAM assets within their Drupal site.
+Provides a strong integration with the AcquiaDAM service, allowing users to easily include AcquiaDAM assets within their Drupal site.
 
 ## Installation
 
 * Install the module and dependencies as normal.
-* Create a background API user within Acquia DAM (see the background user section).
+* Create a background API user within AcquiaDAM (see the background user section).
 * Configure the background user credentials.
 
 ```php
-$conf['media_webdam_background_user'] = 'username';
-$conf['media_webdam_background_pass'] = 'password';
+$conf['media_acquiadam_background_user'] = 'username';
+$conf['media_acquiadam_background_pass'] = 'password';
 ```
 
 !!: These credentials are plain-text and should not be stored in the database by using any `variable_set` or `drush vset` style commands. It is highly recommended that these credentials are stored in a file outside of a web accessible path, and then included into the settings.php file.

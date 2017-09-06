@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Helper functions for the Webdam browser.
+ * Helper functions for the AcquiaDAM browser.
  */
 
 /**
@@ -14,20 +14,20 @@
  * @return array
  *   An array of folder IDs from parent to child that includes the original ID.
  */
-function media_webdam_browser_get_trail($folderId) {
+function media_acquiadam_browser_get_trail($folderId) {
 
   $trail = [];
 
-  if (!empty($folderId) && Webdam_Assets_Folder::ROOT_FOLDER_ID != $folderId) {
+  if (!empty($folderId) && AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID != $folderId) {
     try {
-      $folder = media_webdam_api_get_folder($folderId);
+      $folder = media_acquiadam_api_get_folder($folderId);
       $parents = $folder->getParents();
       $parents[] = $folderId;
       $trail = $folder->getMultiple($parents);
     }
     catch (Exception $x) {
       drupal_set_message($x->getMessage(), 'error');
-      watchdog_exception('media_webdam_browser', $x);
+      watchdog_exception('media_acquiadam_browser', $x);
     }
   }
 
@@ -38,15 +38,15 @@ function media_webdam_browser_get_trail($folderId) {
  * Get the child assets of a given folder.
  *
  * @param int $folderId
- *   The folder id to get assets for. Defaults to the Webdam root folder.
+ *   The folder id to get assets for. Defaults to the AcquiaDAM root folder.
  * @param int $perPage
- *   The number of assets to limit the results to. Defaults to 25. Note: Webdam
+ *   The number of assets to limit the results to. Defaults to 25. Note: AcquiaDAM
  *   does not include folders towards the count of the limit.
  *
  * @return array|bool
  *   An array of assets with the total remote count, or FALSE.
  */
-function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROOT_FOLDER_ID, $perPage = 25) {
+function media_acquiadam_browser_get_children($folderId = AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID, $perPage = 25) {
 
   $result = [
     'assets' => [],
@@ -55,15 +55,15 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
 
   $asset_types = [];
 
-  if (Webdam_Assets_Folder::ROOT_FOLDER_ID == $folderId) {
+  if (AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID == $folderId) {
 
     try {
-      $folder = media_webdam_api_get_folder($folderId);
+      $folder = media_acquiadam_api_get_folder($folderId);
       $root = $folder->getRoot();
     }
     catch (Exception $x) {
       drupal_set_message($x->getMessage(), 'error');
-      watchdog_exception('media_webdam_browser', $x);
+      watchdog_exception('media_acquiadam_browser', $x);
 
       return FALSE;
     }
@@ -74,7 +74,7 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
   else {
 
     try {
-      $folder = media_webdam_api_get_folder($folderId);
+      $folder = media_acquiadam_api_get_folder($folderId);
       $asset_types = $folder->getAssets(array(
         'limit' => $perPage,
         'offset' => pager_find_page() * $perPage,
@@ -83,7 +83,7 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
     }
     catch (Exception $x) {
       drupal_set_message($x->getMessage(), 'error');
-      watchdog_exception('media_webdam_browser', $x);
+      watchdog_exception('media_acquiadam_browser', $x);
 
       return FALSE;
     }
@@ -120,13 +120,13 @@ function media_webdam_browser_get_children($folderId = Webdam_Assets_Folder::ROO
  *   An array containing a list of assets and the total count of all available
  *   assets.
  */
-function media_webdam_browser_get_initial_assets($folderId, array $form_state, $perPage) {
+function media_acquiadam_browser_get_initial_assets($folderId, array $form_state, $perPage) {
 
   $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
 
   $result = !empty($qp['search']) ?
-    media_webdam_browser_get_search_results($folderId, $qp['search'], $form_state, $perPage) :
-    media_webdam_browser_get_children($folderId, $perPage);
+    media_acquiadam_browser_get_search_results($folderId, $qp['search'], $form_state, $perPage) :
+    media_acquiadam_browser_get_children($folderId, $perPage);
 
   return $result;
 }
@@ -146,7 +146,7 @@ function media_webdam_browser_get_initial_assets($folderId, array $form_state, $
  * @return array
  *   An keyed array featuring assets and total_count.
  */
-function media_webdam_browser_get_search_results($folderId, array $search, array $form_state, $perPage = 25) {
+function media_acquiadam_browser_get_search_results($folderId, array $search, array $form_state, $perPage = 25) {
   $child_assets = [
     'assets' => [],
     'total_count' => 0,
@@ -162,17 +162,17 @@ function media_webdam_browser_get_search_results($folderId, array $search, array
       'offset' => pager_find_page() * $perPage,
       'types' => $types,
     ];
-    $searcher = new Webdam_Search();
+    $searcher = new AcquiaDAM_Search();
     $results = $searcher->search($keywords, $options);
   }
   catch (Exception $x) {
     drupal_set_message($x->getMessage(), 'error');
-    watchdog_exception('media_webdam_browser', $x);
+    watchdog_exception('media_acquiadam_browser', $x);
   }
 
   if (!empty($results['items'])) {
     foreach ($results['items'] as $asset) {
-      $child_assets['assets'][] = media_webdam_api_get_asset($asset);
+      $child_assets['assets'][] = media_acquiadam_api_get_asset($asset);
     }
     $child_assets['total_count'] = $results['total_count'];
   }
@@ -191,7 +191,7 @@ function media_webdam_browser_get_search_results($folderId, array $search, array
  * @return array
  *   An keyed array featuring assets and total_count.
  */
-function media_webdam_browser_fake_paged_root(array $initialAssets, $perPage = 25) {
+function media_acquiadam_browser_fake_paged_root(array $initialAssets, $perPage = 25) {
   $result = [
     'assets' => [],
     'total_count' => count($initialAssets['assets']),

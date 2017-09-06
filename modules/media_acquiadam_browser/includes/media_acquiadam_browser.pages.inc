@@ -11,7 +11,7 @@
  * @return array
  *   A render array.
  */
-function media_webdam_browser_choose_asset_saved_landing_page($selected = NULL) {
+function media_acquiadam_browser_choose_asset_saved_landing_page($selected = NULL) {
 
   $build = [];
 
@@ -29,7 +29,7 @@ function media_webdam_browser_choose_asset_saved_landing_page($selected = NULL) 
   $build['back'] = [
     '#type' => 'link',
     '#title' => t('Back to the browser'),
-    '#href' => url('admin/content/file/webdam'),
+    '#href' => url('admin/content/file/acquiadam'),
   ];
 
   // 'fid' will contain a list of files that were saved by the user.
@@ -57,16 +57,16 @@ function media_webdam_browser_choose_asset_saved_landing_page($selected = NULL) 
  * @return array
  *   A page render array.
  */
-function media_webdam_browser_deauth_page($account = NULL) {
+function media_acquiadam_browser_deauth_page($account = NULL) {
 
   try {
-    $client = Webdam_API::getClient('webdam-server-auth');
+    $client = AcquiaDAM_API::getClient('acquiadam-server-auth');
     $client->getOAuth2Client()->clearToken();
     // Nuke the oauth2 session data just to be sure we cleared everything.
     unset($_SESSION['oauth2_client']);
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam_browser', $x);
+    watchdog_exception('media_acquiadam_browser', $x);
     drupal_set_message(t('There was a problem clearing the token.'), 'error');
   }
 
@@ -101,12 +101,12 @@ function media_webdam_browser_deauth_page($account = NULL) {
  * @return array|int
  *   A page render array or a menu response code.
  */
-function media_webdam_browser_info_modal_page($js, $assetType, $assetId) {
+function media_acquiadam_browser_info_modal_page($js, $assetType, $assetId) {
   if (empty($assetType) || empty($assetId)) {
     return MENU_NOT_FOUND;
   }
 
-  $asset = media_webdam_api_get_helper($assetType, $assetId);
+  $asset = media_acquiadam_api_get_helper($assetType, $assetId);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
@@ -114,7 +114,7 @@ function media_webdam_browser_info_modal_page($js, $assetType, $assetId) {
   $build = [];
 
   $build['preview'] = [
-    '#theme' => 'media_webdam_browser_info_modal',
+    '#theme' => 'media_acquiadam_browser_info_modal',
     '#asset' => $asset,
   ];
 

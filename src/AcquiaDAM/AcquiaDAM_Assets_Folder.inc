@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Webdam asset implmentation for Folder assets.
+ * AcquiaDAM asset implmentation for Folder assets.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
+class AcquiaDAM_Assets_Folder extends AcquiaDAM_Assets_AbstractAsset {
 
   /**
    * The ID of what is considered the Root folder.
@@ -41,7 +41,7 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
   /**
    * Retrieve the Root folder listing.
    *
-   * @return Webdam_Assets_Folder[]
+   * @return AcquiaDAM_Assets_Folder[]
    *   An array of folders located at the root.
    */
   public function getRoot() {
@@ -88,7 +88,7 @@ class Webdam_Assets_Folder extends Webdam_Assets_AbstractAsset {
       if (!empty($result[$key]) && is_array($result[$key])) {
         $result[$key] = array_map(function ($item) use ($type, $fullyLoad) {
           $id = $fullyLoad ? $item['id'] : $item;
-          return media_webdam_api_get_helper($type, $id, $this->depends);
+          return media_acquiadam_api_get_helper($type, $id, $this->depends);
         }, $result[$key]);
       }
     }

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Generic Webdam assets.
+ * Generic AcquiaDAM assets.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-class Webdam_Assets_Asset extends Webdam_Assets_AbstractAsset {
+class AcquiaDAM_Assets_Asset extends AcquiaDAM_Assets_AbstractAsset {
 
   /**
    * Return the API endpoint base.
@@ -51,7 +51,7 @@ class Webdam_Assets_Asset extends Webdam_Assets_AbstractAsset {
    * @return array
    *   The metadata request response.
    *
-   * @see Webdam_Assets_Asset::getMetadata()
+   * @see AcquiaDAM_Assets_Asset::getMetadata()
    */
   public function getXMP() {
     return $this->getMetadata('xmp');
@@ -63,7 +63,7 @@ class Webdam_Assets_Asset extends Webdam_Assets_AbstractAsset {
    * @return array
    *   The metadata request response.
    *
-   * @see Webdam_Assets_Asset::getMetadata()
+   * @see AcquiaDAM_Assets_Asset::getMetadata()
    */
   public function getEXIF() {
     return $this->getMetadata('exif');

@@ -8,7 +8,7 @@
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$form_state) {
+function media_acquiadam_browser_form_media_acquiadam_config_settings_alter(&$form, &$form_state) {
   $form['browser'] = [
     '#type' => 'fieldset',
     '#title' => t('Media Browser'),
@@ -18,28 +18,28 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
     '#group' => 'additional_settings',
   ];
 
-  $form['browser']['media_webdam_browser_per_page'] = [
+  $form['browser']['media_acquiadam_browser_per_page'] = [
     '#type' => 'textfield',
     '#title' => t('Results per page'),
     '#description' => t('Controls the number of assets displayed per page.'),
-    '#default_value' => variable_get('media_webdam_browser_per_page', 25),
+    '#default_value' => variable_get('media_acquiadam_browser_per_page', 25),
     '#element_validate' => ['element_validate_integer_positive'],
     '#size' => 5,
     '#max_size' => 5,
   ];
 
-  $form['browser']['media_webdam_browser_thumbnail_size'] = [
+  $form['browser']['media_acquiadam_browser_thumbnail_size'] = [
     '#type' => 'select',
     '#title' => t('Thumbnail source size'),
     '#description' => t('The source remote thumbnail size to use when creating browser thumbnails locally.'),
-    '#default_value' => variable_get('media_webdam_browser_thumbnail_size', 150),
-    '#options' => Webdam_Assets_AbstractAsset::getThumbnailSizes(),
+    '#default_value' => variable_get('media_acquiadam_browser_thumbnail_size', 150),
+    '#options' => AcquiaDAM_Assets_AbstractAsset::getThumbnailSizes(),
   ];
-  $form['browser']['media_webdam_browser_thumbnail_size']['#options'][550] = t('550 (Medium)');
+  $form['browser']['media_acquiadam_browser_thumbnail_size']['#options'][550] = t('550 (Medium)');
 }
 
 /**
- * Webdam browser form.
+ * AcquiaDAM browser form.
  *
  * @param array $form
  *   A form render array.
@@ -51,12 +51,12 @@ function media_webdam_browser_form_media_webdam_config_settings_alter(&$form, &$
  * @return array
  *   A form render array.
  */
-function media_webdam_browser_choose_asset_form(array $form, array &$form_state, array $options = []) {
+function media_acquiadam_browser_choose_asset_form(array $form, array &$form_state, array $options = []) {
 
   // Used for building reset and other URLs to the current page.
   $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'code']);
 
-  $client = Webdam_API::getClient();
+  $client = AcquiaDAM_API::getClient();
   // 'aa' parameter is used to determine if the user has clicked the
   // authenticate link in our warning message. The state parameter is used by
   // the OAuth2 authentication mechanism and is a way to tell if we're in the
@@ -125,16 +125,16 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#attributes' => ['class' => ['media-browser']],
     '#attached' => [
       'js' => [
-        drupal_get_path('module', 'media_webdam_browser') . '/js/media_webdam_browser.browser.js',
+        drupal_get_path('module', 'media_acquiadam_browser') . '/js/media_acquiadam_browser.browser.js',
       ],
       'css' => [
-        drupal_get_path('module', 'media_webdam_browser') . '/css/media_webdam_browser.browser.css',
+        drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.browser.css',
       ],
     ],
   ];
 
   $form['results']['trail'] = [
-    '#theme' => 'media_webdam_browser_trail',
+    '#theme' => 'media_acquiadam_browser_trail',
     '#title' => t('Trail'),
     '#access' => FALSE,
     '#assets' => [],
@@ -149,7 +149,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#title' => t('Assets'),
     '#options' => [],
     '#assets' => [],
-    '#after_build' => ['media_webdam_browser_checkboxes_after_build'],
+    '#after_build' => ['media_acquiadam_browser_checkboxes_after_build'],
   ];
 
   $form['results']['empty_message'] = [
@@ -157,7 +157,7 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
     '#access' => empty($form['results']['assets']['#assets']),
   ];
 
-  // Pager is primed in media_webdam_browser_choose_asset_form_fill_assets().
+  // Pager is primed in media_acquiadam_browser_choose_asset_form_fill_assets().
   $form['results']['pager'] = ['#theme' => 'pager'];
 
   try {
@@ -173,18 +173,18 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   $form['admin'] = [
     '#type' => 'fieldset',
     '#title' => t('Administration options'),
-    '#description' => t('Only Drupal DAM administrators can see these options.'),
-    '#access' => user_access('administer media webdam'),
+    '#description' => t('Only AcquiaDAM administrators can see these options.'),
+    '#access' => user_access('administer media acquiadam'),
     'user' => [
       '#type' => 'markup',
       '#markup' => '<p>' . t('Authenticated as %user.', ['%user' => $user]) . '</p>',
     ],
     'clear' => [
       '#type' => 'markup',
-      '#markup' => '<p>' . l(t('Clear access token'), 'user/' . $GLOBALS['user']->uid . '/webdam/deauth', [
+      '#markup' => '<p>' . l(t('Clear access token'), 'user/' . $GLOBALS['user']->uid . '/acquiadam/deauth', [
         'query' => ['destination' => current_path()],
       ]) . '</p>',
-      '#access' => variable_get('media_webdam_client_mode') == 'mixed',
+      '#access' => variable_get('media_acquiadam_client_mode') == 'mixed',
     ],
   ];
 
@@ -209,10 +209,10 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
   ];
 
   if ($client->isAuthenticated()) {
-    media_webdam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
+    media_acquiadam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
   }
   else {
-    drupal_set_message(t('The Webdam browser does not have access to your Webdam account. <a href="@auth-url">Please click here to authorize access to Webdam.</a>', [
+    drupal_set_message(t('The AcquiaDAM browser does not have access to your AcquiaDAM account. <a href="@auth-url">Please click here to authorize access to AcquiaDAM.</a>', [
       '@auth-url' => url(current_path(), ['query' => ['aa' => TRUE]]),
     ]), 'warning');
   }
@@ -230,31 +230,31 @@ function media_webdam_browser_choose_asset_form(array $form, array &$form_state,
  * @param array $options
  *   An array of options as passed from the Media Browser plugin.
  */
-function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array &$form_state, array $options = []) {
+function media_acquiadam_browser_choose_asset_form_fill_assets(array &$form, array &$form_state, array $options = []) {
 
   $qp = drupal_get_query_parameters(NULL, ['q', 'page', 'aa']);
 
   $folderId = empty($qp['folderId']) ?
-    Webdam_Assets_Folder::ROOT_FOLDER_ID :
+    AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID :
     $qp['folderId'];
-  $per_page = variable_get('media_webdam_browser_per_page', 25);
-  $is_root = empty($folderId) || Webdam_Assets_Folder::ROOT_FOLDER_ID == $folderId;
+  $per_page = variable_get('media_acquiadam_browser_per_page', 25);
+  $is_root = empty($folderId) || AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID == $folderId;
   $is_search = !empty($qp['search']);
 
   // We're not under the root folder so show the breadcrumb trail.
   // This allows users to navigate back up a level if they need to.
   if (!$is_root) {
-    $trail_assets = media_webdam_browser_get_trail($folderId);
+    $trail_assets = media_acquiadam_browser_get_trail($folderId);
     $form['results']['trail']['#access'] = TRUE;
     $form['results']['trail']['#assets'] = $trail_assets;
   }
 
-  $initial_assets = media_webdam_browser_get_initial_assets($folderId, $form_state, $per_page);
+  $initial_assets = media_acquiadam_browser_get_initial_assets($folderId, $form_state, $per_page);
 
   // Fake paging the results of the API for the root folder by splitting up
   // its result and overwriting what we originally got.
   if ($is_root && !$is_search && is_array($initial_assets)) {
-    $initial_assets = media_webdam_browser_fake_paged_root($initial_assets, $per_page);
+    $initial_assets = media_acquiadam_browser_fake_paged_root($initial_assets, $per_page);
   }
 
   if (!empty($initial_assets['assets'])) {
@@ -293,7 +293,7 @@ function media_webdam_browser_choose_asset_form_fill_assets(array &$form, array 
  * @return array
  *   The modified form element render array.
  */
-function media_webdam_browser_checkboxes_after_build(array $element, array &$form_state) {
+function media_acquiadam_browser_checkboxes_after_build(array $element, array &$form_state) {
 
   // We need to adjust the element weight so that elements remain in the proper
   // order once we add our opening/closing wrapper.
@@ -319,7 +319,7 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
       // Move the original render array into itself.
       $asset_id => $field,
       'asset' => [
-        '#theme' => 'media_webdam_browser_asset',
+        '#theme' => 'media_acquiadam_browser_asset',
         '#asset' => $asset,
         '#weight' => -1,
       ],
@@ -333,10 +333,10 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
 
   $opener_attrs = [
     implode(' ', [
-      'media-webdam-browser-assets',
+      'media-acquiadam-browser-assets',
       'clearfix',
     ]),
-    drupal_html_id('media-webdam-browser-library-list'),
+    drupal_html_id('media-acquiadam-browser-library-list'),
   ];
 
   $element['open-list'] = [
@@ -353,14 +353,14 @@ function media_webdam_browser_checkboxes_after_build(array $element, array &$for
 }
 
 /**
- * Submission handler for media_webdam_browser_choose_asset_form.
+ * Submission handler for media_acquiadam_browser_choose_asset_form.
  *
  * @param array $form
  *   A Drupal form array.
  * @param array $form_state
  *   The current form state.
  */
-function media_webdam_browser_choose_asset_form_submit(array &$form, array &$form_state) {
+function media_acquiadam_browser_choose_asset_form_submit(array &$form, array &$form_state) {
   // Searching shortcircuits a lot of the submission logic. We don't need to
   // process selected assets, so create the redirect and exit.
   $is_search = !empty($form_state['triggering_element']) && $form_state['triggering_element']['#name'] == 'search';
@@ -377,10 +377,10 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
     return;
   }
 
-  $assetIds = media_webdam_browser_choose_asset_form_get_selected_assets($form_state);
+  $assetIds = media_acquiadam_browser_choose_asset_form_get_selected_assets($form_state);
   if (!empty($assetIds)) {
 
-    $saved_fids = media_webdam_browser_choose_asset_form_save_assets($assetIds, $form_state['storage']['assets']);
+    $saved_fids = media_acquiadam_browser_choose_asset_form_save_assets($assetIds, $form_state['storage']['assets']);
 
     $asset_count = count($assetIds);
     $fid_count = count($saved_fids);
@@ -395,12 +395,12 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
     if (!empty($saved_fids)) {
       // If we're not in the Media browser screen then we need a landing page to
       // send users.
-      $redirect_uri = url('admin/content/file/webdam/saved');
+      $redirect_uri = url('admin/content/file/acquiadam/saved');
       $query = ['fid' => $saved_fids];
 
       // This will be set if the user is in a Media browser screen.
       if (!empty($form_state['#media_browser'])) {
-        $redirect_uri = url('media/browser/webdam');
+        $redirect_uri = url('media/browser/acquiadam');
       }
 
       $form_state['redirect'] = [
@@ -422,7 +422,7 @@ function media_webdam_browser_choose_asset_form_submit(array &$form, array &$for
  * @return int[]
  *   An array of file IDs that were created.
  */
-function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, array $loadedAssets = []) {
+function media_acquiadam_browser_choose_asset_form_save_assets(array $assetIds, array $loadedAssets = []) {
 
   $saved_fids = [];
 
@@ -431,19 +431,19 @@ function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, arr
     // Load the remote asset if it wasn't already.
     $asset = !empty($loadedAssets[$assetId]) ?
       $loadedAssets[$assetId] :
-      media_webdam_api_get_asset($assetId);
+      media_acquiadam_api_get_asset($assetId);
 
     if (empty($asset)) {
-      watchdog('media_webdam', 'Unable to load asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
+      watchdog('media_acquiadam', 'Unable to load asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
       continue;
     }
 
-    $file = media_webdam_api_create_webdam_file($asset);
+    $file = media_acquiadam_api_create_acquiadam_file($asset);
     if (!empty($file->fid)) {
       $saved_fids[] = $file->fid;
     }
     else {
-      watchdog('media_webdam', 'Unable to create file for asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
+      watchdog('media_acquiadam', 'Unable to create file for asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
     }
   }
 
@@ -459,7 +459,7 @@ function media_webdam_browser_choose_asset_form_save_assets(array $assetIds, arr
  * @return int[]
  *   An array of asset IDs.
  */
-function media_webdam_browser_choose_asset_form_get_selected_assets(array $form_state) {
+function media_acquiadam_browser_choose_asset_form_get_selected_assets(array $form_state) {
   $assetIds = !empty($form_state['values']['assets']) ?
     $form_state['values']['assets'] :
     [];

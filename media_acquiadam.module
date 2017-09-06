@@ -5,28 +5,28 @@
  * Drupal hook implementations.
  */
 
-require_once __DIR__ . '/includes/media_webdam.helpers.inc';
+require_once __DIR__ . '/includes/media_acquiadam.helpers.inc';
 
 /**
  * Implements hook_menu().
  */
-function media_webdam_menu() {
+function media_acquiadam_menu() {
   $items = [];
-  $items['admin/config/media/webdam'] = [
-    'title' => 'Media: Webdam settings',
-    'description' => 'Configure the API settings for Webdam.',
+  $items['admin/config/media/acquiadam'] = [
+    'title' => 'Media: AcquiaDAM settings',
+    'description' => 'Configure the API settings for AcquiaDAM.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => ['media_webdam_config_settings'],
-    'access arguments' => ['administer media webdam'],
-    'file' => 'includes/media_webdam.admin.inc',
+    'page arguments' => ['media_acquiadam_config_settings'],
+    'access arguments' => ['administer media acquiadam'],
+    'file' => 'includes/media_acquiadam.admin.inc',
   ];
 
-  $items['webdam/asset/%'] = [
-    'title' => 'Webdam Asset',
+  $items['acquiadam/asset/%'] = [
+    'title' => 'AcquiaDAM Asset',
     'description' => 'Redirect to an available asset download link.',
-    'page callback' => 'media_webdam_asset_download_redirect',
+    'page callback' => 'media_acquiadam_asset_download_redirect',
     'page arguments' => [2],
-    'access arguments' => ['view webdam assets'],
+    'access arguments' => ['view acquiadam assets'],
     'type' => MENU_CALLBACK,
   ];
 
@@ -36,36 +36,36 @@ function media_webdam_menu() {
 /**
  * Implements hook_menu_alter().
  */
-function media_webdam_menu_alter(&$items) {
+function media_acquiadam_menu_alter(&$items) {
 
   if (module_exists('remote_stream_wrapper')) {
     // Copy the remote stream wrapper module's setup for image styles.
     $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
-    $key = $directory_path . '/styles/%image_style/webdam';
+    $key = $directory_path . '/styles/%image_style/acquiadam';
     // We need to override the default https handling because we want to be able
     // to render asset previews that aren't necessarily in the managed table.
     $items[$key] = $items[$directory_path . '/styles/%image_style/https'];
-    $items[$key]['page callback'] = 'media_webdam_image_style_deliver';
-    $items[$key]['file'] = 'media_webdam.image.inc';
-    $items[$key]['file path'] = drupal_get_path('module', 'media_webdam') . '/includes';
+    $items[$key]['page callback'] = 'media_acquiadam_image_style_deliver';
+    $items[$key]['file'] = 'media_acquiadam.image.inc';
+    $items[$key]['file path'] = drupal_get_path('module', 'media_acquiadam') . '/includes';
   }
 }
 
 /**
  * Implements hook_permission().
  */
-function media_webdam_permission() {
+function media_acquiadam_permission() {
   $perms = [];
 
-  $perms['administer media webdam'] = [
-    'title' => t('Administer Media: Webdam'),
-    'description' => t('Allows administration of Media: Webdam'),
+  $perms['administer media acquiadam'] = [
+    'title' => t('Administer Media: AcquiaDAM'),
+    'description' => t('Allows administration of Media: AcquiaDAM'),
     'restrict access' => TRUE,
   ];
 
-  $perms['view webdam assets'] = [
-    'title' => t('View Webdam assets'),
-    'description' => t('Allows viewing of Webda assets'),
+  $perms['view acquiadam assets'] = [
+    'title' => t('View AcquiaDAM assets'),
+    'description' => t('Allows viewing of AcquiaDAM assets'),
   ];
 
   return $perms;
@@ -74,23 +74,23 @@ function media_webdam_permission() {
 /**
  * Implements hook_oauth2_clients().
  */
-function media_webdam_oauth2_clients() {
+function media_acquiadam_oauth2_clients() {
 
   global $base_url;
 
   $client_url = $base_url;
-  $server_url = variable_get('media_webdam_api_endpoint', 'https://apiv2.webdamdb.com');
+  $server_url = variable_get('media_acquiadam_api_endpoint', 'https://apiv2.webdamdb.com');
 
   $base_auth = [
     'token_endpoint' => $server_url . '/oauth2/token',
-    'client_id' => variable_get('media_webdam_client_id'),
-    'client_secret' => variable_get('media_webdam_client_secret'),
+    'client_id' => variable_get('media_acquiadam_client_id'),
+    'client_secret' => variable_get('media_acquiadam_client_secret'),
   ];
 
-  // This setup redirects the user to the Webdam OAuth2 endpoint for
+  // This setup redirects the user to the AcquiaDAM OAuth2 endpoint for
   // authentication instead of passing username/password information from Drupal
-  // to Webdam.
-  $oauth2_clients['webdam-server-auth'] = $base_auth + [
+  // to AcquiaDAM.
+  $oauth2_clients['acquiadam-server-auth'] = $base_auth + [
     'auth_flow' => 'server-side',
     'authorization_endpoint' => $server_url . '/oauth2/authorize',
     'redirect_uri' => $client_url . '/oauth2/authorized',
@@ -99,14 +99,14 @@ function media_webdam_oauth2_clients() {
   // This method requires configuration of a username and password so it is
   // inherently less secure than handing authentication off to the user. We only
   // use this for the background user and never regular Drupal users.
-  $oauth2_clients['webdam-user-auth'] = $base_auth + [
+  $oauth2_clients['acquiadam-user-auth'] = $base_auth + [
     'auth_flow' => 'user-password',
-    'username' => variable_get('media_webdam_background_user'),
-    'password' => variable_get('media_webdam_background_pass'),
+    'username' => variable_get('media_acquiadam_background_user'),
+    'password' => variable_get('media_acquiadam_background_pass'),
   ];
 
   // Client credentials are not supported but still defined here.
-  $oauth2_clients['webdam-client-auth'] = $base_auth + [
+  $oauth2_clients['acquiadam-client-auth'] = $base_auth + [
     'auth_flow' => 'client-credentials',
   ];
 
@@ -116,12 +116,12 @@ function media_webdam_oauth2_clients() {
 /**
  * Implements hook_stream_wrappers().
  */
-function media_webdam_stream_wrappers() {
+function media_acquiadam_stream_wrappers() {
   return array(
-    'webdam' => array(
-      'name' => t('Webdam files'),
-      'class' => 'WebdamStreamWrapper',
-      'description' => t('Provides read-only paths to webdam files.'),
+    'acquiadam' => array(
+      'name' => t('AcquiaDAM files'),
+      'class' => 'AcquiaDAMStreamWrapper',
+      'description' => t('Provides read-only paths to AcquiaDAM files.'),
       'type' => STREAM_WRAPPERS_REMOTE,
       'remote' => TRUE,
     ),
@@ -131,25 +131,25 @@ function media_webdam_stream_wrappers() {
 /**
  * Implements hook_schema_alter().
  */
-function media_webdam_schema_alter(&$schema) {
+function media_acquiadam_schema_alter(&$schema) {
   // Add an asset_id property to the file_managed table so we can easily find
   // related cache without having to parse/manipulate strings.
   $file_managed = &$schema['file_managed'];
-  $file_managed['fields']['webdam_id'] = [
-    'description' => st('The Webdam asset identifier.'),
+  $file_managed['fields']['acquiadam_id'] = [
+    'description' => st('The AcquiaDAM asset identifier.'),
     'type' => 'int',
     'unsigned' => TRUE,
     'not null' => FALSE,
   ];
-  $file_managed['indexes']['webdam_id'] = ['webdam_id'];
-  $file_managed['indexes']['fid_webdam_id'] = ['fid', 'webdam_id'];
+  $file_managed['indexes']['acquiadam_id'] = ['acquiadam_id'];
+  $file_managed['indexes']['fid_acquiadam_id'] = ['fid', 'acquiadam_id'];
 }
 
 /**
  * Implements hook_cron().
  */
-function media_webdam_cron() {
-  media_webdam_api_flush_outdated_cache();
+function media_acquiadam_cron() {
+  media_acquiadam_api_flush_outdated_cache();
 }
 
 /**
@@ -161,14 +161,14 @@ function media_webdam_cron() {
  * @return int
  *   A menu response code.
  */
-function media_webdam_asset_download_redirect($assetId) {
+function media_acquiadam_asset_download_redirect($assetId) {
 
   // Force the background user mode when serving files to anonymous users.
   $client = user_is_anonymous() ?
-    Webdam_API::getClient('webdam-user-auth') :
+    AcquiaDAM_API::getClient('acquiadam-user-auth') :
     NULL;
 
-  $asset = media_webdam_api_get_asset($assetId, ['client' => $client]);
+  $asset = media_acquiadam_api_get_asset($assetId, ['client' => $client]);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
@@ -180,7 +180,7 @@ function media_webdam_asset_download_redirect($assetId) {
     }
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam', $x);
+    watchdog_exception('media_acquiadam', $x);
     drupal_set_message(t('Unable to get a download URL for @name.', ['@name' => $asset['name']]), 'error');
     return MENU_ACCESS_DENIED;
   }
@@ -191,12 +191,12 @@ function media_webdam_asset_download_redirect($assetId) {
 /**
  * Implements hook_help().
  */
-function media_webdam_help($path, $arg) {
+function media_acquiadam_help($path, $arg) {
 
   switch ($path) {
-    case 'admin/help#media_webdam':
-      $output = '<h3>' . t('About Media: Webdam') . '</h3>';
-      $output .= '<p>' . t('Media: Webdam provides Webdam integration within the Drupal site. This integration allows Drupal users with Webdam accounts to browse assets they have access to and create Drupal files that reference these assets.') . '</p>';
+    case 'admin/help#media_acquiadam':
+      $output = '<h3>' . t('About Media: AcquiaDAM') . '</h3>';
+      $output .= '<p>' . t('Media: AcquiaDAM provides AcquiaDAM integration within the Drupal site. This integration allows Drupal users with AcquiaDAM accounts to browse assets they have access to and create Drupal files that reference these assets.') . '</p>';
       $output .= '<p>' . t('Once an asset is referenced within Drupal normal Drupal permission mechanisms will take over.') . '</p>';
       $output .= '<p>' . t('DAM permissions will still apply to the CDN-rendered images.') . '</p>';
 

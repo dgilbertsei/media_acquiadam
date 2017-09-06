@@ -18,7 +18,7 @@
     });
 
     // Add an extra class to selected thumbnails.
-    $('#media-webdam-browser-library-list :checkbox, #media-webdam-browser-library-list :radio', this).each(function () {
+    $('#media-acquiadam-browser-library-list :checkbox, #media-acquiadam-browser-library-list :radio', this).each(function () {
       var checkbox = $(this);
       if (checkbox.is(':checked')) {
         $(checkbox).parents('li').addClass('selected');
@@ -35,12 +35,12 @@
     });
   };
 
-  Drupal.behaviors.mediaWebdamBrowser = {
+  Drupal.behaviors.mediaAcquiaDAMBrowser = {
     attach: function (context, settings) {
 
-      $('.media-webdam-browser-assets', context).once(mediaMediaItemSelectToggle);
+      $('.media-acquiadam-browser-assets', context).once(mediaMediaItemSelectToggle);
 
-      $('#media-webdam-browser-choose-asset-form .back-link', context)
+      $('#media-acquiadam-browser-choose-asset-form .back-link', context)
         .once(function () {
 
           $(this).bind('click', function (e) {

@@ -2,14 +2,14 @@
 
 /**
  * @file
- * Helper functions for working with Webdam within Drupal.
+ * Helper functions for working with AcquiaDAM within Drupal.
  */
 
 /**
- * Create a local file entity for a Webdam asset.
+ * Create a local file entity for an AcquiaDAM asset.
  *
- * @param Webdam_Assets_Asset $asset
- *   The Webdam asset to create a file entity for.
+ * @param AcquiaDAM_Assets_Asset $asset
+ *   The AcquiaDAM asset to create a file entity for.
  * @param bool $ignoreExisting
  *   By default we return an existing file if one was found. Set this TRUE to
  *   force a new file to be created.
@@ -17,24 +17,24 @@
  * @return object|bool
  *   The created file entity or FALSE on failure.
  */
-function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignoreExisting = FALSE) {
+function media_acquiadam_api_create_acquiadam_file(AcquiaDAM_Assets_Asset $asset, $ignoreExisting = FALSE) {
 
   global $user;
 
-  if (!$asset instanceof Webdam_Assets_Asset) {
+  if (!$asset instanceof AcquiaDAM_Assets_Asset) {
 
     return FALSE;
   }
 
-  $uri = media_webdam_api_asset_to_uri($asset);
+  $uri = media_acquiadam_api_asset_to_uri($asset);
   // Reuse an existing file whenever possible.
   $file = file_uri_to_object($uri, TRUE);
 
   // We got a file object for a new file instead of an existing one.
   if (!empty($file) && empty($file->fid)) {
-    media_webdam_api_set_asset_cache($asset);
+    media_acquiadam_api_set_asset_cache($asset);
     $file->filename = drupal_basename($asset['name']);
-    $file->webdam_id = $asset['id'];
+    $file->acquiadam_id = $asset['id'];
     file_save($file);
   }
 
@@ -53,16 +53,16 @@ function media_webdam_api_create_webdam_file(Webdam_Assets_Asset $asset, $ignore
  * @param bool $skipCache
  *   TRUE to skip the cache mechanism.
  *
- * @return Webdam_Assets_AbstractAsset|false
- *   A Webdam_Assets_AbstractAsset object or FALSE.
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache = FALSE) {
+function media_acquiadam_api_get_helper($type, $id, array $depends = [], $skipCache = FALSE) {
 
   // We only want to try and cache when we are given an id instead of an array.
   // We also need to ignore caching the root folder.
-  $use_cache = empty($skipCache) && is_numeric($id) && $id != Webdam_Assets_Folder::ROOT_FOLDER_ID;
+  $use_cache = empty($skipCache) && is_numeric($id) && $id != AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID;
   if ($use_cache) {
-    $cached_item = media_webdam_api_get_asset_cache($id);
+    $cached_item = media_acquiadam_api_get_asset_cache($id);
   }
 
   $create_arg = empty($cached_item) ? $id : $cached_item;
@@ -70,22 +70,22 @@ function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache
   $result = FALSE;
   try {
     if ('folder' == $type) {
-      $result = new Webdam_Assets_Folder($create_arg, $depends);
+      $result = new AcquiaDAM_Assets_Folder($create_arg, $depends);
     }
     elseif ('asset' == $type) {
-      $result = new Webdam_Assets_Asset($create_arg, $depends);
+      $result = new AcquiaDAM_Assets_Asset($create_arg, $depends);
     }
     else {
-      watchdog('media_webdam', 'Unhandled asset type: @type', ['@type' => $type], WATCHDOG_DEBUG);
+      watchdog('media_acquiadam', 'Unhandled asset type: @type', ['@type' => $type], WATCHDOG_DEBUG);
     }
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam', $x);
+    watchdog_exception('media_acquiadam', $x);
   }
 
   $can_cache_result = !empty($result) && empty($cached_item);
   if ($use_cache && $can_cache_result) {
-    media_webdam_api_set_asset_cache($result);
+    media_acquiadam_api_set_asset_cache($result);
   }
 
   return $result;
@@ -101,11 +101,11 @@ function media_webdam_api_get_helper($type, $id, array $depends = [], $skipCache
  * @param bool $skipCache
  *   TRUE to skip the cache mechanism.
  *
- * @return Webdam_Assets_AbstractAsset|false
- *   A Webdam_Assets_AbstractAsset object or FALSE.
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_webdam_api_get_folder($id, array $depends = [], $skipCache = FALSE) {
-  return media_webdam_api_get_helper('folder', $id, $depends, $skipCache);
+function media_acquiadam_api_get_folder($id, array $depends = [], $skipCache = FALSE) {
+  return media_acquiadam_api_get_helper('folder', $id, $depends, $skipCache);
 }
 
 /**
@@ -118,11 +118,11 @@ function media_webdam_api_get_folder($id, array $depends = [], $skipCache = FALS
  * @param bool $skipCache
  *   TRUE to skip the cache mechanism.
  *
- * @return Webdam_Assets_AbstractAsset|false
- *   A Webdam_Assets_AbstractAsset object or FALSE.
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_webdam_api_get_asset($id, array $depends = [], $skipCache = FALSE) {
-  return media_webdam_api_get_helper('asset', $id, $depends, $skipCache);
+function media_acquiadam_api_get_asset($id, array $depends = [], $skipCache = FALSE) {
+  return media_acquiadam_api_get_helper('asset', $id, $depends, $skipCache);
 }
 
 /**
@@ -138,26 +138,26 @@ function media_webdam_api_get_asset($id, array $depends = [], $skipCache = FALSE
  * @param bool $skipCache
  *   TRUE to skip the cache mechanism.
  *
- * @return Webdam_Assets_AbstractAsset|false
- *   A Webdam_Assets_AbstractAsset object or FALSE.
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_webdam_api_get_unknown($id, array $depends = [], $skipCache = FALSE) {
+function media_acquiadam_api_get_unknown($id, array $depends = [], $skipCache = FALSE) {
 
   if (is_array($id) && !empty($id['type'])) {
     if ('asset' == $id['type']) {
-      return media_webdam_api_get_asset($id, $depends, $skipCache);
+      return media_acquiadam_api_get_asset($id, $depends, $skipCache);
     }
     elseif ('asset' == $id['type']) {
-      return media_webdam_api_get_folder($id, $depends, $skipCache);
+      return media_acquiadam_api_get_folder($id, $depends, $skipCache);
     }
   }
 
-  $asset = media_webdam_api_get_asset($id, $depends, $skipCache);
+  $asset = media_acquiadam_api_get_asset($id, $depends, $skipCache);
   if (!empty($asset)) {
     return $asset;
   }
 
-  $asset = media_webdam_api_get_folder($id, $depends, $skipCache);
+  $asset = media_acquiadam_api_get_folder($id, $depends, $skipCache);
   if (!empty($asset)) {
     return $asset;
   }
@@ -166,15 +166,15 @@ function media_webdam_api_get_unknown($id, array $depends = [], $skipCache = FAL
 }
 
 /**
- * Cache Webdam asset information locally.
+ * Cache AcquiaDAM asset information locally.
  *
  * Calling for an already cached asset will update the cache.
  *
- * @param Webdam_Assets_AbstractAsset $asset
- *   The Webdam asset to cache.
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The AcquiaDAM asset to cache.
  */
-function media_webdam_api_set_asset_cache(Webdam_Assets_AbstractAsset $asset) {
-  db_merge('webdam_asset_cache')
+function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $asset) {
+  db_merge('acquiadam_asset_cache')
     ->key(['asset_id' => $asset['id']])
     ->updateFields([
       'data' => serialize($asset->toArray()),
@@ -191,21 +191,21 @@ function media_webdam_api_set_asset_cache(Webdam_Assets_AbstractAsset $asset) {
 }
 
 /**
- * Get locally cached Webdam asset information.
+ * Get locally cached AcquiaDAM asset information.
  *
  * @param int $assetId
- *   The Webdam asset ID to get cached information for.
+ *   The AcquiaDAM asset ID to get cached information for.
  *
- * @return Webdam_Assets_AbstractAsset|false
- *   The Webdam asset or FALSE.
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   The AcquiaDAM asset or FALSE.
  */
-function media_webdam_api_get_asset_cache($assetId) {
+function media_acquiadam_api_get_asset_cache($assetId) {
 
   $cache = &drupal_static(__FUNCTION__, []);
   if (empty($cache[$assetId])) {
 
-    $result = db_select('webdam_asset_cache', 'c')
-      ->addTag('webdam')
+    $result = db_select('acquiadam_asset_cache', 'c')
+      ->addTag('acquiadam')
       ->fields('c', ['data'])
       ->condition('c.asset_id', intval($assetId))
       ->range(0, 1)
@@ -229,10 +229,10 @@ function media_webdam_api_get_asset_cache($assetId) {
  * @return array
  *   The array of asset data from cache, keyed by ID.
  */
-function media_webdam_api_get_assets_cache(array $assetIds) {
+function media_acquiadam_api_get_assets_cache(array $assetIds) {
 
-  $result = db_select('webdam_asset_cache', 'c')
-    ->addTag('webdam')
+  $result = db_select('acquiadam_asset_cache', 'c')
+    ->addTag('acquiadam')
     ->fields('c', ['data', 'asset_id', 'type'])
     ->condition('c.asset_id', $assetIds)
     ->execute()
@@ -253,11 +253,11 @@ function media_webdam_api_get_assets_cache(array $assetIds) {
  * @param array $assetIds
  *   An array of asset IDs.
  */
-function media_webdam_api_flush_item_cache(array $assetIds) {
+function media_acquiadam_api_flush_item_cache(array $assetIds) {
 
-  media_webdam_api_flush_image_cache($assetIds);
+  media_acquiadam_api_flush_image_cache($assetIds);
 
-  db_delete('webdam_asset_cache')
+  db_delete('acquiadam_asset_cache')
     ->condition('asset_id', $assetIds)
     ->execute();
 }
@@ -273,19 +273,19 @@ function media_webdam_api_flush_item_cache(array $assetIds) {
  * @param array|int $assetIds
  *   A asset ID or IDs to limit the flushing to.
  */
-function media_webdam_api_flush_image_cache($assetIds = []) {
+function media_acquiadam_api_flush_image_cache($assetIds = []) {
 
   if (!is_array($assetIds)) {
     $assetIds = [$assetIds];
   }
 
-  module_load_include('inc', 'media_webdam', 'includes/media_webdam.image');
+  module_load_include('inc', 'media_acquiadam', 'includes/media_acquiadam.image');
 
   // Go through each image style and clear out the cached asset folder for it.
   $styles = image_styles();
   foreach ($styles as $style) {
     foreach ($assetIds as $asset_id) {
-      $uri = media_webdam_image_style_path($asset_id, $style, 'webdam', '');
+      $uri = media_acquiadam_image_style_path($asset_id, $style, 'acquiadam', '');
       file_unmanaged_delete_recursive($uri);
     }
   }
@@ -297,28 +297,28 @@ function media_webdam_api_flush_image_cache($assetIds = []) {
  * @return array
  *   An array of asset IDs that were cleared out.
  */
-function media_webdam_api_flush_outdated_cache() {
+function media_acquiadam_api_flush_outdated_cache() {
   $assetIds = [];
 
   // We don't use REQUEST_TIME because it won't be set with drush.
   $time = time();
 
-  $query = db_select('webdam_asset_cache', 'c')
+  $query = db_select('acquiadam_asset_cache', 'c')
     ->fields('c', ['asset_id']);
 
   $or = db_or();
 
-  $cache_expiration = variable_get('media_webdam_cache_expiration');
+  $cache_expiration = variable_get('media_acquiadam_cache_expiration');
   if ($cache_expiration) {
     // Clear out cache entries where the cache is stale.
     $or->condition('c.changed', $cache_expiration + $time, '<=');
   }
 
-  $unused_expiration = variable_get('media_webdam_unused_expiration');
+  $unused_expiration = variable_get('media_acquiadam_unused_expiration');
   if ($unused_expiration) {
     // Clear out cache entries where no file is using the asset.
     $fq = db_select('file_managed', 'm')
-      ->fields('m', ['webdam_id'])
+      ->fields('m', ['acquiadam_id'])
       ->distinct();
 
     $or->condition(
@@ -332,7 +332,7 @@ function media_webdam_api_flush_outdated_cache() {
 
   $assetIds = $query->execute()->fetchCol();
   if (!empty($assetIds)) {
-    media_webdam_api_flush_item_cache($assetIds);
+    media_acquiadam_api_flush_item_cache($assetIds);
   }
 
   return $assetIds;
@@ -347,14 +347,14 @@ function media_webdam_api_flush_outdated_cache() {
  * @return array
  *   Any matching files from the managed files table.
  */
-function media_webdam_api_get_files_by_asset_ids(array $assetIds) {
+function media_acquiadam_api_get_files_by_asset_ids(array $assetIds) {
   $assetIds = array_map('intval', $assetIds);
   $assetIds = array_filter($assetIds);
 
   $result = db_select('file_managed', 'm')
-    ->addTag('webdam')
-    ->fields('m', ['fid', 'webdam_id'])
-    ->condition('m.webdam_id', $assetIds)
+    ->addTag('acquiadam')
+    ->fields('m', ['fid', 'acquiadam_id'])
+    ->condition('m.acquiadam_id', $assetIds)
     ->execute()
     ->fetchAll();
 
@@ -370,8 +370,8 @@ function media_webdam_api_get_files_by_asset_ids(array $assetIds) {
  * @return array|false
  *   A matching file or FALSE.
  */
-function media_webdam_api_get_file_by_asset_id($assetId) {
-  $result = media_webdam_api_get_files_by_asset_ids([$assetId]);
+function media_acquiadam_api_get_file_by_asset_id($assetId) {
+  $result = media_acquiadam_api_get_files_by_asset_ids([$assetId]);
   return empty($result) ? FALSE : current($result);
 }
 
@@ -380,15 +380,15 @@ function media_webdam_api_get_file_by_asset_id($assetId) {
  *
  * Does not necessarily mean the asset is available to Drupal at this URI.
  *
- * @param Webdam_Assets_AbstractAsset $asset
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
  *   The asset to return a URI for.
  *
  * @return string
  *   The URI.
  */
-function media_webdam_api_asset_to_uri(Webdam_Assets_AbstractAsset $asset) {
+function media_acquiadam_api_asset_to_uri(AcquiaDAM_Assets_AbstractAsset $asset) {
 
-  $uri = sprintf('webdam://%d', $asset['id']);
+  $uri = sprintf('acquiadam://%d', $asset['id']);
   if (!empty($asset['filetype'])) {
     $uri = sprintf('%s.%s', $uri, $asset['filetype']);
   }

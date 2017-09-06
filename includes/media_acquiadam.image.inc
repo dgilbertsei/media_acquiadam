@@ -11,7 +11,7 @@
  * Adjusts behavior to allow serving DAM assets that aren't in the managed
  * table.
  */
-function media_webdam_image_style_deliver($style, $scheme) {
+function media_acquiadam_image_style_deliver($style, $scheme) {
 
   if (!module_exists('remote_stream_wrapper')) {
     return MENU_ACCESS_DENIED;
@@ -26,23 +26,23 @@ function media_webdam_image_style_deliver($style, $scheme) {
   list($asset_id, $filetype) = array_pad(explode('.', $target, 2), 2, NULL);
 
   try {
-    $asset = media_webdam_api_get_unknown($asset_id);
+    $asset = media_acquiadam_api_get_unknown($asset_id);
     $thumbnail = $asset->getThumbnailUrl();
     if (empty($thumbnail)) {
       return MENU_NOT_FOUND;
     }
 
     // Prime image styles before loading below.
-    media_webdam_create_asset_image_derivatives($asset);
+    media_acquiadam_create_asset_image_derivatives($asset);
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam', $x);
+    watchdog_exception('media_acquiadam', $x);
     return MENU_NOT_FOUND;
   }
 
   $image_uri = $thumbnail;
 
-  $derivative_uri = media_webdam_image_style_path($asset['id'], $style, $scheme, $image_uri);
+  $derivative_uri = media_acquiadam_image_style_path($asset['id'], $style, $scheme, $image_uri);
 
   // The rest of the logic is the same as contined within the original
   // remote_stream_wrapper function.
@@ -75,7 +75,7 @@ function media_webdam_image_style_deliver($style, $scheme) {
     file_transfer($image->source, array('Content-Type' => $image->info['mime_type'], 'Content-Length' => $image->info['file_size']));
   }
   else {
-    watchdog('media_webdam', 'Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);
+    watchdog('media_acquiadam', 'Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);
     drupal_add_http_header('Status', '500 Internal Server Error');
     print t('Error generating image.');
     drupal_exit();
@@ -85,19 +85,19 @@ function media_webdam_image_style_deliver($style, $scheme) {
 /**
  * Generate all image derivatives for an asset.
  *
- * @param Webdam_Assets_AbstractAsset $asset
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
  *   The asset to generate derivatives for.
  *
  * @return bool
  *   TRUE on success, FALSE on failure.
  */
-function media_webdam_create_asset_image_derivatives(Webdam_Assets_AbstractAsset $asset) {
+function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_AbstractAsset $asset) {
 
   try {
     $thumbnail = $asset->getThumbnailUrl();
   }
   catch (Exception $x) {
-    watchdog_exception('media_webdam', $x);
+    watchdog_exception('media_acquiadam', $x);
     return FALSE;
   }
 
@@ -106,13 +106,13 @@ function media_webdam_create_asset_image_derivatives(Webdam_Assets_AbstractAsset
     $styles = image_styles();
     foreach ($styles as $style) {
 
-      $derivative_uri = media_webdam_image_style_path($asset['id'], $style, 'webdam', $thumbnail);
+      $derivative_uri = media_acquiadam_image_style_path($asset['id'], $style, 'acquiadam', $thumbnail);
       image_style_create_derivative($style, $image_uri, $derivative_uri);
     }
     file_unmanaged_delete_recursive($image_uri);
   }
   else {
-    watchdog('media_webdam',
+    watchdog('media_acquiadam',
       'Unable to retrieve @thumbnail for @id to create image derivatives.', [
         '@thumbnail' => $thumbnail,
         '@id' => $asset['id'],
@@ -139,7 +139,7 @@ function media_webdam_create_asset_image_derivatives(Webdam_Assets_AbstractAsset
  * @return string
  *   The destination URI.
  */
-function media_webdam_image_style_path($asset_id, array $style, $scheme, $image_uri) {
+function media_acquiadam_image_style_path($asset_id, array $style, $scheme, $image_uri) {
   return vsprintf('%s://styles/%s/%s/%d/%s', [
     file_default_scheme(),
     $style['name'],

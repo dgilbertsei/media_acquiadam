@@ -1,28 +1,28 @@
 <?php
 
 /**
- * Webdam_API helper class.
+ * AcquiaDAM_API helper class.
  *
  * Used to abstract out some specific reusable function implementations.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-class Webdam_API {
+class AcquiaDAM_API {
 
   /**
-   * Get an Webdam_Client client instance.
+   * Get an AcquiaDAM_Client client instance.
    *
-   * @return Webdam_Client
+   * @return AcquiaDAM_Client
    *   A client object.
    */
   public static function getClient($key = NULL) {
 
-    $client_mode = variable_get('media_webdam_client_mode', 'mixed');
+    $client_mode = variable_get('media_acquiadam_client_mode', 'mixed');
     if (empty($key) && 'mixed' == $client_mode) {
-      $key = 'webdam-server-auth';
+      $key = 'acquiadam-server-auth';
     }
     elseif (empty($key) && 'background' == $client_mode) {
-      $key = 'webdam-user-auth';
+      $key = 'acquiadam-user-auth';
     }
 
     // Reuse the same client instance during the request.
@@ -30,7 +30,7 @@ class Webdam_API {
     if (empty($client[$key])) {
 
       $oauth2_client = oauth2_client_load($key);
-      $client[$key] = new Webdam_Client($oauth2_client);
+      $client[$key] = new AcquiaDAM_Client($oauth2_client);
     }
 
     return $client[$key];

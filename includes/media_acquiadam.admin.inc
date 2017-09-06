@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Administration page callbacks for the Media: Webdam module.
+ * Administration page callbacks for the Media: AcquiaDAM module.
  */
 
 /**
  * Displays the media administration page.
  */
-function media_webdam_config_settings($form, &$form_state) {
+function media_acquiadam_config_settings($form, &$form_state) {
 
   $form['additional_settings'] = [
     '#type' => 'vertical_tabs',
@@ -17,35 +17,35 @@ function media_webdam_config_settings($form, &$form_state) {
   $form['api'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
-    '#description' => t('Information used for authenticating with the Webdam API in different scenarios.'),
+    '#description' => t('Information used for authenticating with the AcquiaDAM API in different scenarios.'),
     '#collapsible' => TRUE,
     '#tree' => FALSE,
     '#group' => 'additional_settings',
   ];
 
-  $form['api']['media_webdam_client_id'] = [
+  $form['api']['media_acquiadam_client_id'] = [
     '#type' => 'textfield',
     '#title' => t('Client ID'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_ID.'),
-    '#default_value' => variable_get('media_webdam_client_id'),
+    '#default_value' => variable_get('media_acquiadam_client_id'),
     '#size' => 50,
     '#required' => TRUE,
   ];
 
-  $form['api']['media_webdam_client_secret'] = [
+  $form['api']['media_acquiadam_client_secret'] = [
     '#type' => 'textfield',
     '#title' => t('Client Secret'),
     '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_Secret.'),
-    '#default_value' => variable_get('media_webdam_client_secret'),
+    '#default_value' => variable_get('media_acquiadam_client_secret'),
     '#size' => 50,
     '#required' => TRUE,
   ];
 
-  $form['api']['media_webdam_client_mode'] = [
+  $form['api']['media_acquiadam_client_mode'] = [
     '#type' => 'select',
     '#title' => t('Cient mode'),
-    '#description' => t('The API client mode to use when making requests. The mixed mode leverages a background API user for specific situations, but will hand off additional authentication to Webdam when necessary. The background only mode will use the background API user for all requests.'),
-    '#default_value' => variable_get('media_webdam_client_mode', 'mixed'),
+    '#description' => t('The API client mode to use when making requests. The mixed mode leverages a background API user for specific situations, but will hand off additional authentication to AcquiaDAM when necessary. The background only mode will use the background API user for all requests.'),
+    '#default_value' => variable_get('media_acquiadam_client_mode', 'mixed'),
     '#options' => [
       'mixed' => t('Mixed (default)'),
       'background' => t('Background only'),
@@ -57,7 +57,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'container',
     '#states' => [
       'visible' => [
-        ':input#edit-media-webdam-client-mode' => ['value' => 'mixed'],
+        ':input#edit-media-acquiadam-client-mode' => ['value' => 'mixed'],
       ],
     ],
     'message' => [
@@ -70,23 +70,23 @@ function media_webdam_config_settings($form, &$form_state) {
   $form['api']['background'] = [
     '#type' => 'fieldset',
     '#title' => t('Background user'),
-    '#description' => t('The background user is a Webdam user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
+    '#description' => t('The background user is an AcquiaDAM user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   ];
 
-  $user = variable_get('media_webdam_background_user');
-  $pass = variable_get('media_webdam_background_pass');
+  $user = variable_get('media_acquiadam_background_user');
+  $pass = variable_get('media_acquiadam_background_pass');
   $needs_config = empty($user) || empty($pass);
   if ($needs_config) {
     $config_msg = t('Both %user-key and %pass-key must be configured in your settings.php file to enable complete functionality of this module.', [
-      '%user-key' => 'media_webdam_background_user',
-      '%pass-key' => 'media_webdam_background_pass',
+      '%user-key' => 'media_acquiadam_background_user',
+      '%pass-key' => 'media_acquiadam_background_pass',
     ]);
 
-    $code = '<pre><code>$conf[\'media_webdam_background_user\'] = \'example.username\';';
+    $code = '<pre><code>$conf[\'media_acquiadam_background_user\'] = \'example.username\';';
     $code .= PHP_EOL;
-    $code .= '$conf[\'media_webdam_background_pass\'] = \'example.password\';</code></pre>';
+    $code .= '$conf[\'media_acquiadam_background_pass\'] = \'example.password\';</code></pre>';
 
     $form['api']['background']['#description'] .= '<p>' . $config_msg . '</p>';
     $form['api']['background']['#description'] .= $code;
@@ -101,7 +101,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'item',
     '#title' => t('Username'),
     '#description' => t('The user account being used for background access.'),
-    '#markup' => variable_get('media_webdam_background_user', t('Not configured!')),
+    '#markup' => variable_get('media_acquiadam_background_user', t('Not configured!')),
     '#required' => TRUE,
   ];
 
@@ -109,7 +109,7 @@ function media_webdam_config_settings($form, &$form_state) {
     '#type' => 'item',
     '#title' => t('Password'),
     '#description' => t('The user password being used for background access.'),
-    '#markup' => variable_get('media_webdam_background_pass') ? t('Configured') : t('Not configured!'),
+    '#markup' => variable_get('media_acquiadam_background_pass') ? t('Configured') : t('Not configured!'),
     '#required' => TRUE,
   ];
 
@@ -125,14 +125,14 @@ function media_webdam_config_settings($form, &$form_state) {
 
   if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {
     drupal_set_message(t('Cleared cached asset information.'), 'status');
-    $asset_ids = db_select('webdam_asset_cache', 'c')
+    $asset_ids = db_select('acquiadam_asset_cache', 'c')
       ->fields('c', ['asset_id'])
       ->execute()
       ->fetchCol();
-    media_webdam_api_flush_item_cache($asset_ids);
+    media_acquiadam_api_flush_item_cache($asset_ids);
   }
 
-  $count = db_select('webdam_asset_cache')
+  $count = db_select('acquiadam_asset_cache')
     ->countQuery()
     ->execute()
     ->fetchField();
@@ -141,11 +141,11 @@ function media_webdam_config_settings($form, &$form_state) {
     '#markup' => format_plural($count, 'There is 1 cached item.', 'There are @count cached items.'),
   ];
 
-  $form['cache']['media_webdam_cache_expiration'] = [
+  $form['cache']['media_acquiadam_cache_expiration'] = [
     '#type' => 'textfield',
     '#title' => t('Used lifetime'),
     '#description' => t('Used assets are assets that have been added to Drupal. Set to 0 to disable expiration.'),
-    '#default_value' => variable_get('media_webdam_cache_expiration', 1440),
+    '#default_value' => variable_get('media_acquiadam_cache_expiration', 1440),
     '#element_validate' => ['element_validate_integer'],
     '#field_suffix' => t('minutes'),
     '#maxlength' => 5,
@@ -153,11 +153,11 @@ function media_webdam_config_settings($form, &$form_state) {
     '#size' => 5,
   ];
 
-  $form['cache']['media_webdam_unused_expiration'] = [
+  $form['cache']['media_acquiadam_unused_expiration'] = [
     '#type' => 'textfield',
     '#title' => t('Unused lifetime'),
     '#description' => t('Unused assets are assets that are no longer referenced by Drupal. A short timespan is recommended for this value. Set to 0 to disable expiration.'),
-    '#default_value' => variable_get('media_webdam_unused_expiration', 10),
+    '#default_value' => variable_get('media_acquiadam_unused_expiration', 10),
     '#element_validate' => ['element_validate_integer'],
     '#field_suffix' => t('minutes'),
     '#maxlength' => 5,

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Webdam Search requests.
+ * AcquiaDAM Search requests.
  *
- * @package Webdam
+ * @package AcquiaDAM
  */
-class Webdam_Search {
+class AcquiaDAM_Search {
 
   /**
    * A list of class dependencies.
@@ -15,7 +15,7 @@ class Webdam_Search {
   protected $depends = [];
 
   /**
-   * Webdam_Search constructor.
+   * AcquiaDAM_Search constructor.
    *
    * @param array $depends
    *   An array of class dependencies.
@@ -24,7 +24,7 @@ class Webdam_Search {
     $this->depends = $depends;
 
     if (empty($this->depends['client'])) {
-      $this->depends['client'] = Webdam_API::getClient();
+      $this->depends['client'] = AcquiaDAM_API::getClient();
     }
   }
 

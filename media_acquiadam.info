@@ -1,0 +1,20 @@
+name = Media: AcquiaDAM
+description = Base support for AcquiaDAM filetypes in the Media ecosystem.
+core = 7.x
+package = Media
+php = 5.4
+configure = admin/config/media/acquiadam
+
+dependencies[] = drupal:image
+dependencies[] = drupal:system (>= 7.40)
+dependencies[] = file_entity:file_entity
+dependencies[] = oauth2_client:oauth2_client (>=7.x-2.0)
+dependencies[] = remote_stream_wrapper:remote_stream_wrapper
+
+files[] = includes/AcquiaDAMStreamWrapper.inc
+files[] = src/AcquiaDAM/AcquiaDAM_API.inc
+files[] = src/AcquiaDAM/AcquiaDAM_Assets_AbstractAsset.inc
+files[] = src/AcquiaDAM/AcquiaDAM_Assets_Asset.inc
+files[] = src/AcquiaDAM/AcquiaDAM_Assets_Folder.inc
+files[] = src/AcquiaDAM/AcquiaDAM_Client.inc
+files[] = src/AcquiaDAM/AcquiaDAM_Search.inc

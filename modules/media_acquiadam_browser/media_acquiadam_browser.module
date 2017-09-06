@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * @file
+ * Drupal hook implementations.
+ */
+
+require_once 'includes/media_acquiadam_browser.helpers.inc';
+require_once 'includes/media_acquiadam_browser.forms.inc';
+require_once 'includes/media_acquiadam_browser.theme.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function media_acquiadam_browser_menu() {
+  $items = [];
+
+  $items['admin/content/file/acquiadam'] = [
+    'title' => 'AcquiaDAM',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['media_acquiadam_browser_choose_asset_form'],
+    'access callback' => 'media_acquiadam_browser_access',
+    'file' => 'includes/media_acquiadam_browser.forms.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  ];
+
+  $items['admin/content/file/acquiadam/saved'] = [
+    'title' => 'Saved AcquiaDAM assets',
+    'page callback' => 'media_acquiadam_browser_choose_asset_saved_landing_page',
+    'access callback' => 'media_acquiadam_browser_access',
+    'file' => 'includes/media_acquiadam_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  ];
+
+  $items['user/%user/acquiadam/deauth'] = [
+    'title' => 'Clear DAM access token',
+    'description' => 'Removes the current users DAM OAuth2 access token.',
+    'page callback' => 'media_acquiadam_browser_deauth_page',
+    'access arguments' => ['access media acquiadam browser'],
+    'file' => 'includes/media_acquiadam_browser.pages.inc',
+    'type' => MENU_LOCAL_ACTION,
+  ];
+
+  $items['dam/%ctools_js/%/%/info'] = [
+    'title' => 'Asset information',
+    'page arguments' => [1, 2, 3],
+    'page callback' => 'media_acquiadam_browser_info_modal_page',
+    'access callback' => 'media_acquiadam_browser_access',
+    'theme callback' => 'ajax_base_page_theme',
+    'file' => 'includes/media_acquiadam_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  ];
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function media_acquiadam_browser_permission() {
+  $perms = [];
+
+  $perms['access media acquiadam browser'] = [
+    'title' => t('Access Media: AcquiaDAM Browser'),
+    'description' => t('Allows the user to access the AcquiaDAM browser'),
+  ];
+
+  $perms['view acquiadam links'] = [
+    'title' => t('View AcquiaDAM links'),
+    'description' => t('Allows the user to view links to AcquiaDAM.'),
+  ];
+
+  return $perms;
+}
+
+/**
+ * Implements hook_media_browser_plugin_info().
+ */
+function media_acquiadam_browser_media_browser_plugin_info() {
+  $info = [];
+  $info['acquiadam'] = [
+    'title' => t('AcquiaDAM'),
+    'weight' => -100,
+    'class' => 'AcquiaDAMMediaBrowserPlugin',
+  ];
+
+  return $info;
+}
+
+/**
+ * Checks if the given user has access to the media acquiadam browser.
+ *
+ * @param object $account
+ *   The user account to check. Defaults to the current user.
+ *
+ * @return bool
+ *   TRUE if they have access, FALSE otherwise.
+ */
+function media_acquiadam_browser_access($account = NULL) {
+
+  $has_user_access = user_access('access media acquiadam browser', $account);
+  $has_config = variable_get('media_acquiadam_client_id') && variable_get('media_acquiadam_client_secret');
+
+  return $has_config && $has_user_access;
+}
+
+/**
+ * Implements hook_help().
+ */
+function media_acquiadam_browser_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#media_acquiadam_browser':
+      $output = '<h3>' . t('About Media: AcquiaDAM Browser') . '</h3>';
+      $output .= '<p>' . t('Provides a Media Browser interface that allows users to browse assets from within the Drupal files page and on fields that use the Media style widget.') . '</p>';
+
+      return $output;
+  }
+
+}

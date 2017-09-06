@@ -8,52 +8,52 @@
 /**
  * Implements hook_install().
  */
-function media_webdam_install() {
+function media_acquiadam_install() {
 
-  if (!db_field_exists('file_managed', 'webdam_id')) {
+  if (!db_field_exists('file_managed', 'acquiadam_id')) {
     $schema = drupal_get_schema('file_managed');
     $indexes = [
-      'webdam_id' => $schema['indexes']['webdam_id'],
-      'fid_webdam_id' => $schema['indexes']['fid_webdam_id'],
+      'acquiadam_id' => $schema['indexes']['acquiadam_id'],
+      'fid_acquiadam_id' => $schema['indexes']['fid_acquiadam_id'],
     ];
-    db_add_field('file_managed', 'webdam_id', $schema['fields']['webdam_id'], ['indexes' => $indexes]);
+    db_add_field('file_managed', 'acquiadam_id', $schema['fields']['acquiadam_id'], ['indexes' => $indexes]);
   }
 }
 
 /**
  * Implements hook_uninstall().
  */
-function media_webdam_uninstall() {
+function media_acquiadam_uninstall() {
   $del = [
-    'media_webdam_client_id',
-    'media_webdam_client_secret',
-    'media_webdam_background_user',
-    'media_webdam_background_pass',
-    'media_webdam_client_mode',
-    'media_webdam_cache_expiration',
-    'media_webdam_unused_expiration',
+    'media_acquiadam_client_id',
+    'media_acquiadam_client_secret',
+    'media_acquiadam_background_user',
+    'media_acquiadam_background_pass',
+    'media_acquiadam_client_mode',
+    'media_acquiadam_cache_expiration',
+    'media_acquiadam_unused_expiration',
   ];
   foreach ($del as $key) {
     variable_del($key);
   }
 
-  if (db_field_exists('file_managed', 'webdam_id')) {
+  if (db_field_exists('file_managed', 'acquiadam_id')) {
     $schema = drupal_get_schema('file_managed');
-    db_drop_field('file_managed', 'webdam_id');
+    db_drop_field('file_managed', 'acquiadam_id');
   }
 }
 
 /**
  * Implements hook_schema().
  */
-function media_webdam_schema() {
+function media_acquiadam_schema() {
   $schema = [];
 
-  $schema['webdam_asset_cache'] = [
-    'description' => st('Locally cached Webdam asset information.'),
+  $schema['acquiadam_asset_cache'] = [
+    'description' => st('Locally cached AcquiaDAM asset information.'),
     'fields' => [
       'asset_id' => [
-        'description' => st('The Webdam asset identifier.'),
+        'description' => st('The AcquiaDAM asset identifier.'),
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Definition of WebdamMediaBrowserPlugin.
+ * Definition of AcquiaDAMMediaBrowserPlugin.
  */
 
 /**
@@ -10,7 +10,7 @@
  *
  * @deprecated
  */
-class WebdamMediaBrowserPlugin extends MediaBrowserPlugin {
+class AcquiaDAMMediaBrowserPlugin extends MediaBrowserPlugin {
 
   /**
    * Implements MediaBrowserPlugin::view().
@@ -18,11 +18,11 @@ class WebdamMediaBrowserPlugin extends MediaBrowserPlugin {
    * {@inheritDoc}
    */
   public function view() {
-    module_load_include('module', 'media_webdam', 'media_webdam');
+    module_load_include('module', 'media_acquiadam', 'media_acquiadam');
     $build = [
-      '#title' => t('Webdam'),
+      '#title' => t('AcquiaDAM'),
       '#weight' => 10,
-      'form' => drupal_get_form('media_webdam_browser_choose_asset_form', $this->params),
+      'form' => drupal_get_form('media_acquiadam_browser_choose_asset_form', $this->params),
     ];
     return $build;
   }
@@ -33,7 +33,7 @@ class WebdamMediaBrowserPlugin extends MediaBrowserPlugin {
    * {@inheritDoc}
    */
   public function access($account = NULL) {
-    return media_webdam_browser_access($account);
+    return media_acquiadam_browser_access($account);
   }
 
 }

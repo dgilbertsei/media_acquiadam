@@ -1,4 +1,4 @@
-ul#media-webdam-browser-library-list {
+ul#media-acquiadam-browser-library-list {
   align-content: flex-start;
   align-items: flex-start;
   display: flex;
@@ -10,12 +10,12 @@ ul#media-webdam-browser-library-list {
   padding: 0;
 
 }
-ul#media-webdam-browser-library-list > li {
+ul#media-acquiadam-browser-library-list > li {
   position: relative;
   margin-right: 10px;
 }
 
-ul#media-webdam-browser-library-list > li .form-item {
+ul#media-acquiadam-browser-library-list > li .form-item {
   left: 10px;
   position: absolute;
   top: 5px;
@@ -99,7 +99,7 @@ ul#media-webdam-browser-library-list > li .form-item {
   background-color: #FFF;
 }
 
-ul#media-webdam-browser-library-list > li.selected .label {
+ul#media-acquiadam-browser-library-list > li.selected .label {
   background-color: rgba(255, 223, 108, 0.50);
 }
 
@@ -109,15 +109,15 @@ ul#media-webdam-browser-library-list > li.selected .label {
   right: 0;
 }
 
-.media-webdam-browser-trail .breadcrumb {
+.media-acquiadam-browser-trail .breadcrumb {
   display: inline-block;
 }
 
-.media-webdam-browser-trail .jump-list {
+.media-acquiadam-browser-trail .jump-list {
   position: relative;
   display: inline-block;
 }
 
-#media-webdam-browser-choose-asset-form .back-link {
+#media-acquiadam-browser-choose-asset-form .back-link {
   margin-right: 10px;
 }

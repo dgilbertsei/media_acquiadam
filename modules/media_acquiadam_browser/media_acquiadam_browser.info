@@ -1,0 +1,13 @@
+name = Media: AcquiaDAM Browser
+description = Adds an AcquiaDAM asset browser to Media.
+core = 7.x
+package = Media
+php = 5.4
+configure = admin/config/media/acquiadam
+
+dependencies[] = ctools:ctools
+dependencies[] = file_entity:file_entity
+dependencies[] = media (>=7.x-2.0)
+dependencies[] = media_acquiadam:media_acquiadam
+
+files[] = includes/AcquiaDAMMediaBrowserPlugin.inc
