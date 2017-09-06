@@ -147,7 +147,7 @@ function media_acquiadam_api_get_unknown($id, array $depends = [], $skipCache = 
     if ('asset' == $id['type']) {
       return media_acquiadam_api_get_asset($id, $depends, $skipCache);
     }
-    elseif ('asset' == $id['type']) {
+    elseif ('folder' == $id['type']) {
       return media_acquiadam_api_get_folder($id, $depends, $skipCache);
     }
   }
