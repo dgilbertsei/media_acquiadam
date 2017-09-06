@@ -262,6 +262,16 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
 
     $this->get();
 
+    // Audio files do not have a 1280 size available despite returning a URL.
+    // @TODO: Replace this with HEAD lookups against the CDN links to verify
+    // thumbnails.
+    if (!empty($this->asset['filename'])) {
+      $mime = file_get_mimetype($this->asset['filename']);
+      if ('audio/mpeg' == $mime && 550 < $thumbnailSize) {
+        $thumbnailSize = 550;
+      }
+    }
+
     if (!empty($this->asset['thumbnailurls'][0]['url'])) {
       // Copy thumbnail array to variable to avoid a notice about indirect
       // access.
