@@ -12,11 +12,6 @@
  * table.
  */
 function media_acquiadam_image_style_deliver($style, $scheme) {
-
-  if (!module_exists('remote_stream_wrapper')) {
-    return MENU_ACCESS_DENIED;
-  }
-
   $args = func_get_args();
   array_shift($args);
   array_shift($args);
@@ -27,6 +22,11 @@ function media_acquiadam_image_style_deliver($style, $scheme) {
 
   try {
     $asset = media_acquiadam_api_get_unknown($asset_id);
+
+    if (!media_acquiadam_access('view', $asset)) {
+      return MENU_ACCESS_DENIED;
+    }
+
     $thumbnail = $asset->getThumbnailUrl();
     if (empty($thumbnail)) {
       return MENU_NOT_FOUND;

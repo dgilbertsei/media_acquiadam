@@ -33,7 +33,7 @@ class AcquiaDAMMediaBrowserPlugin extends MediaBrowserPlugin {
    * {@inheritDoc}
    */
   public function access($account = NULL) {
-    return media_acquiadam_browser_access($account);
+    return user_access('administer files', $account) || user_access('access media acquiadam browser', $account);
   }
 
 }

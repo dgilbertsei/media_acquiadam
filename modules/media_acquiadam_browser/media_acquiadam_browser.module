@@ -19,7 +19,7 @@ function media_acquiadam_browser_menu() {
     'title' => 'AcquiaDAM',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['media_acquiadam_browser_choose_asset_form'],
-    'access callback' => 'media_acquiadam_browser_access',
+    'access arguments' => ['access media acquiadam browser'],
     'file' => 'includes/media_acquiadam_browser.forms.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -28,7 +28,7 @@ function media_acquiadam_browser_menu() {
   $items['admin/content/file/acquiadam/saved'] = [
     'title' => 'Saved AcquiaDAM assets',
     'page callback' => 'media_acquiadam_browser_choose_asset_saved_landing_page',
-    'access callback' => 'media_acquiadam_browser_access',
+    'access arguments' => ['access media acquiadam browser'],
     'file' => 'includes/media_acquiadam_browser.pages.inc',
     'type' => MENU_CALLBACK,
   ];
@@ -42,11 +42,13 @@ function media_acquiadam_browser_menu() {
     'type' => MENU_LOCAL_ACTION,
   ];
 
-  $items['dam/%ctools_js/%/%/info'] = [
+  $items['dam/%ctools_js/%/%media_acquiadam_asset/info'] = [
     'title' => 'Asset information',
-    'page arguments' => [1, 2, 3],
+    'page arguments' => [3, 1],
     'page callback' => 'media_acquiadam_browser_info_modal_page',
-    'access callback' => 'media_acquiadam_browser_access',
+    'load arguments' => [2],
+    'access callback' => 'media_acquiadam_access',
+    'access arguments' => ['view', 3],
     'theme callback' => 'ajax_base_page_theme',
     'file' => 'includes/media_acquiadam_browser.pages.inc',
     'type' => MENU_CALLBACK,
@@ -86,23 +88,6 @@ function media_acquiadam_browser_media_browser_plugin_info() {
   ];
 
   return $info;
-}
-
-/**
- * Checks if the given user has access to the media acquiadam browser.
- *
- * @param object $account
- *   The user account to check. Defaults to the current user.
- *
- * @return bool
- *   TRUE if they have access, FALSE otherwise.
- */
-function media_acquiadam_browser_access($account = NULL) {
-
-  $has_user_access = user_access('access media acquiadam browser', $account);
-  $has_config = variable_get('media_acquiadam_client_id') && variable_get('media_acquiadam_client_secret');
-
-  return $has_config && $has_user_access;
 }
 
 /**

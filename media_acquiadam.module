@@ -22,12 +22,13 @@ function media_acquiadam_menu() {
     'file' => 'includes/media_acquiadam.admin.inc',
   ];
 
-  $items['acquiadam/asset/%'] = [
+  $items['acquiadam/asset/%media_acquiadam_asset'] = [
     'title' => 'AcquiaDAM Asset',
     'description' => 'Redirect to an available asset download link.',
     'page callback' => 'media_acquiadam_asset_download_redirect',
     'page arguments' => [2],
-    'access arguments' => ['view acquiadam assets'],
+    'access callback' => 'media_acquiadam_access',
+    'access arguments' => ['view', 2],
     'type' => MENU_CALLBACK,
   ];
 
@@ -67,6 +68,12 @@ function media_acquiadam_permission() {
   $perms['view acquiadam assets'] = [
     'title' => t('View AcquiaDAM assets'),
     'description' => t('Allows viewing of AcquiaDAM assets'),
+  ];
+
+  $perms['view expired acquiadam assets'] = [
+    'title' => t('View expired AcquiaDAM assets'),
+    'description' => t('Allows viewing of AcquiaDAM assets that have expired'),
+    'restrict access' => TRUE,
   ];
 
   return $perms;
@@ -156,20 +163,14 @@ function media_acquiadam_cron() {
 /**
  * Menu callback for redirecting to asset download links.
  *
- * @param int $assetId
- *   The asset ID.
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset.
  *
  * @return int
  *   A menu response code.
  */
-function media_acquiadam_asset_download_redirect($assetId) {
+function media_acquiadam_asset_download_redirect(AcquiaDAM_Assets_AbstractAsset $asset) {
 
-  // Force the background user mode when serving files to anonymous users.
-  $client = user_is_anonymous() ?
-    AcquiaDAM_API::getClient('acquiadam-user-auth') :
-    NULL;
-
-  $asset = media_acquiadam_api_get_asset($assetId, ['client' => $client]);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
@@ -204,4 +205,59 @@ function media_acquiadam_help($path, $arg) {
       return $output;
   }
 
+}
+
+/**
+ * Load an AcquiaDAM asset.
+ *
+ * Used for the menu system.
+ *
+ * @param int $assetId
+ *   The ID of the asset to load.
+ * @param string $assetType
+ *   The type of asset to load.
+ *
+ * @return AcquiaDAM_Assets_AbstractAsset|false
+ *   The loaded asset or FALSE.
+ */
+function media_acquiadam_asset_load($assetId, $assetType = 'asset') {
+  // Force the background user mode when serving files to anonymous users.
+  $client = user_is_anonymous() ?
+    AcquiaDAM_API::getClient('acquiadam-user-auth') :
+    NULL;
+
+  return media_acquiadam_api_get_helper($assetType, $assetId, ['client' => $client]);
+}
+
+/**
+ * Access callback for the menu system.
+ *
+ * @param string $op
+ *   The operation being performed.
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset to check permissions for.
+ * @param object $account
+ *   The account to check permissions against.
+ *
+ * @return bool
+ *   If the account has permissions to perform the given operation.
+ */
+function media_acquiadam_access($op, AcquiaDAM_Assets_AbstractAsset $asset, $account = NULL) {
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
+  }
+
+  $rights = &drupal_static(__FUNCTION__, []);
+
+  if (isset($rights[$account->uid][$asset['id']][$op])) {
+    return $rights[$account->uid][$asset['id']][$op];
+  }
+
+  if ('view' == $op) {
+    return $rights[$account->uid][$asset['id']][$op] = $asset->isExpired() ?
+      user_access('view expired acquiadam assets', $account) :
+      user_access('view acquiadam assets', $account);
+  }
+
+  return FALSE;
 }

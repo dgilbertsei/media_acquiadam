@@ -348,6 +348,18 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
   }
 
   /**
+   * Checks if the current asset is expired.
+   *
+   * @return bool
+   *   TRUE if the asset is expired, FALSE otherwise.
+   */
+  public function isExpired() {
+    return !empty($this->asset['expiration']['dateUnix']) ?
+      $this->asset['expiration']['dateUnix'] <= REQUEST_TIME :
+      FALSE;
+  }
+
+  /**
    * Implementation for ArrayAccess.
    *
    * Not implemented.

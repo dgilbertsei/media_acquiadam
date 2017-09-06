@@ -93,20 +93,16 @@ function media_acquiadam_browser_deauth_page($account = NULL) {
 /**
  * Callback for the asset information modal.
  *
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset that is being requested.
  * @param bool $js
  *   TRUE if the page was loaded via AJAX.
- * @param int $assetId
- *   The asset ID that is being requested.
  *
  * @return array|int
  *   A page render array or a menu response code.
  */
-function media_acquiadam_browser_info_modal_page($js, $assetType, $assetId) {
-  if (empty($assetType) || empty($assetId)) {
-    return MENU_NOT_FOUND;
-  }
+function media_acquiadam_browser_info_modal_page(AcquiaDAM_Assets_AbstractAsset $asset, $js) {
 
-  $asset = media_acquiadam_api_get_helper($assetType, $assetId);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
