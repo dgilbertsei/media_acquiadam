@@ -41,7 +41,7 @@ function media_acquiadam_image_style_deliver($styleName, AcquiaDAM_Assets_Abstra
     return MENU_NOT_FOUND;
   }
 
-  $derivative_uri = media_acquiadam_image_style_path($asset, $style, $image_uri);
+  $derivative_uri = media_acquiadam_image_style_path($asset['id'], $style, $image_uri);
 
   // The rest of the logic is the same as contined within the original
   // remote_stream_wrapper function.
@@ -103,7 +103,7 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
   $derivatives = [];
   $styles = image_styles();
   foreach ($styles as $style) {
-    $uri = media_acquiadam_image_style_path($asset, $style, $thumbnail);
+    $uri = media_acquiadam_image_style_path($asset['id'], $style, $thumbnail);
     // Only try and create derivatives that do not exist.
     if (!is_file($uri)) {
       $derivatives[] = [
@@ -140,8 +140,8 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
 /**
  * Generate the destination URI for the derivative.
  *
- * @param AcquiaDAM_Assets_AbstractAsset $asset
- *   The asset deriviatives are being created for.
+ * @param int $asset_id
+ *   The ID of the asset deriviatives are being created for.
  * @param array $style
  *   The image style information.
  * @param string $image_uri
@@ -150,11 +150,11 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
  * @return string
  *   The destination URI.
  */
-function media_acquiadam_image_style_path(AcquiaDAM_Assets_AbstractAsset $asset, array $style, $image_uri) {
+function media_acquiadam_image_style_path($asset_id, array $style, $image_uri) {
   return vsprintf('%s://styles/%s/%d/%s', [
     file_default_scheme(),
     $style['name'],
-    $asset['id'],
+    $asset_id,
     file_uri_target($image_uri),
   ]);
 }
