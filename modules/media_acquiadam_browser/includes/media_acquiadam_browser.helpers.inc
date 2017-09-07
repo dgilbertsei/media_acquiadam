@@ -57,9 +57,13 @@ function media_acquiadam_browser_get_children($folderId = AcquiaDAM_Assets_Folde
 
   if (AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID == $folderId) {
 
+    $root = [];
+
     try {
       $folder = media_acquiadam_api_get_folder($folderId);
-      $root = $folder->getRoot();
+      if (!empty($folder)) {
+        $root = $folder->getRoot();
+      }
     }
     catch (Exception $x) {
       drupal_set_message($x->getMessage(), 'error');
