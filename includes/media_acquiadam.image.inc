@@ -6,29 +6,30 @@
  */
 
 /**
- * Implementation of remote_stream_wrapper_image_style_deliver().
+ * Implementation of image_style_deliver().
  *
- * Adjusts behavior to allow serving DAM assets that aren't in the managed
- * table.
+ * Allows serving images from outside of the file_managed table.
+ *
+ * @param string $styleName
+ *   The image style being requested.
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset to view an image of.
+ *
+ * @return int
+ *   A menu response code.
  */
-function media_acquiadam_image_style_deliver($style, $scheme) {
-  $args = func_get_args();
-  array_shift($args);
-  array_shift($args);
+function media_acquiadam_image_style_deliver($styleName, AcquiaDAM_Assets_AbstractAsset $asset) {
 
-  $target = drupal_basename(implode('/', $args));
-  // Workaround to ensure we have 2 items so we don't throw a notice.
-  list($asset_id, $filetype) = array_pad(explode('.', $target, 2), 2, NULL);
+  // Drupal does not allow multiple _load style menu arguments so we need to
+  // manually load this here.
+  $style = image_style_load($styleName);
+  if (empty($style)) {
+    return MENU_NOT_FOUND;
+  }
 
   try {
-    $asset = media_acquiadam_api_get_unknown($asset_id);
-
-    if (!media_acquiadam_access('view', $asset)) {
-      return MENU_ACCESS_DENIED;
-    }
-
-    $thumbnail = $asset->getThumbnailUrl();
-    if (empty($thumbnail)) {
+    $image_uri = $asset->getThumbnailUrl();
+    if (empty($image_uri)) {
       return MENU_NOT_FOUND;
     }
 
@@ -40,9 +41,7 @@ function media_acquiadam_image_style_deliver($style, $scheme) {
     return MENU_NOT_FOUND;
   }
 
-  $image_uri = $thumbnail;
-
-  $derivative_uri = media_acquiadam_image_style_path($asset['id'], $style, $scheme, $image_uri);
+  $derivative_uri = media_acquiadam_image_style_path($asset, $style, $image_uri);
 
   // The rest of the logic is the same as contined within the original
   // remote_stream_wrapper function.
@@ -104,7 +103,7 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
   $derivatives = [];
   $styles = image_styles();
   foreach ($styles as $style) {
-    $uri = media_acquiadam_image_style_path($asset['id'], $style, 'acquiadam', $thumbnail);
+    $uri = media_acquiadam_image_style_path($asset, $style, $thumbnail);
     // Only try and create derivatives that do not exist.
     if (!is_file($uri)) {
       $derivatives[] = [
@@ -141,24 +140,21 @@ function media_acquiadam_create_asset_image_derivatives(AcquiaDAM_Assets_Abstrac
 /**
  * Generate the destination URI for the derivative.
  *
- * @param int $asset_id
- *   The ID of the asset deriviatives are being created for.
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset deriviatives are being created for.
  * @param array $style
  *   The image style information.
- * @param string $scheme
- *   The file URI scheme being used.
  * @param string $image_uri
  *   The image URI of the asset.
  *
  * @return string
  *   The destination URI.
  */
-function media_acquiadam_image_style_path($asset_id, array $style, $scheme, $image_uri) {
-  return vsprintf('%s://styles/%s/%s/%d/%s', [
+function media_acquiadam_image_style_path(AcquiaDAM_Assets_AbstractAsset $asset, array $style, $image_uri) {
+  return vsprintf('%s://styles/%s/%d/%s', [
     file_default_scheme(),
     $style['name'],
-    $scheme,
-    $asset_id,
+    $asset['id'],
     file_uri_target($image_uri),
   ]);
 }

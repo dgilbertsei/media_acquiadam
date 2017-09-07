@@ -176,7 +176,7 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_asset(&$vari
       if (!empty($preview)) {
         $variables['thumbnail'] = theme('image_style', [
           'style_name' => 'media_thumbnail',
-          'path' => media_acquiadam_api_asset_to_uri($asset),
+          'path' => media_acquiadam_image_style_url($asset),
           'title' => $asset['name'],
           'alt' => $asset['name'],
         ]);

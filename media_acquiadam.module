@@ -32,24 +32,42 @@ function media_acquiadam_menu() {
     'type' => MENU_CALLBACK,
   ];
 
+  $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
+  $pos = count(explode('/', $directory_path)) + 1;
+  $items[$directory_path . '/styles/%/acquiadam/%/%media_acquiadam_asset'] = [
+    'title' => 'AcquiaDAM Asset derivative',
+    'page callback' => 'media_acquiadam_image_style_deliver',
+    'page arguments' => [$pos, $pos + 3],
+    'load arguments' => [$pos + 2],
+    'access callback' => 'media_acquiadam_access',
+    'access arguments' => ['view', $pos + 3],
+    'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
+    'file' => 'media_acquiadam.image.inc',
+    'type' => MENU_CALLBACK,
+  ];
+
   return $items;
 }
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_url_inbound_alter().
  */
-function media_acquiadam_menu_alter(&$items) {
+function media_acquiadam_url_inbound_alter(&$path, $original_path, $path_language) {
 
-  if (module_exists('remote_stream_wrapper')) {
-    // Copy the remote stream wrapper module's setup for image styles.
-    $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
-    $key = $directory_path . '/styles/%image_style/acquiadam';
-    // We need to override the default https handling because we want to be able
-    // to render asset previews that aren't necessarily in the managed table.
-    $items[$key] = $items[$directory_path . '/styles/%image_style/https'];
-    $items[$key]['page callback'] = 'media_acquiadam_image_style_deliver';
-    $items[$key]['file'] = 'media_acquiadam.image.inc';
-    $items[$key]['file path'] = drupal_get_path('module', 'media_acquiadam') . '/includes';
+  // Hijack the normal image style path and redirect it to our custom handler
+  // path so we can avoid having to guess asset type when delivering images.
+  $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
+  $regex = preg_quote($directory_path) . '\/styles\/(\w+?)\/acquiadam\/(\d+)\.\w+';
+  if (preg_match("|^{$regex}|", $original_path, $matches)) {
+
+    // Folders do not normally trigger image style creation and should be styled
+    // with theme('image_style', ...) directly. We can safely hard-code the
+    // asset type here.
+    $path = vsprintf('%s/styles/%s/acquiadam/asset/%d', [
+      $directory_path,
+      $matches[1],
+      $matches[2],
+    ]);
   }
 }
 
@@ -170,11 +188,6 @@ function media_acquiadam_cron() {
  *   A menu response code.
  */
 function media_acquiadam_asset_download_redirect(AcquiaDAM_Assets_AbstractAsset $asset) {
-
-  if (empty($asset)) {
-    return MENU_NOT_FOUND;
-  }
-
   try {
     $url = $asset->getDownloadUrl();
     if (!empty($url)) {

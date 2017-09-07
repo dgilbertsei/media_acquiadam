@@ -126,46 +126,6 @@ function media_acquiadam_api_get_asset($id, array $depends = [], $skipCache = FA
 }
 
 /**
- * Attempts to load an asset by ID without knowing the type.
- *
- * This function should be avoided when possible as it can cause extra API
- * requests.
- *
- * @param int|array $id
- *   An asset ID or the asset data.
- * @param array $depends
- *   An array of dependencies to pass to the class constructors.
- * @param bool $skipCache
- *   TRUE to skip the cache mechanism.
- *
- * @return AcquiaDAM_Assets_AbstractAsset|false
- *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
- */
-function media_acquiadam_api_get_unknown($id, array $depends = [], $skipCache = FALSE) {
-
-  if (is_array($id) && !empty($id['type'])) {
-    if ('asset' == $id['type']) {
-      return media_acquiadam_api_get_asset($id, $depends, $skipCache);
-    }
-    elseif ('folder' == $id['type']) {
-      return media_acquiadam_api_get_folder($id, $depends, $skipCache);
-    }
-  }
-
-  $asset = media_acquiadam_api_get_asset($id, $depends, $skipCache);
-  if (!empty($asset)) {
-    return $asset;
-  }
-
-  $asset = media_acquiadam_api_get_folder($id, $depends, $skipCache);
-  if (!empty($asset)) {
-    return $asset;
-  }
-
-  return FALSE;
-}
-
-/**
  * Get managed files that have associated asset IDs.
  *
  * @param array $assetIds
@@ -221,4 +181,22 @@ function media_acquiadam_api_asset_to_uri(AcquiaDAM_Assets_AbstractAsset $asset)
   }
 
   return $uri;
+}
+
+/**
+ * Returns a Drupal image style URI for the given asset.
+ *
+ * Does not necessarily mean the asset is available to Drupal at this URI.
+ *
+ * @param AcquiaDAM_Assets_AbstractAsset $asset
+ *   The asset to return a URI for.
+ *
+ * @return string
+ *   The URI.
+ */
+function media_acquiadam_image_style_url(AcquiaDAM_Assets_AbstractAsset $asset) {
+  return vsprintf('acquiadam://%s/%d', [
+    $asset->getType(),
+    $asset['id'],
+  ]);
 }
