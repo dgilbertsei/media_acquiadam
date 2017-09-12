@@ -110,26 +110,32 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
   }
 
   if ('folder' != $asset['type']) {
+
+    $metaprops = [];
     try {
       // Fetch the XMP metadata as this is where the keywords field lives.
       $xmp = $asset->getXMP();
       if (!empty($xmp['active_fields'])) {
-        $properties[] = [
-          [
-            'data' => t('Metadata'),
-            'header' => TRUE,
-            'colspan' => 2,
-          ],
-        ];
         foreach ($xmp['active_fields'] as $field) {
           if (!empty($field['value'])) {
-            $properties[] = [$field['field_name'], $field['value']];
+            $metaprops[] = [$field['field_name'], $field['value']];
           }
         }
       }
     }
     catch (Exception $x) {
       watchdog_exception('media_acquiadam_browser', $x);
+    }
+
+    if (!empty($metaprops)) {
+      $properties[] = [
+        [
+          'data' => t('Metadata'),
+          'header' => TRUE,
+          'colspan' => 2,
+        ],
+      ];
+      $properties = array_merge($properties, $metaprops);
     }
   }
 
