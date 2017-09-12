@@ -47,7 +47,7 @@ function media_acquiadam_browser_menu() {
     'page arguments' => [3, 1],
     'page callback' => 'media_acquiadam_browser_info_modal_page',
     'load arguments' => [2],
-    'access callback' => 'media_acquiadam_access',
+    'access callback' => 'media_acquiadam_asset_access',
     'access arguments' => ['view', 3],
     'theme callback' => 'ajax_base_page_theme',
     'file' => 'includes/media_acquiadam_browser.pages.inc',
@@ -66,11 +66,6 @@ function media_acquiadam_browser_permission() {
   $perms['access media acquiadam browser'] = [
     'title' => t('Access Media: AcquiaDAM Browser'),
     'description' => t('Allows the user to access the AcquiaDAM browser'),
-  ];
-
-  $perms['view acquiadam links'] = [
-    'title' => t('View AcquiaDAM links'),
-    'description' => t('Allows the user to view links to AcquiaDAM.'),
   ];
 
   return $perms;

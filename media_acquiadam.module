@@ -19,7 +19,8 @@ function media_acquiadam_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => ['media_acquiadam_config_settings'],
     'access arguments' => ['administer media acquiadam'],
-    'file' => 'includes/media_acquiadam.admin.inc',
+    'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
+    'file' => 'media_acquiadam.admin.inc',
   ];
 
   $items['acquiadam/asset/%media_acquiadam_asset'] = [
@@ -27,8 +28,10 @@ function media_acquiadam_menu() {
     'description' => 'Redirect to an available asset download link.',
     'page callback' => 'media_acquiadam_asset_download_redirect',
     'page arguments' => [2],
-    'access callback' => 'media_acquiadam_access',
+    'access callback' => 'media_acquiadam_asset_access',
     'access arguments' => ['view', 2],
+    'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
+    'file' => 'media_acquiadam.pages.inc',
     'type' => MENU_CALLBACK,
   ];
 
@@ -39,11 +42,35 @@ function media_acquiadam_menu() {
     'page callback' => 'media_acquiadam_image_style_deliver',
     'page arguments' => [$pos, $pos + 3],
     'load arguments' => [$pos + 2],
-    'access callback' => 'media_acquiadam_access',
+    'access callback' => 'media_acquiadam_asset_access',
     'access arguments' => ['view', $pos + 3],
     'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
     'file' => 'media_acquiadam.image.inc',
     'type' => MENU_CALLBACK,
+  ];
+
+  $items['file/%file/dam-refresh'] = [
+    'title' => 'Force refresh from Acquia DAM',
+    'description' => 'Updates the Acquia DAM asset from the remote DAM source.',
+    'page callback' => 'media_acquiadam_dam_refresh',
+    'page arguments' => [1],
+    'access callback' => 'media_acquiadam_file_access',
+    'access arguments' => ['refresh', 1],
+    'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
+    'file' => 'media_acquiadam.pages.inc',
+    'type' => MENU_LOCAL_ACTION,
+  ];
+
+  $items['file/%file/dam-view'] = [
+    'title' => 'View in Acquia DAM',
+    'description' => 'Directs the user to the asset inside Acquia DAM.',
+    'page callback' => 'media_acquiadam_dam_view',
+    'page arguments' => [1],
+    'access callback' => 'media_acquiadam_file_access',
+    'access arguments' => ['view', 1],
+    'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
+    'file' => 'media_acquiadam.pages.inc',
+    'type' => MENU_LOCAL_ACTION,
   ];
 
   return $items;
@@ -92,6 +119,16 @@ function media_acquiadam_permission() {
     'title' => t('View expired AcquiaDAM assets'),
     'description' => t('Allows viewing of AcquiaDAM assets that have expired'),
     'restrict access' => TRUE,
+  ];
+
+  $perm['refresh acquiadam assets'] = [
+    'title' => t('Refresh Acquia DAM asset information'),
+    'description' => t('Allows refreshing Acquia DAM asset information if the local cache is out of date'),
+  ];
+
+  $perms['view acquiadam links'] = [
+    'title' => t('View Acquia DAM links'),
+    'description' => t('Allows the user to view links to Acquia DAM.'),
   ];
 
   return $perms;
@@ -179,31 +216,6 @@ function media_acquiadam_cron() {
 }
 
 /**
- * Menu callback for redirecting to asset download links.
- *
- * @param AcquiaDAM_Assets_AbstractAsset $asset
- *   The asset.
- *
- * @return int
- *   A menu response code.
- */
-function media_acquiadam_asset_download_redirect(AcquiaDAM_Assets_AbstractAsset $asset) {
-  try {
-    $url = $asset->getDownloadUrl();
-    if (!empty($url)) {
-      drupal_goto($url, ['external' => TRUE], 307);
-    }
-  }
-  catch (Exception $x) {
-    watchdog_exception('media_acquiadam', $x);
-    drupal_set_message(t('Unable to get a download URL for @name.', ['@name' => $asset['name']]), 'error');
-    return MENU_ACCESS_DENIED;
-  }
-
-  return MENU_NOT_FOUND;
-}
-
-/**
  * Implements hook_help().
  */
 function media_acquiadam_help($path, $arg) {
@@ -255,7 +267,7 @@ function media_acquiadam_asset_load($assetId, $assetType = 'asset') {
  * @return bool
  *   If the account has permissions to perform the given operation.
  */
-function media_acquiadam_access($op, AcquiaDAM_Assets_AbstractAsset $asset, $account = NULL) {
+function media_acquiadam_asset_access($op, AcquiaDAM_Assets_AbstractAsset $asset, $account = NULL) {
   if (empty($account)) {
     $account = $GLOBALS['user'];
   }
@@ -265,12 +277,34 @@ function media_acquiadam_access($op, AcquiaDAM_Assets_AbstractAsset $asset, $acc
   if (isset($rights[$account->uid][$asset['id']][$op])) {
     return $rights[$account->uid][$asset['id']][$op];
   }
-
-  if ('view' == $op) {
+  elseif ('view' == $op) {
     return $rights[$account->uid][$asset['id']][$op] = $asset->isExpired() ?
       user_access('view expired acquiadam assets', $account) :
       user_access('view acquiadam assets', $account);
   }
+  elseif ('refresh' == $op) {
+    return $rights[$account->uid][$asset['id']][$op] = user_access('refresh acquiadam assets', $account);
+  }
 
   return FALSE;
+}
+
+/**
+ * Access callback for permissions on assets with files.
+ *
+ * @param string $op
+ *   The operation being performed.
+ * @param object $file
+ *   The file with an associated asset.
+ *
+ * @return bool
+ *   If the account has permissions to perform the given operation.
+ */
+function media_acquiadam_file_access($op, $file) {
+  $asset = media_acquiadam_file_to_asset($file);
+  if (empty($asset)) {
+    return FALSE;
+  }
+
+  return media_acquiadam_asset_access($op, $asset);
 }

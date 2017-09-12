@@ -200,3 +200,28 @@ function media_acquiadam_image_style_url(AcquiaDAM_Assets_AbstractAsset $asset) 
     $asset['id'],
   ]);
 }
+
+/**
+ * Given a file return the associated asset.
+ *
+ * @param object $file
+ *   A managed Drupal file.
+ *
+ * @return AcquiaDAM_Assets_Asset|false
+ *   An asset object or FALSE on failure.
+ */
+function media_acquiadam_file_to_asset($file) {
+  $asset_id = empty($file->acquiadam_id) ? NULL : $file->acquiadam_id;
+  if (empty($asset_id)) {
+    return FALSE;
+  }
+
+  try {
+    $asset = media_acquiadam_asset_load($asset_id);
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_acquiadam', $x);
+  }
+
+  return empty($asset) ? FALSE : $asset;
+}
