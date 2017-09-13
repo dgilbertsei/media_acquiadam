@@ -68,9 +68,9 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
       // play when the source image or video might be 15MB but we're trying to
       // render a thumbnail.
       $asset = $this->getAssetByUri($this->uri);
-      // @TODO: Make this a configurable cutoff in the UI.
-      // @TODO: Should we limit this check to audio/video files only?
-      if (!empty($asset['filesize']) && $asset['filesize'] >= variable_get('media_acquiadam_remote_size_cutoff', 1)) {
+      // Filesize can be '0.00' which will count as not empty, so we have to
+      // check the size is greater than 0 as well.
+      if (!empty($asset['filesize']) && 0 < $asset['filesize']) {
         $stat['size'] = $asset['filesize'] * 1024 * 1024;
       }
       else {
