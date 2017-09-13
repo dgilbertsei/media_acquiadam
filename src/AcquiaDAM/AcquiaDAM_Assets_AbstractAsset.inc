@@ -254,17 +254,6 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
 
     $this->get();
 
-    // Certain types do not have a 1280 size available despite returning a URL.
-    // @TODO: Replace this with HEAD lookups against the CDN links to verify
-    // thumbnails.
-    if (!empty($this->asset['filename'])) {
-      $mime = file_get_mimetype($this->asset['filename']);
-      $limited_types = ['application/pdf', 'audio/mpeg'];
-      if (in_array($mime, $limited_types) && 550 < $thumbnailSize) {
-        $thumbnailSize = 550;
-      }
-    }
-
     if (!empty($this->asset['thumbnailurls'][0]['url'])) {
       // Copy thumbnail array to variable to avoid a notice about indirect
       // access.
@@ -273,6 +262,18 @@ abstract class AcquiaDAM_Assets_AbstractAsset implements ArrayAccess, JsonSerial
       $biggest_matching = $thumbnails[0]['url'];
       foreach ($thumbnails as $tn) {
         if (!empty($tn['url']) && $thumbnailSize >= $tn['size']) {
+
+          // Certain types do not have a 1280 size available despite returning
+          // an URL. We either have to hard code mime types as they crop up, or
+          // check if the URL is accessible on our own. Other URL sizes do not
+          // appear to have this issue.
+          if (1280 == $tn['size']) {
+
+            $result = drupal_http_request($tn['url'], ['method' => 'HEAD']);
+            if (403 == $result->code) {
+              continue;
+            }
+          }
           $biggest_matching = $tn['url'];
         }
       }
