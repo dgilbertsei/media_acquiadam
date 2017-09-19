@@ -100,6 +100,22 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     '#default_value' => !empty($search['type']) ? $search['type'] : '',
   ];
 
+  $form['search']['sort'] = [
+    '#type' => 'select',
+    '#title' => t('Sort'),
+    '#options' => [
+      'filename_asc' => t('File name (A-Z)'),
+      'filename_desc' => t('File name (Z-A)'),
+      'filesize_asc' => t('File size (Smallest)'),
+      'filesize_desc' => t('File size (Largest)'),
+      'datecreated_asc' => t('Date created (Oldest)'),
+      'datecreated_desc' => t('Date created (Newest)'),
+      'datemodified_asc' => t('Date modified (Oldest)'),
+      'datemodified_desc' => t('Date modified (Newest)'),
+    ],
+    '#default_value' => !empty($search['sort']) ? $search['sort'] : 'datecreated_desc',
+  ];
+
   // Gives the user a way to easily reset their search without losing their
   // place.
   $cancel_query = [];
@@ -377,6 +393,7 @@ function media_acquiadam_browser_choose_asset_form_submit(array &$form, array &$
     $qp['search'] = [
       'keywords' => $form_state['values']['keywords'],
       'type' => $form_state['values']['type_filter'],
+      'sort' => $form_state['values']['sort'],
     ];
     $form_state['redirect'] = [
       current_path(),

@@ -156,16 +156,22 @@ function media_acquiadam_browser_get_search_results($folderId, array $search, ar
     'total_count' => 0,
   ];
 
-  $keywords = !empty($search['keywords']) ? $search['keywords'] : '';
-  $types = !empty($search['type']) ? $search['type'] : '';
+  $keywords = !empty($search['keywords']) ?
+    $search['keywords'] :
+    '';
 
   try {
     $options = [
       'folderid' => $folderId,
       'limit' => $perPage,
       'offset' => pager_find_page() * $perPage,
-      'types' => $types,
     ];
+    if (!empty($search['type'])) {
+      $options['types'] = $search['type'];
+    }
+    if (!empty($search['sort'])) {
+      list($options['sortby'], $options['sortdir']) = explode('_', $search['sort'], 2);
+    }
     $searcher = new AcquiaDAM_Search();
     $results = $searcher->search($keywords, $options);
   }
