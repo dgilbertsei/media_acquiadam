@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Administration page callbacks for the Media: AcquiaDAM module.
+ * Administration page callbacks for the Media: Acquia DAM module.
  */
 
 /**
@@ -17,7 +17,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
   $form['api'] = [
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
-    '#description' => t('Information used for authenticating with the AcquiaDAM API in different scenarios.'),
+    '#description' => t('Information used for authenticating with the Acquia DAM API in different scenarios.'),
     '#collapsible' => TRUE,
     '#tree' => FALSE,
     '#group' => 'additional_settings',
@@ -44,7 +44,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
   $form['api']['media_acquiadam_client_mode'] = [
     '#type' => 'select',
     '#title' => t('Cient mode'),
-    '#description' => t('The API client mode to use when making requests. The mixed mode leverages a background API user for specific situations, but will hand off additional authentication to AcquiaDAM when necessary. The background only mode will use the background API user for all requests.'),
+    '#description' => t('The API client mode to use when making requests. The mixed mode leverages a background API user for specific situations, but will hand off additional authentication to Acquia DAM when necessary. The background only mode will use the background API user for all requests.'),
     '#default_value' => variable_get('media_acquiadam_client_mode', 'mixed'),
     '#options' => [
       'mixed' => t('Mixed (default)'),
@@ -70,7 +70,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
   $form['api']['background'] = [
     '#type' => 'fieldset',
     '#title' => t('Background user'),
-    '#description' => t('The background user is an AcquiaDAM user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
+    '#description' => t('The background user is an Acquia DAM user that will be used to provide download links to certain forms of assets, such as documents, to anonymous users. Failure to configure this user will prevent viewing and downloading of these assets.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   ];

@@ -16,7 +16,7 @@ function media_acquiadam_browser_menu() {
   $items = [];
 
   $items['admin/content/file/acquiadam'] = [
-    'title' => 'AcquiaDAM',
+    'title' => 'Acquia DAM',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['media_acquiadam_browser_choose_asset_form'],
     'access arguments' => ['access media acquiadam browser'],
@@ -26,7 +26,7 @@ function media_acquiadam_browser_menu() {
   ];
 
   $items['admin/content/file/acquiadam/saved'] = [
-    'title' => 'Saved AcquiaDAM assets',
+    'title' => 'Saved Acquia DAM assets',
     'page callback' => 'media_acquiadam_browser_choose_asset_saved_landing_page',
     'access arguments' => ['access media acquiadam browser'],
     'file' => 'includes/media_acquiadam_browser.pages.inc',
@@ -64,8 +64,8 @@ function media_acquiadam_browser_permission() {
   $perms = [];
 
   $perms['access media acquiadam browser'] = [
-    'title' => t('Access Media: AcquiaDAM Browser'),
-    'description' => t('Allows the user to access the AcquiaDAM browser'),
+    'title' => t('Access Media: Acquia DAM Browser'),
+    'description' => t('Allows the user to access the Acquia DAM browser'),
   ];
 
   return $perms;
@@ -77,7 +77,7 @@ function media_acquiadam_browser_permission() {
 function media_acquiadam_browser_media_browser_plugin_info() {
   $info = [];
   $info['acquiadam'] = [
-    'title' => t('AcquiaDAM'),
+    'title' => t('Acquia DAM'),
     'weight' => -100,
     'class' => 'AcquiaDAMMediaBrowserPlugin',
   ];
@@ -92,7 +92,7 @@ function media_acquiadam_browser_help($path, $arg) {
 
   switch ($path) {
     case 'admin/help#media_acquiadam_browser':
-      $output = '<h3>' . t('About Media: AcquiaDAM Browser') . '</h3>';
+      $output = '<h3>' . t('About Media: Acquia DAM Browser') . '</h3>';
       $output .= '<p>' . t('Provides a Media Browser interface that allows users to browse assets from within the Drupal files page and on fields that use the Media style widget.') . '</p>';
 
       return $output;

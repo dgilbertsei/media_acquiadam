@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Abstract class base for AcquiaDAM assets.
+ * Abstract class base for Acquia DAM assets.
  *
  * @package AcquiaDAM
  */

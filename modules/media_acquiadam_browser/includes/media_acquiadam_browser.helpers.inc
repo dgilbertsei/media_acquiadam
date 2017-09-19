@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Helper functions for the AcquiaDAM browser.
+ * Helper functions for the Acquia DAM browser.
  */
 
 /**
@@ -38,9 +38,9 @@ function media_acquiadam_browser_get_trail($folderId) {
  * Get the child assets of a given folder.
  *
  * @param int $folderId
- *   The folder id to get assets for. Defaults to the AcquiaDAM root folder.
+ *   The folder id to get assets for. Defaults to the Acquia DAM root folder.
  * @param int $perPage
- *   The number of assets to limit the results to. Defaults to 25. Note: AcquiaDAM
+ *   The number of assets to limit the results to. Defaults to 25. Note: Acquia DAM
  *   does not include folders towards the count of the limit.
  *
  * @return array|bool

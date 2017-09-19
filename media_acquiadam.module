@@ -14,8 +14,8 @@ require_once __DIR__ . '/includes/media_acquiadam.cache.inc';
 function media_acquiadam_menu() {
   $items = [];
   $items['admin/config/media/acquiadam'] = [
-    'title' => 'Media: AcquiaDAM settings',
-    'description' => 'Configure the API settings for AcquiaDAM.',
+    'title' => 'Media: Acquia DAM settings',
+    'description' => 'Configure the API settings for Acquia DAM.',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['media_acquiadam_config_settings'],
     'access arguments' => ['administer media acquiadam'],
@@ -24,7 +24,7 @@ function media_acquiadam_menu() {
   ];
 
   $items['acquiadam/asset/%media_acquiadam_asset'] = [
-    'title' => 'AcquiaDAM Asset',
+    'title' => 'Acquia DAM Asset',
     'description' => 'Redirect to an available asset download link.',
     'page callback' => 'media_acquiadam_asset_download_redirect',
     'page arguments' => [2],
@@ -38,7 +38,7 @@ function media_acquiadam_menu() {
   $directory_path = file_stream_wrapper_get_instance_by_scheme(file_default_scheme())->getDirectoryPath();
   $pos = count(explode('/', $directory_path)) + 1;
   $items[$directory_path . '/styles/%/acquiadam/%/%media_acquiadam_asset'] = [
-    'title' => 'AcquiaDAM Asset derivative',
+    'title' => 'Acquia DAM Asset derivative',
     'page callback' => 'media_acquiadam_image_style_deliver',
     'page arguments' => [$pos, $pos + 3],
     'load arguments' => [$pos + 2],
@@ -105,19 +105,19 @@ function media_acquiadam_permission() {
   $perms = [];
 
   $perms['administer media acquiadam'] = [
-    'title' => t('Administer Media: AcquiaDAM'),
-    'description' => t('Allows administration of Media: AcquiaDAM'),
+    'title' => t('Administer Media: Acquia DAM'),
+    'description' => t('Allows administration of Media: Acquia DAM'),
     'restrict access' => TRUE,
   ];
 
   $perms['view acquiadam assets'] = [
-    'title' => t('View AcquiaDAM assets'),
-    'description' => t('Allows viewing of AcquiaDAM assets'),
+    'title' => t('View Acquia DAM assets'),
+    'description' => t('Allows viewing of Acquia DAM assets'),
   ];
 
   $perms['view expired acquiadam assets'] = [
-    'title' => t('View expired AcquiaDAM assets'),
-    'description' => t('Allows viewing of AcquiaDAM assets that have expired'),
+    'title' => t('View expired Acquia DAM assets'),
+    'description' => t('Allows viewing of Acquia DAM assets that have expired'),
     'restrict access' => TRUE,
   ];
 
@@ -150,9 +150,9 @@ function media_acquiadam_oauth2_clients() {
     'client_secret' => variable_get('media_acquiadam_client_secret'),
   ];
 
-  // This setup redirects the user to the AcquiaDAM OAuth2 endpoint for
+  // This setup redirects the user to the Acquia DAM OAuth2 endpoint for
   // authentication instead of passing username/password information from Drupal
-  // to AcquiaDAM.
+  // to Acquia DAM.
   $oauth2_clients['acquiadam-server-auth'] = $base_auth + [
     'auth_flow' => 'server-side',
     'authorization_endpoint' => $server_url . '/oauth2/authorize',
@@ -182,9 +182,9 @@ function media_acquiadam_oauth2_clients() {
 function media_acquiadam_stream_wrappers() {
   return array(
     'acquiadam' => array(
-      'name' => t('AcquiaDAM files'),
+      'name' => t('Acquia DAM files'),
       'class' => 'AcquiaDAMStreamWrapper',
-      'description' => t('Provides read-only paths to AcquiaDAM files.'),
+      'description' => t('Provides read-only paths to Acquia DAM files.'),
       'type' => STREAM_WRAPPERS_REMOTE,
       'remote' => TRUE,
     ),
@@ -199,7 +199,7 @@ function media_acquiadam_schema_alter(&$schema) {
   // related cache without having to parse/manipulate strings.
   $file_managed = &$schema['file_managed'];
   $file_managed['fields']['acquiadam_id'] = [
-    'description' => st('The AcquiaDAM asset identifier.'),
+    'description' => st('The Acquia DAM asset identifier.'),
     'type' => 'int',
     'unsigned' => TRUE,
     'not null' => FALSE,
@@ -222,8 +222,8 @@ function media_acquiadam_help($path, $arg) {
 
   switch ($path) {
     case 'admin/help#media_acquiadam':
-      $output = '<h3>' . t('About Media: AcquiaDAM') . '</h3>';
-      $output .= '<p>' . t('Media: AcquiaDAM provides AcquiaDAM integration within the Drupal site. This integration allows Drupal users with AcquiaDAM accounts to browse assets they have access to and create Drupal files that reference these assets.') . '</p>';
+      $output = '<h3>' . t('About Media: Acquia DAM') . '</h3>';
+      $output .= '<p>' . t('Media: Acquia DAM provides Acquia DAM integration within the Drupal site. This integration allows Drupal users with Acquia DAM accounts to browse assets they have access to and create Drupal files that reference these assets.') . '</p>';
       $output .= '<p>' . t('Once an asset is referenced within Drupal normal Drupal permission mechanisms will take over.') . '</p>';
       $output .= '<p>' . t('DAM permissions will still apply to the CDN-rendered images.') . '</p>';
 
@@ -233,7 +233,7 @@ function media_acquiadam_help($path, $arg) {
 }
 
 /**
- * Load an AcquiaDAM asset.
+ * Load an Acquia DAM asset.
  *
  * Used for the menu system.
  *

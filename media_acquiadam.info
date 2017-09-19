@@ -1,5 +1,5 @@
-name = Media: AcquiaDAM
-description = Base support for AcquiaDAM filetypes in the Media ecosystem.
+name = Media: Acquia DAM
+description = Base support for Acquia DAM filetypes in the Media ecosystem.
 core = 7.x
 package = Media
 php = 5.4

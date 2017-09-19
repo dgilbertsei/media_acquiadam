@@ -1,5 +1,5 @@
-name = Media: AcquiaDAM Browser
-description = Adds an AcquiaDAM asset browser to Media.
+name = Media: Acquia DAM Browser
+description = Adds an Acquia DAM asset browser to Media.
 core = 7.x
 package = Media
 php = 5.4

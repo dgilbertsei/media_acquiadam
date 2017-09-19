@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AcquiaDAM Search requests.
+ * Acquia DAM Search requests.
  *
  * @package AcquiaDAM
  */

@@ -50,10 +50,10 @@ function media_acquiadam_schema() {
   $schema = [];
 
   $schema['acquiadam_asset_cache'] = [
-    'description' => st('Locally cached AcquiaDAM asset information.'),
+    'description' => st('Locally cached Acquia DAM asset information.'),
     'fields' => [
       'asset_id' => [
-        'description' => st('The AcquiaDAM asset identifier.'),
+        'description' => st('The Acquia DAM asset identifier.'),
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * AcquiaDAM asset implmentation for Folder assets.
+ * Acquia DAM asset implmentation for Folder assets.
  *
  * @package AcquiaDAM
  */

@@ -6,12 +6,12 @@
  */
 
 /**
- * Cache AcquiaDAM asset information locally.
+ * Cache Acquia DAM asset information locally.
  *
  * Calling for an already cached asset will update the cache.
  *
  * @param AcquiaDAM_Assets_AbstractAsset $asset
- *   The AcquiaDAM asset to cache.
+ *   The Acquia DAM asset to cache.
  */
 function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $asset) {
 
@@ -38,13 +38,13 @@ function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $ass
 }
 
 /**
- * Get locally cached AcquiaDAM asset information.
+ * Get locally cached Acquia DAM asset information.
  *
  * @param int $assetId
- *   The AcquiaDAM asset ID to get cached information for.
+ *   The Acquia DAM asset ID to get cached information for.
  *
  * @return AcquiaDAM_Assets_AbstractAsset|false
- *   The AcquiaDAM asset or FALSE.
+ *   The Acquia DAM asset or FALSE.
  */
 function media_acquiadam_api_get_asset_cache($assetId) {
 

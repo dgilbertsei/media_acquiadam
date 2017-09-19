@@ -39,7 +39,7 @@ function media_acquiadam_browser_form_media_acquiadam_config_settings_alter(&$fo
 }
 
 /**
- * AcquiaDAM browser form.
+ * Acquia DAM browser form.
  *
  * @param array $form
  *   A form render array.
@@ -173,7 +173,7 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
   $form['admin'] = [
     '#type' => 'fieldset',
     '#title' => t('Administration options'),
-    '#description' => t('Only AcquiaDAM administrators can see these options.'),
+    '#description' => t('Only Acquia DAM administrators can see these options.'),
     '#access' => user_access('administer media acquiadam'),
     'user' => [
       '#type' => 'markup',
@@ -212,7 +212,7 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     media_acquiadam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
   }
   else {
-    drupal_set_message(t('The AcquiaDAM browser does not have access to your AcquiaDAM account. <a href="@auth-url">Please click here to authorize access to AcquiaDAM.</a>', [
+    drupal_set_message(t('The Acquia DAM browser does not have access to your Acquia DAM account. <a href="@auth-url">Please click here to authorize access to Acquia DAM.</a>', [
       '@auth-url' => url(current_path(), ['query' => ['aa' => TRUE]]),
     ]), 'warning');
   }

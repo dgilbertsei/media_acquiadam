@@ -1,11 +1,11 @@
-# Media: AcquiaDAM
+# Media: Acquia DAM
 
-Provides a strong integration with the AcquiaDAM service, allowing users to easily include AcquiaDAM assets within their Drupal site.
+Provides a strong integration with the Acquia DAM service, allowing users to easily include Acquia DAM assets within their Drupal site.
 
 ## Installation
 
 * Install the module and dependencies as normal.
-* Create a background API user within AcquiaDAM (see the background user section).
+* Create a background API user within Acquia DAM (see the background user section).
 * Configure the background user credentials.
 
 ```php

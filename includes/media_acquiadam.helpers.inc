@@ -2,14 +2,14 @@
 
 /**
  * @file
- * Helper functions for working with AcquiaDAM within Drupal.
+ * Helper functions for working with Acquia DAM within Drupal.
  */
 
 /**
- * Create a local file entity for an AcquiaDAM asset.
+ * Create a local file entity for an Acquia DAM asset.
  *
  * @param AcquiaDAM_Assets_Asset $asset
- *   The AcquiaDAM asset to create a file entity for.
+ *   The Acquia DAM asset to create a file entity for.
  * @param bool $ignoreExisting
  *   By default we return an existing file if one was found. Set this TRUE to
  *   force a new file to be created.

@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Create an AcquiaDAM Stream Wrapper class for the Media/Resource module.
+ * Create an Acquia DAM Stream Wrapper class for the Media/Resource module.
  */
 
 /**
- * Provides a remote stream wrapper for AcquiaDAM assets.
+ * Provides a remote stream wrapper for Acquia DAM assets.
  *
  * Create an instance like this:
  * ```php
@@ -109,7 +109,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
   /**
    * Get the mimetype of the file.
    *
-   * Overridden to work with the AcquiaDAM uri structure.
+   * Overridden to work with the Acquia DAM uri structure.
    *
    * {@inheritDoc}
    */
@@ -171,7 +171,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
   }
 
   /**
-   * Get an asset ID from an AcquiaDAM Uri.
+   * Get an asset ID from an Acquia DAM Uri.
    *
    * @param string $uri
    *   The URI to parse for an asset ID.

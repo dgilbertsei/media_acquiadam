@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generic AcquiaDAM assets.
+ * Generic Acquia DAM assets.
  *
  * @package AcquiaDAM
  */

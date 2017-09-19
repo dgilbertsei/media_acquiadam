@@ -58,7 +58,7 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
   drupal_add_css($css_path, 'file');
 
   if (user_access('view acquiadam links')) {
-    $variables['dam_link'] = l(t('View this asset in AcquiaDAM.'), $asset->getDAMUrl(), [
+    $variables['dam_link'] = l(t('View this asset in Acquia DAM.'), $asset->getDAMUrl(), [
       'absolute' => TRUE,
       'external' => TRUE,
       'attributes' => [
@@ -303,7 +303,7 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
     $links[] = [
       'title' => theme('media_acquiadam_browser_jump_list_item', [
         'icon' => theme('image', ['path' => $image_base . 'ic_launch_black_24dp_1x.png']),
-        'label' => t('Open in AcquiaDAM'),
+        'label' => t('Open in Acquia DAM'),
       ]),
       'href' => $asset->getDAMUrl(),
       'attributes' => [

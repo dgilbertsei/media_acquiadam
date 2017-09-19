@@ -142,7 +142,7 @@ class AcquiaDAM_Client {
   }
 
   /**
-   * Make a request to the AcquiaDAM API.
+   * Make a request to the Acquia DAM API.
    *
    * @param string $endpoint
    *   The API endpoint to request.
@@ -183,7 +183,7 @@ class AcquiaDAM_Client {
       $resp->data = drupal_json_decode($resp->data);
     }
 
-    // AcquiaDAM does not return proper error codes for different conditions, so
+    // Acquia DAM does not return proper error codes for different conditions, so
     // we can't do much beyond checking for "not a success".
     if (200 != $resp->code) {
       $msg = empty($resp->data['message']) ? $resp->error : $resp->data['message'];

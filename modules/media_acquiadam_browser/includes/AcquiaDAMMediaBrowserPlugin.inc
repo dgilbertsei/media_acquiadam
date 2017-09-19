@@ -20,7 +20,7 @@ class AcquiaDAMMediaBrowserPlugin extends MediaBrowserPlugin {
   public function view() {
     module_load_include('module', 'media_acquiadam', 'media_acquiadam');
     $build = [
-      '#title' => t('AcquiaDAM'),
+      '#title' => t('Acquia DAM'),
       '#weight' => 10,
       'form' => drupal_get_form('media_acquiadam_browser_choose_asset_form', $this->params),
     ];
