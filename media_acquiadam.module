@@ -54,7 +54,7 @@ function media_acquiadam_menu() {
     'description' => 'Updates the Acquia DAM asset from the remote DAM source.',
     'page callback' => 'media_acquiadam_dam_refresh',
     'page arguments' => [1],
-    'access callback' => 'media_acquiadam_file_access',
+    'access callback' => 'file_entity_access',
     'access arguments' => ['refresh', 1],
     'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
     'file' => 'media_acquiadam.pages.inc',
@@ -66,7 +66,7 @@ function media_acquiadam_menu() {
     'description' => 'Directs the user to the asset inside Acquia DAM.',
     'page callback' => 'media_acquiadam_dam_view',
     'page arguments' => [1],
-    'access callback' => 'media_acquiadam_file_access',
+    'access callback' => 'file_entity_access',
     'access arguments' => ['view', 1],
     'file path' => drupal_get_path('module', 'media_acquiadam') . '/includes',
     'file' => 'media_acquiadam.pages.inc',
@@ -246,12 +246,7 @@ function media_acquiadam_help($path, $arg) {
  *   The loaded asset or FALSE.
  */
 function media_acquiadam_asset_load($assetId, $assetType = 'asset') {
-  // Force the background user mode when serving files to anonymous users.
-  $client = user_is_anonymous() ?
-    AcquiaDAM_API::getClient('acquiadam-user-auth') :
-    NULL;
-
-  return media_acquiadam_api_get_helper($assetType, $assetId, ['client' => $client]);
+  return media_acquiadam_api_get_helper($assetType, $assetId);
 }
 
 /**
@@ -290,21 +285,31 @@ function media_acquiadam_asset_access($op, AcquiaDAM_Assets_AbstractAsset $asset
 }
 
 /**
- * Access callback for permissions on assets with files.
- *
- * @param string $op
- *   The operation being performed.
- * @param object $file
- *   The file with an associated asset.
- *
- * @return bool
- *   If the account has permissions to perform the given operation.
+ * Implements hook_entity_delete().
  */
-function media_acquiadam_file_access($op, $file) {
-  $asset = media_acquiadam_file_to_asset($file);
-  if (empty($asset)) {
-    return FALSE;
+function media_acquiadam_entity_delete($entity, $type) {
+  if ('file' == $type && !empty($entity->acquiadam_id)) {
+    media_acquiadam_api_flush_item_cache([$entity->acquiadam_id]);
+  }
+}
+
+/**
+ * Implements hook_file_entity_access().
+ */
+function media_acquiadam_file_entity_access($op, $file, $account) {
+  if (empty($file->acquiadam_id)) {
+    return FILE_ENTITY_ACCESS_IGNORE;
   }
 
-  return media_acquiadam_asset_access($op, $asset);
+  $asset = media_acquiadam_file_to_asset($file);
+  // We had an asset id linked to the file, but we were not able to load the
+  // asset. This can happen when the API user does not have access to the file.
+  // We do not IGNORE because this also happens when an asset is expired.
+  if (empty($asset)) {
+    return FILE_ENTITY_ACCESS_DENY;
+  }
+
+  return media_acquiadam_asset_access($op, $asset, $account) ?
+    FILE_ENTITY_ACCESS_ALLOW :
+    FILE_ENTITY_ACCESS_DENY;
 }

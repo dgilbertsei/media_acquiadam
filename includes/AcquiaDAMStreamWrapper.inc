@@ -157,6 +157,9 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
     }
 
     $asset = static::getAssetByUri($this->uri);
+    if (empty($asset)) {
+      return FALSE;
+    }
     $preview = $asset->getPreviewUrl();
 
     if (empty($preview)) {

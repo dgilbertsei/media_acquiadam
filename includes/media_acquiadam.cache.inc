@@ -72,16 +72,27 @@ function media_acquiadam_api_get_asset_cache($assetId) {
  */
 function media_acquiadam_api_get_assets_cache(array $assetIds) {
 
-  $result = db_select('acquiadam_asset_cache', 'c')
+  $query = db_select('acquiadam_asset_cache', 'c')
     ->addTag('acquiadam')
     ->addTag('damcache')
     ->fields('c', ['data', 'asset_id', 'type'])
     ->condition('c.asset_id', $assetIds)
+    ->condition(db_or()
+      ->condition('c.expiration', REQUEST_TIME, '>')
+      ->isNull('c.expiration')
+    )
     ->range(0, count($assetIds))
-    ->orderBy('c.asset_id', 'ASC')
-    ->execute()
-    ->fetchAllAssoc('asset_id');
+    ->orderBy('c.asset_id', 'ASC');
 
+  $cache_expiration = variable_get('media_acquiadam_cache_expiration');
+  if (!empty($cache_expiration)) {
+    $query->where('(c.changed + :cache_expiration) > :request_time', [
+      ':cache_expiration' => $cache_expiration * 60 * 1000,
+      ':request_time' => REQUEST_TIME,
+    ]);
+  }
+
+  $result = $query->execute()->fetchAllAssoc('asset_id');
   if (!empty($result)) {
     array_walk($result, function (&$item, $key) {
       $item->data = unserialize($item->data);
@@ -147,12 +158,16 @@ function media_acquiadam_api_flush_outdated_cache() {
   $query = db_select('acquiadam_asset_cache', 'c')
     ->fields('c', ['asset_id']);
 
-  $or = db_or();
+  $or = db_or()
+    ->condition('c.expiration', REQUEST_TIME, '<=');
 
   $cache_expiration = variable_get('media_acquiadam_cache_expiration');
   if ($cache_expiration) {
     // Clear out cache entries where the cache is stale.
-    $or->condition('c.changed', $cache_expiration + REQUEST_TIME, '<=');
+    $or->where('(c.changed + :cache_expiration) <= :request_time', [
+      ':cache_expiration' => $cache_expiration * 60 * 1000,
+      ':request_time' => REQUEST_TIME,
+    ]);
   }
 
   $unused_expiration = variable_get('media_acquiadam_unused_expiration');
@@ -165,7 +180,10 @@ function media_acquiadam_api_flush_outdated_cache() {
     $or->condition(
       db_and()
         ->condition('c.asset_id', $fq, 'NOT IN')
-        ->condition('c.changed', $unused_expiration + REQUEST_TIME, '<=')
+        ->where('(c.changed + :unused_expiration) <= :request_time', [
+          ':unused_expiration' => $unused_expiration * 60 * 1000,
+          ':request_time' => REQUEST_TIME,
+        ])
       );
   }
 

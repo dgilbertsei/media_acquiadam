@@ -67,6 +67,11 @@ function media_acquiadam_api_get_helper($type, $id, array $depends = [], $skipCa
 
   $create_arg = empty($cached_item) ? $id : $cached_item;
 
+  if (empty($depends['client']) && user_is_anonymous()) {
+    // Force the background user mode when serving files to anonymous users.
+    $depends['client'] = AcquiaDAM_API::getClient('acquiadam-user-auth');
+  }
+
   $result = FALSE;
   try {
     if ('folder' == $type) {
@@ -217,7 +222,7 @@ function media_acquiadam_file_to_asset($file) {
   }
 
   try {
-    $asset = media_acquiadam_asset_load($asset_id);
+    $asset = media_acquiadam_api_get_asset($asset_id);
   }
   catch (Exception $x) {
     watchdog_exception('media_acquiadam', $x);
