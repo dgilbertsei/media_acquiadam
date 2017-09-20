@@ -20,7 +20,7 @@ function media_acquiadam_browser_get_trail($folderId) {
 
   if (!empty($folderId) && AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID != $folderId) {
     try {
-      $folder = media_acquiadam_api_get_folder($folderId);
+      $folder = media_acquiadam_get_folder($folderId);
       $parents = $folder->getParents();
       $parents[] = $folderId;
       $trail = $folder->getMultiple($parents);
@@ -60,7 +60,7 @@ function media_acquiadam_browser_get_children($folderId = AcquiaDAM_Assets_Folde
     $root = [];
 
     try {
-      $folder = media_acquiadam_api_get_folder($folderId);
+      $folder = media_acquiadam_get_folder($folderId);
       if (!empty($folder)) {
         $root = $folder->getRoot();
       }
@@ -78,7 +78,7 @@ function media_acquiadam_browser_get_children($folderId = AcquiaDAM_Assets_Folde
   else {
 
     try {
-      $folder = media_acquiadam_api_get_folder($folderId);
+      $folder = media_acquiadam_get_folder($folderId);
       $asset_types = $folder->getAssets(array(
         'limit' => $perPage,
         'offset' => pager_find_page() * $perPage,
@@ -191,7 +191,7 @@ function media_acquiadam_browser_get_search_results($folderId, array $search, ar
 
   if (!empty($results['items'])) {
     foreach ($results['items'] as $asset) {
-      $child_assets['assets'][] = media_acquiadam_api_get_asset($asset);
+      $child_assets['assets'][] = media_acquiadam_get_asset($asset);
     }
     $child_assets['total_count'] = $results['total_count'];
   }

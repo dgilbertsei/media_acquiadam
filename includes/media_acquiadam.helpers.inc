@@ -17,7 +17,7 @@
  * @return object|bool
  *   The created file entity or FALSE on failure.
  */
-function media_acquiadam_api_create_acquiadam_file(AcquiaDAM_Assets_Asset $asset, $ignoreExisting = FALSE) {
+function media_acquiadam_create_file_from_asset(AcquiaDAM_Assets_Asset $asset, $ignoreExisting = FALSE) {
 
   global $user;
 
@@ -26,13 +26,13 @@ function media_acquiadam_api_create_acquiadam_file(AcquiaDAM_Assets_Asset $asset
     return FALSE;
   }
 
-  $uri = media_acquiadam_api_asset_to_uri($asset);
+  $uri = media_acquiadam_asset_to_uri($asset);
   // Reuse an existing file whenever possible.
   $file = file_uri_to_object($uri, TRUE);
 
   // We got a file object for a new file instead of an existing one.
   if (!empty($file) && empty($file->fid)) {
-    media_acquiadam_api_set_asset_cache($asset);
+    media_acquiadam_cache_set($asset);
     $file->filename = drupal_basename($asset['name']);
     $file->acquiadam_id = $asset['id'];
     file_save($file);
@@ -56,13 +56,13 @@ function media_acquiadam_api_create_acquiadam_file(AcquiaDAM_Assets_Asset $asset
  * @return AcquiaDAM_Assets_AbstractAsset|false
  *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_acquiadam_api_get_helper($type, $id, array $depends = [], $skipCache = FALSE) {
+function media_acquiadam_get_helper($type, $id, array $depends = [], $skipCache = FALSE) {
 
   // We only want to try and cache when we are given an id instead of an array.
   // We also need to ignore caching the root folder.
   $use_cache = empty($skipCache) && is_numeric($id) && $id != AcquiaDAM_Assets_Folder::ROOT_FOLDER_ID;
   if ($use_cache) {
-    $cached_item = media_acquiadam_api_get_asset_cache($id);
+    $cached_item = media_acquiadam_cache_get($id);
   }
 
   $create_arg = empty($cached_item) ? $id : $cached_item;
@@ -90,7 +90,7 @@ function media_acquiadam_api_get_helper($type, $id, array $depends = [], $skipCa
 
   $can_cache_result = !empty($result) && empty($cached_item);
   if ($use_cache && $can_cache_result) {
-    media_acquiadam_api_set_asset_cache($result);
+    media_acquiadam_cache_set($result);
   }
 
   return $result;
@@ -109,8 +109,8 @@ function media_acquiadam_api_get_helper($type, $id, array $depends = [], $skipCa
  * @return AcquiaDAM_Assets_AbstractAsset|false
  *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_acquiadam_api_get_folder($id, array $depends = [], $skipCache = FALSE) {
-  return media_acquiadam_api_get_helper('folder', $id, $depends, $skipCache);
+function media_acquiadam_get_folder($id, array $depends = [], $skipCache = FALSE) {
+  return media_acquiadam_get_helper('folder', $id, $depends, $skipCache);
 }
 
 /**
@@ -126,8 +126,8 @@ function media_acquiadam_api_get_folder($id, array $depends = [], $skipCache = F
  * @return AcquiaDAM_Assets_AbstractAsset|false
  *   A AcquiaDAM_Assets_AbstractAsset object or FALSE.
  */
-function media_acquiadam_api_get_asset($id, array $depends = [], $skipCache = FALSE) {
-  return media_acquiadam_api_get_helper('asset', $id, $depends, $skipCache);
+function media_acquiadam_get_asset($id, array $depends = [], $skipCache = FALSE) {
+  return media_acquiadam_get_helper('asset', $id, $depends, $skipCache);
 }
 
 /**
@@ -139,7 +139,7 @@ function media_acquiadam_api_get_asset($id, array $depends = [], $skipCache = FA
  * @return array
  *   Any matching files from the managed files table.
  */
-function media_acquiadam_api_get_files_by_asset_ids(array $assetIds) {
+function media_acquiadam_assetids_to_fids(array $assetIds) {
   $assetIds = array_map('intval', $assetIds);
   $assetIds = array_filter($assetIds);
 
@@ -154,20 +154,6 @@ function media_acquiadam_api_get_files_by_asset_ids(array $assetIds) {
 }
 
 /**
- * Get a managed file that is associated with the given asset ID.
- *
- * @param int $assetId
- *   The asset ID to load a file for.
- *
- * @return array|false
- *   A matching file or FALSE.
- */
-function media_acquiadam_api_get_file_by_asset_id($assetId) {
-  $result = media_acquiadam_api_get_files_by_asset_ids([$assetId]);
-  return empty($result) ? FALSE : current($result);
-}
-
-/**
  * Returns a Drupal URI for the given asset.
  *
  * Does not necessarily mean the asset is available to Drupal at this URI.
@@ -178,7 +164,7 @@ function media_acquiadam_api_get_file_by_asset_id($assetId) {
  * @return string
  *   The URI.
  */
-function media_acquiadam_api_asset_to_uri(AcquiaDAM_Assets_AbstractAsset $asset) {
+function media_acquiadam_asset_to_uri(AcquiaDAM_Assets_AbstractAsset $asset) {
 
   $uri = sprintf('acquiadam://%d', $asset['id']);
   if (!empty($asset['filetype'])) {
@@ -222,7 +208,7 @@ function media_acquiadam_file_to_asset($file) {
   }
 
   try {
-    $asset = media_acquiadam_api_get_asset($asset_id);
+    $asset = media_acquiadam_get_asset($asset_id);
   }
   catch (Exception $x) {
     watchdog_exception('media_acquiadam', $x);

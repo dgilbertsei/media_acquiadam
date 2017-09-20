@@ -219,7 +219,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
 
     module_load_include('inc', 'media_acquiadam', 'includes/media_acquiadam.helpers');
     try {
-      $asset = media_acquiadam_api_get_asset($id);
+      $asset = media_acquiadam_get_asset($id);
     }
     catch (Exception $x) {
       watchdog_exception('acquiadam_stream_wrapper', $x);

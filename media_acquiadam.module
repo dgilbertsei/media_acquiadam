@@ -26,7 +26,7 @@ function media_acquiadam_menu() {
   $items['acquiadam/asset/%media_acquiadam_asset'] = [
     'title' => 'Acquia DAM Asset',
     'description' => 'Redirect to an available asset download link.',
-    'page callback' => 'media_acquiadam_asset_download_redirect',
+    'page callback' => 'media_acquiadam_download_redirect_page',
     'page arguments' => [2],
     'access callback' => 'media_acquiadam_asset_access',
     'access arguments' => ['view', 2],
@@ -52,7 +52,7 @@ function media_acquiadam_menu() {
   $items['file/%file/dam-refresh'] = [
     'title' => 'Force refresh from Acquia DAM',
     'description' => 'Updates the Acquia DAM asset from the remote DAM source.',
-    'page callback' => 'media_acquiadam_dam_refresh',
+    'page callback' => 'media_acquiadam_dam_refresh_page',
     'page arguments' => [1],
     'access callback' => 'file_entity_access',
     'access arguments' => ['refresh', 1],
@@ -64,7 +64,7 @@ function media_acquiadam_menu() {
   $items['file/%file/dam-view'] = [
     'title' => 'View in Acquia DAM',
     'description' => 'Directs the user to the asset inside Acquia DAM.',
-    'page callback' => 'media_acquiadam_dam_view',
+    'page callback' => 'media_acquiadam_dam_view_page',
     'page arguments' => [1],
     'access callback' => 'file_entity_access',
     'access arguments' => ['view', 1],
@@ -221,7 +221,7 @@ function media_acquiadam_schema_alter(&$schema) {
  * Implements hook_cron().
  */
 function media_acquiadam_cron() {
-  media_acquiadam_api_flush_outdated_cache();
+  media_acquiadam_flush_outdated_cache();
 }
 
 /**
@@ -255,7 +255,7 @@ function media_acquiadam_help($path, $arg) {
  *   The loaded asset or FALSE.
  */
 function media_acquiadam_asset_load($assetId, $assetType = 'asset') {
-  return media_acquiadam_api_get_helper($assetType, $assetId);
+  return media_acquiadam_get_helper($assetType, $assetId);
 }
 
 /**
@@ -298,7 +298,7 @@ function media_acquiadam_asset_access($op, AcquiaDAM_Assets_AbstractAsset $asset
  */
 function media_acquiadam_entity_delete($entity, $type) {
   if ('file' == $type && !empty($entity->acquiadam_id)) {
-    media_acquiadam_api_flush_item_cache([$entity->acquiadam_id]);
+    media_acquiadam_flush_cache([$entity->acquiadam_id]);
   }
 }
 

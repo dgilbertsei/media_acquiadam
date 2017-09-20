@@ -88,7 +88,7 @@ class AcquiaDAM_Assets_Folder extends AcquiaDAM_Assets_AbstractAsset {
       if (!empty($result[$key]) && is_array($result[$key])) {
         $result[$key] = array_map(function ($item) use ($type, $fullyLoad) {
           $id = $fullyLoad ? $item['id'] : $item;
-          return media_acquiadam_api_get_helper($type, $id, $this->depends);
+          return media_acquiadam_get_helper($type, $id, $this->depends);
         }, $result[$key]);
       }
     }

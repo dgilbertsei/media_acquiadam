@@ -13,7 +13,7 @@
  * @param AcquiaDAM_Assets_AbstractAsset $asset
  *   The Acquia DAM asset to cache.
  */
-function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $asset) {
+function media_acquiadam_cache_set(AcquiaDAM_Assets_AbstractAsset $asset) {
 
   $expiration = !empty($asset['expiration']['dateUnix']) ?
     $asset['expiration']['dateUnix'] :
@@ -46,12 +46,12 @@ function media_acquiadam_api_set_asset_cache(AcquiaDAM_Assets_AbstractAsset $ass
  * @return AcquiaDAM_Assets_AbstractAsset|false
  *   The Acquia DAM asset or FALSE.
  */
-function media_acquiadam_api_get_asset_cache($assetId) {
+function media_acquiadam_cache_get($assetId) {
 
   $cache = &drupal_static(__FUNCTION__, []);
   if (empty($cache[$assetId])) {
 
-    $item = media_acquiadam_api_get_assets_cache([$assetId]);
+    $item = media_acquiadam_cache_get_multiple([$assetId]);
 
     $cache[$assetId] = !empty($item[$assetId]) ?
       $item[$assetId]->data :
@@ -70,7 +70,7 @@ function media_acquiadam_api_get_asset_cache($assetId) {
  * @return array
  *   The array of asset data from cache, keyed by ID.
  */
-function media_acquiadam_api_get_assets_cache(array $assetIds) {
+function media_acquiadam_cache_get_multiple(array $assetIds) {
 
   $query = db_select('acquiadam_asset_cache', 'c')
     ->addTag('acquiadam')
@@ -106,11 +106,18 @@ function media_acquiadam_api_get_assets_cache(array $assetIds) {
  * Clears given asset IDs from the local cache.
  *
  * @param array $assetIds
- *   An array of asset IDs.
+ *   An array of asset IDs. Will flush all cache if nothing is provided.
  */
-function media_acquiadam_api_flush_item_cache(array $assetIds) {
+function media_acquiadam_flush_cache(array $assetIds = []) {
 
-  media_acquiadam_api_flush_image_cache($assetIds);
+  if (empty($assetIds)) {
+    $assetIds = db_select('acquiadam_asset_cache', 'c')
+      ->fields('c', ['asset_id'])
+      ->execute()
+      ->fetchCol();
+  }
+
+  media_acquiadam_flush_image_styles($assetIds);
 
   db_delete('acquiadam_asset_cache')
     ->condition('asset_id', $assetIds)
@@ -128,7 +135,7 @@ function media_acquiadam_api_flush_item_cache(array $assetIds) {
  * @param array|int $assetIds
  *   A asset ID or IDs to limit the flushing to.
  */
-function media_acquiadam_api_flush_image_cache($assetIds = []) {
+function media_acquiadam_flush_image_styles($assetIds = []) {
 
   if (!is_array($assetIds)) {
     $assetIds = [$assetIds];
@@ -152,7 +159,7 @@ function media_acquiadam_api_flush_image_cache($assetIds = []) {
  * @return array
  *   An array of asset IDs that were cleared out.
  */
-function media_acquiadam_api_flush_outdated_cache() {
+function media_acquiadam_flush_outdated_cache() {
   $assetIds = [];
 
   $query = db_select('acquiadam_asset_cache', 'c')
@@ -191,7 +198,7 @@ function media_acquiadam_api_flush_outdated_cache() {
 
   $assetIds = $query->execute()->fetchCol();
   if (!empty($assetIds)) {
-    media_acquiadam_api_flush_item_cache($assetIds);
+    media_acquiadam_flush_cache($assetIds);
   }
 
   return $assetIds;

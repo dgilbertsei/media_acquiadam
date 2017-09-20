@@ -14,7 +14,7 @@
  * @return int
  *   A menu response code.
  */
-function media_acquiadam_asset_download_redirect(AcquiaDAM_Assets_AbstractAsset $asset) {
+function media_acquiadam_download_redirect_page(AcquiaDAM_Assets_AbstractAsset $asset) {
   try {
     $url = $asset->getDownloadUrl();
     if (!empty($url)) {
@@ -39,13 +39,13 @@ function media_acquiadam_asset_download_redirect(AcquiaDAM_Assets_AbstractAsset 
  * @return int
  *   A menu response code or a redirect.
  */
-function media_acquiadam_dam_refresh($file) {
+function media_acquiadam_dam_refresh_page($file) {
   $asset = media_acquiadam_file_to_asset($file);
   if (empty($asset)) {
     return MENU_NOT_FOUND;
   }
 
-  media_acquiadam_api_flush_item_cache([$asset['id']]);
+  media_acquiadam_flush_cache([$asset['id']]);
 
   drupal_set_message(t('Local cache was cleared for @name (@id).', [
     '@name' => $asset['name'],
@@ -65,7 +65,7 @@ function media_acquiadam_dam_refresh($file) {
  * @return int
  *   A menu response code or a redirect.
  */
-function media_acquiadam_dam_view($file) {
+function media_acquiadam_dam_view_page($file) {
   $asset = media_acquiadam_file_to_asset($file);
   if (empty($asset)) {
     return MENU_NOT_FOUND;

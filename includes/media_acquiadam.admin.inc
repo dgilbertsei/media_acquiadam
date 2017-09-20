@@ -125,11 +125,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
 
   if (!empty($form_state['triggering_element']['#name']) && 'clear' == $form_state['triggering_element']['#name']) {
     drupal_set_message(t('Cleared cached asset information.'), 'status');
-    $asset_ids = db_select('acquiadam_asset_cache', 'c')
-      ->fields('c', ['asset_id'])
-      ->execute()
-      ->fetchCol();
-    media_acquiadam_api_flush_item_cache($asset_ids);
+    media_acquiadam_flush_cache();
   }
 
   $count = db_select('acquiadam_asset_cache')

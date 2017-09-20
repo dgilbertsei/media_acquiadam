@@ -456,14 +456,14 @@ function media_acquiadam_browser_choose_asset_form_save_assets(array $assetIds, 
     // Load the remote asset if it wasn't already.
     $asset = !empty($loadedAssets[$assetId]) ?
       $loadedAssets[$assetId] :
-      media_acquiadam_api_get_asset($assetId);
+      media_acquiadam_get_asset($assetId);
 
     if (empty($asset)) {
       watchdog('media_acquiadam', 'Unable to load asset with ID @id.', ['@id' => $assetId], WATCHDOG_WARNING);
       continue;
     }
 
-    $file = media_acquiadam_api_create_acquiadam_file($asset);
+    $file = media_acquiadam_create_file_from_asset($asset);
     if (!empty($file->fid)) {
       $saved_fids[] = $file->fid;
     }

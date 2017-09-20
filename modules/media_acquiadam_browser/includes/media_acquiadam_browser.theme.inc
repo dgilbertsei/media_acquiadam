@@ -253,7 +253,7 @@ function theme_media_acquiadam_browser_trail(array $variables) {
   if (!empty($variables['assets'])) {
     $last = end($variables['assets']);
     reset($variables['assets']);
-    $last = media_acquiadam_api_get_helper($asset['type'], $asset);
+    $last = media_acquiadam_get_helper($asset['type'], $asset);
     $jump = theme('media_acquiadam_browser_jump_list', ['asset' => $last]);
   }
 
