@@ -33,15 +33,6 @@ function media_acquiadam_browser_menu() {
     'type' => MENU_CALLBACK,
   ];
 
-  $items['user/%user/acquiadam/deauth'] = [
-    'title' => 'Clear DAM access token',
-    'description' => 'Removes the current users DAM OAuth2 access token.',
-    'page callback' => 'media_acquiadam_browser_deauth_page',
-    'access arguments' => ['access media acquiadam browser'],
-    'file' => 'includes/media_acquiadam_browser.pages.inc',
-    'type' => MENU_LOCAL_ACTION,
-  ];
-
   $items['dam/%ctools_js/%/%media_acquiadam_asset/info'] = [
     'title' => 'Asset information',
     'page arguments' => [3, 1],

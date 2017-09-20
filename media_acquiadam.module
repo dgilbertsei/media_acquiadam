@@ -73,6 +73,15 @@ function media_acquiadam_menu() {
     'type' => MENU_LOCAL_ACTION,
   ];
 
+  $items['user/%user/acquiadam/deauth'] = [
+    'title' => 'Clear DAM access token',
+    'description' => 'Removes the current users DAM OAuth2 access token.',
+    'page callback' => 'media_acquiadam_deauth_page',
+    'access arguments' => ['view acquiadam assets'],
+    'file' => 'includes/media_acquiadam.pages.inc',
+    'type' => MENU_LOCAL_ACTION,
+  ];
+
   return $items;
 }
 
