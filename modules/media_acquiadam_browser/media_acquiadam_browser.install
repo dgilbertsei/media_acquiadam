@@ -21,5 +21,4 @@ function media_acquiadam_browser_uninstall() {
   file_unmanaged_delete(variable_get('media_acquiadam_browser_placeholder'));
   variable_del('media_acquiadam_browser_placeholder');
   variable_del('media_acquiadam_browser_per_page');
-  variable_del('media_acquiadam_browser_thumbnail_size');
 }

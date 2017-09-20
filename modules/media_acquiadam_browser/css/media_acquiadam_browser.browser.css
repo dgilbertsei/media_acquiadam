@@ -12,7 +12,8 @@ ul#media-acquiadam-browser-library-list {
 }
 ul#media-acquiadam-browser-library-list > li {
   position: relative;
-  margin-right: 10px;
+  margin: 0 15px 15px 0;
+  border: 2px solid rgb(233, 233, 233);
 }
 
 ul#media-acquiadam-browser-library-list > li .form-item {
@@ -21,92 +22,13 @@ ul#media-acquiadam-browser-library-list > li .form-item {
   top: 5px;
 }
 
-.browser-asset {
-  width: 110px;
-}
-
-.browser-asset .preview {
-  cursor: pointer;
-  line-height: 110px;
-}
-
-.browser-asset .preview-body {
-  height: 100%;
-  text-align: center;
-  width: 100%;
-}
-
-.browser-asset .preview-body img {
-  border-radius: 5px;
-  border: 1px solid rgba(200, 200, 200, .5);
-  height: auto;
-  vertical-align: middle;
-  width: auto;
-}
-
-.browser-asset .label {
-  background-color: rgba(235,235,235,.5);
-  border: 1px solid rgba(200, 200, 200, .5);
-  cursor: pointer;
-  margin-top: 5px;
-  overflow: hidden;
-  padding: 3px 25px 3px 5px;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.browser-asset[data-asset-status="inactive"] .preview img {
-  opacity: .2;
-}
-
-.browser-asset[data-asset-status="inactive"] .preview-body:before {
-  background-color: rgba(255,0,0,.1);
-  border-radius: 5px;
-  content: 'Unavailable';
-  display: block;
-  height: 100px;
-  left: 5px;
-  position: absolute;
-  top: 7px;
-  width: 100px;
-}
-
-.browser-asset[data-asset-type="folder"] .folder-tab {
-  border-bottom: 7px solid #058fc8;
-  border-right: 15px solid transparent;
-  border-top-left-radius: 5px;
-  height: 0px;
-  width: 40px;
-}
-
-.browser-asset[data-asset-type="folder"] .preview {
-  height: 90px;
-  line-height: 90px;
-  margin-top: 10px;
-  padding-bottom: 10px;
-}
-
-.browser-asset[data-asset-type="folder"] .preview-body {
-  background-color: #4cafd7;
-  border-radius: 5px;
-  border-top-left-radius: 0;
-  cursor: default;
-}
-
-.browser-asset[data-asset-type="folder"] .preview-body img {
-  width: 50%;
-  background-color: #FFF;
+ul#media-acquiadam-browser-library-list > li.selected {
+  border-color: rgb(253, 239, 189);
+  background-color: rgb(255, 252, 242)
 }
 
 ul#media-acquiadam-browser-library-list > li.selected .label {
-  background-color: rgba(255, 223, 108, 0.50);
-}
-
-.jump-list {
-  bottom: 0;
-  position: absolute;
-  right: 0;
+  background-color: rgb(253, 239, 189)
 }
 
 .media-acquiadam-browser-trail .breadcrumb {

@@ -40,6 +40,11 @@ function media_acquiadam_browser_choose_asset_saved_landing_page($selected = NUL
     foreach ($selected as $file) {
       $uri = entity_uri('file', $file);
       $preview = media_get_thumbnail_preview($file);
+      $asset = media_acquiadam_file_to_asset($file);
+      $preview = [
+        '#theme' => 'media_acquiadam_browser_asset',
+        '#asset' => $asset,
+      ];
       $build['selections']['#rows'][] = [
         render($preview),
         l($file->filename, $uri['path'], $uri['options']),

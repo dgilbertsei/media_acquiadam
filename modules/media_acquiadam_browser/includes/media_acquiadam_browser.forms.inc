@@ -27,15 +27,6 @@ function media_acquiadam_browser_form_media_acquiadam_config_settings_alter(&$fo
     '#size' => 5,
     '#max_size' => 5,
   ];
-
-  $form['browser']['media_acquiadam_browser_thumbnail_size'] = [
-    '#type' => 'select',
-    '#title' => t('Thumbnail source size'),
-    '#description' => t('The source remote thumbnail size to use when creating browser thumbnails locally.'),
-    '#default_value' => variable_get('media_acquiadam_browser_thumbnail_size', 150),
-    '#options' => AcquiaDAM_Assets_AbstractAsset::getThumbnailSizes(),
-  ];
-  $form['browser']['media_acquiadam_browser_thumbnail_size']['#options'][550] = t('550 (Medium)');
 }
 
 /**

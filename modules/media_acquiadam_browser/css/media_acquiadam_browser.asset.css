@@ -1,0 +1,75 @@
+.browser-asset {
+  width: 180px;
+  position: relative;
+}
+
+.browser-asset .preview {
+  cursor: pointer;
+  line-height: 150px;
+  padding: 10px;
+}
+
+.browser-asset .preview-body {
+  height: 100%;
+  text-align: center;
+  width: 100%;
+}
+
+.browser-asset .preview-body img {
+  border-radius: 5px;
+  height: auto;
+  width: auto;
+  vertical-align: middle;
+  max-width: 150px;
+  max-height: 150px;
+}
+
+.browser-asset .label {
+  background-color: rgb(233, 233, 233);
+  cursor: pointer;
+  margin-top: 5px;
+  overflow: hidden;
+  padding: 5px 25px 5px 5px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser-asset[data-asset-status="inactive"] .preview img {
+  opacity: .2;
+}
+
+.browser-asset[data-asset-status="inactive"] .preview-body:before {
+  background-color: rgba(255, 0, 0, .1);
+  border-radius: 5px;
+  content: 'Unavailable';
+  display: block;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  bottom: 35px;
+  position: absolute;
+}
+
+.browser-asset[data-asset-type="folder"] .folder-tab {
+  border-bottom: 10px solid #058fc8;
+  border-right: 15px solid transparent;
+  border-top-left-radius: 5px;
+  height: 0px;
+  max-width: 35%;
+}
+
+.browser-asset[data-asset-type="folder"] .preview-body {
+  background-color: #4cafd7;
+  border-radius: 5px;
+  border-top-left-radius: 0;
+  cursor: default;
+  max-height: 142px;
+}
+
+.browser-asset[data-asset-type="folder"] .preview-body img {
+  max-width: 90%;
+  max-height: 110px;
+  background-color: #FFF;
+  border: 1px solid rgb(233, 233, 233);
+}

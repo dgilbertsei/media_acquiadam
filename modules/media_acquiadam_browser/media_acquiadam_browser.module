@@ -90,3 +90,27 @@ function media_acquiadam_browser_help($path, $arg) {
   }
 
 }
+
+/**
+ * Implements hook_image_default_styles().
+ */
+function media_acquiadam_browser_image_default_styles() {
+  $styles = [];
+
+  $styles['media_acquiadam_browser_preview_medium'] = [
+    'label' => t('AcquiaDAM Medium Preview'),
+    'effects' => [
+      [
+        'name' => 'image_scale',
+        'data' => [
+          'width' => 150,
+          'height' => 150,
+          'upscale' => FALSE,
+        ],
+        'weight' => 0,
+      ],
+    ],
+  ];
+
+  return $styles;
+}

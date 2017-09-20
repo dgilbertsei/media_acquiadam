@@ -166,6 +166,9 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_asset(&$vari
 
   $asset = $variables['asset'];
 
+  $css_path = drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.asset.css';
+  drupal_add_css($css_path, 'file');
+
   $query = drupal_get_query_parameters(NULL, ['q', 'page', 'folderId', 'aa']);
   $query['folderId'] = $asset['id'];
   // Create a URL for the current page that includes the folder ID so the media
@@ -181,23 +184,19 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_asset(&$vari
       watchdog('media_acquiadam_browser', 'Browser placeholder image is missing! Please set the media_acquiadam_browser_placeholder variable to the placeholder image in the files directory!', NULL, WATCHDOG_NOTICE);
     }
     $variables['thumbnail'] = theme('image_style', [
-      'style_name' => 'media_thumbnail',
+      'style_name' => 'media_acquiadam_browser_preview_medium',
       'path' => $placeholder,
       'title' => $asset['name'],
       'alt' => $asset['name'],
     ]);
 
-    if (!empty($asset['thumbnailurls'])) {
-      $browser_tn_size = variable_get('media_acquiadam_browser_thumbnail_size', 150);
-      $preview = $asset->getThumbnailUrl($browser_tn_size);
-      if (!empty($preview)) {
-        $variables['thumbnail'] = theme('image_style', [
-          'style_name' => 'media_thumbnail',
-          'path' => media_acquiadam_image_style_url($asset),
-          'title' => $asset['name'],
-          'alt' => $asset['name'],
-        ]);
-      }
+    $preview = $asset->getThumbnailUrl(150);
+    if (!empty($preview)) {
+      $variables['thumbnail'] = theme('image', [
+        'path' => $preview,
+        'title' => $asset['name'],
+        'alt' => $asset['name'],
+      ]);
     }
   }
 
