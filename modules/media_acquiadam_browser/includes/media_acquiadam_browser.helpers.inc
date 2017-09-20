@@ -132,6 +132,15 @@ function media_acquiadam_browser_get_initial_assets($folderId, array $form_state
     media_acquiadam_browser_get_search_results($folderId, $qp['search'], $form_state, $perPage) :
     media_acquiadam_browser_get_children($folderId, $perPage);
 
+  $context = [
+    'folderId' => $folderId,
+    'form_state' => $form_state,
+    'perPage' => $perPage,
+    'query' => $qp,
+    'search' => !empty($qp['search']),
+  ];
+  drupal_alter('media_acquiadam_browser_assets', $result, $context);
+
   return $result;
 }
 

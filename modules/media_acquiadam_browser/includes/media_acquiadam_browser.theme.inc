@@ -80,27 +80,57 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
 
   // Pull out some asset properties for display in the modal.
   $properties = [
-    [t('Name'), !empty($asset['name']) ? $asset['name'] : NULL],
-    [t('Description'), !empty($asset['description']) ? $asset['description'] : NULL],
+    'name' => [t('Name'), !empty($asset['name']) ? $asset['name'] : NULL],
+    'description' => [t('Description'), !empty($asset['description']) ? $asset['description'] : NULL],
 
-    [t('Expires'), !empty($asset['expiration']['date']) ? $asset['expiration']['date'] : NULL],
+    'expiration_date' => [t('Expires'), !empty($asset['expiration']['date']) ? $asset['expiration']['date'] : NULL],
 
-    [t('File name'), !empty($asset['filename']) ? $asset['filename'] : NULL],
-    [t('File size'), !empty($asset['filesize']) ? format_size($asset['filesize'] * 1024 * 1024) : NULL],
-    [t('File type'), !empty($asset['filetype']) ? drupal_strtoupper($asset['filetype']) : NULL],
+    'filename' => [t('File name'), !empty($asset['filename']) ? $asset['filename'] : NULL],
+    'filesize' => [t('File size'), !empty($asset['filesize']) ? format_size($asset['filesize'] * 1024 * 1024) : NULL],
+    'filetype' => [t('File type'), !empty($asset['filetype']) ? drupal_strtoupper($asset['filetype']) : NULL],
 
-    [t('Color space'), !empty($asset['colorspace']) ? drupal_strtoupper($asset['colorspace']) : NULL],
-    [t('Width'), !empty($asset['width']) ? $asset['width'] : NULL],
-    [t('Height'), !empty($asset['height']) ? $asset['height'] : NULL],
+    'colorspace' => [t('Color space'), !empty($asset['colorspace']) ? drupal_strtoupper($asset['colorspace']) : NULL],
+    'width' => [t('Width'), !empty($asset['width']) ? $asset['width'] : NULL],
+    'height' => [t('Height'), !empty($asset['height']) ? $asset['height'] : NULL],
 
-    [t('Date captured'), !empty($asset['datecaptured']) ? $asset['datecaptured'] : NULL],
-    [t('Date created'), !empty($asset['datecreated']) ? $asset['datecreated'] : NULL],
-    [t('Date modified'), !empty($asset['datemodified']) ? $asset['datemodified'] : NULL],
+    'datecaptured' => [t('Date captured'), !empty($asset['datecaptured']) ? $asset['datecaptured'] : NULL],
+    'datecreated' => [t('Date created'), !empty($asset['datecreated']) ? $asset['datecreated'] : NULL],
+    'datemodified' => [t('Date modified'), !empty($asset['datemodified']) ? $asset['datemodified'] : NULL],
 
-    [t('Uploaded by'), !empty($asset['user']['name']) ? $asset['user']['name'] : NULL],
-    [t('Version'), !empty($asset['version']) ? $asset['version'] : NULL],
-    [t('Status'), !empty($asset['status']) ? drupal_ucfirst($asset['status']) : NULL],
+    'user_name' => [t('Uploaded by'), !empty($asset['user']['name']) ? $asset['user']['name'] : NULL],
+    'version' => [t('Version'), !empty($asset['version']) ? $asset['version'] : NULL],
+    'status' => [t('Status'), !empty($asset['status']) ? drupal_ucfirst($asset['status']) : NULL],
   ];
+
+  if ('folder' != $asset->getType()) {
+
+    $metadata = [];
+    try {
+      // Fetch the XMP metadata as this is where the keywords field lives.
+      $xmp = $asset->getXMP();
+      if (!empty($xmp['active_fields'])) {
+        foreach ($xmp['active_fields'] as $field) {
+          if (!empty($field['value'])) {
+            $metadata[] = [$field['field_name'], $field['value']];
+          }
+        }
+      }
+    }
+    catch (Exception $x) {
+      watchdog_exception('media_acquiadam_browser', $x);
+    }
+  }
+
+  $data = [
+    'properties' => &$properties,
+    'metadata' => &$metadata,
+    'preview' => &$variables['preview'],
+  ];
+  $context = [
+    'asset' => $asset,
+    'type' => $asset->getType(),
+  ];
+  drupal_alter('media_acquiadam_browser_info', $data, $context);
 
   // Only show properties that have a value set.
   foreach ($properties as $index => $values) {
@@ -109,34 +139,15 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
     }
   }
 
-  if ('folder' != $asset['type']) {
-
-    $metaprops = [];
-    try {
-      // Fetch the XMP metadata as this is where the keywords field lives.
-      $xmp = $asset->getXMP();
-      if (!empty($xmp['active_fields'])) {
-        foreach ($xmp['active_fields'] as $field) {
-          if (!empty($field['value'])) {
-            $metaprops[] = [$field['field_name'], $field['value']];
-          }
-        }
-      }
-    }
-    catch (Exception $x) {
-      watchdog_exception('media_acquiadam_browser', $x);
-    }
-
-    if (!empty($metaprops)) {
-      $properties[] = [
-        [
-          'data' => t('Metadata'),
-          'header' => TRUE,
-          'colspan' => 2,
-        ],
-      ];
-      $properties = array_merge($properties, $metaprops);
-    }
+  if (!empty($metadata)) {
+    $properties[] = [
+      [
+        'data' => t('Metadata'),
+        'header' => TRUE,
+        'colspan' => 2,
+      ],
+    ];
+    $properties = array_merge($properties, $metadata);
   }
 
   $variables['properties'] = theme('table', [
@@ -333,6 +344,9 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
       'html' => TRUE,
     ];
   }
+
+  $context = ['asset' => $asset];
+  drupal_alter('media_acquiadam_browser_jump_list', $links, $context);
 
   $build['jump-list'] = [
     '#theme' => 'ctools_dropdown',
