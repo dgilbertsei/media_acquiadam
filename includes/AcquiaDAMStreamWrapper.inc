@@ -126,6 +126,21 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
       $extension = '';
       $file_parts = explode('.', drupal_basename($target));
 
+      $extension_overrides = variable_get('media_acquiadam_extension_overrides', "eps png");
+      // We need to convert a multiline "key value" pairing into a key value
+      // array for ease of checking in extension/mimetype lists.
+      $extension_overrides = explode("\n", $extension_overrides);
+      $parsed_overrides = [];
+      foreach ($extension_overrides as $pairing) {
+        if (!empty($pairing)) {
+          list($source, $target) = explode(' ', $pairing, 2);
+          $parsed_overrides[$source] = $target;
+        }
+      }
+
+      $extensions = $mapping['extensions'];
+      $mimetypes = $mapping['mimetypes'];
+
       // Remove the first part: a full filename should not match an extension.
       array_shift($file_parts);
 
@@ -136,8 +151,12 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
       // - awesome.image.jpeg
       while ($additional_part = array_pop($file_parts)) {
         $extension = strtolower($additional_part . ($extension ? '.' . $extension : ''));
-        if (isset($mapping['extensions'][$extension])) {
-          return $mapping['mimetypes'][$mapping['extensions'][$extension]];
+        if (!empty($parsed_overrides[$extension])) {
+          $extension = $parsed_overrides[$extension];
+        }
+
+        if (!empty($mimetypes[$extensions[$extension]])) {
+          return $mimetypes[$extensions[$extension]];
         }
       }
     }

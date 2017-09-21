@@ -167,5 +167,22 @@ function media_acquiadam_config_settings($form, &$form_state) {
     '#name' => 'clear',
   ];
 
+  $form['media'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Media'),
+    '#description' => t('Adjust asset storage and other media behavior.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => FALSE,
+    '#group' => 'additional_settings',
+  ];
+
+  $form['media']['media_acquiadam_extension_overrides'] = [
+    '#type' => 'textarea',
+    '#title' => t('Mimetype adjustment'),
+    '#description' => t('This allows you to configure the DAM integration to treat certain file types as others. For example, EPS documents are normally treated as a generic document type by Drupal. Adding "eps png" here will inform the module that EPS files should be treated as PNGs for mimetype purposes. One extension pair per line.'),
+    '#default_value' => variable_get('media_acquiadam_extension_overrides', "eps png\n"),
+  ];
+
   return system_settings_form($form);
 }

@@ -32,6 +32,7 @@ function media_acquiadam_uninstall() {
     'media_acquiadam_client_mode',
     'media_acquiadam_cache_expiration',
     'media_acquiadam_unused_expiration',
+    'media_acquiadam_extension_overrides',
   ];
   foreach ($del as $key) {
     variable_del($key);
