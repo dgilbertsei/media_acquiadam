@@ -61,22 +61,30 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
   $search = !empty($qp['search']) ? $qp['search'] : [];
   unset($qp['search']);
   $form['search'] = [
-    '#type' => 'fieldset',
-    '#title' => t('Search'),
-    '#collapsible' => TRUE,
-    '#collapsed' => empty($search),
-    '#description' => t('You may search for assets by name, metadata, and other properties. If you have navigated into a folder then the search is limited to that folder and below.'),
+    '#type' => 'container',
     '#access' => $client->isAuthenticated(),
   ];
 
-  $form['search']['keywords'] = [
+  $form['search']['flex-container'] = [
+    '#type' => 'container',
+    '#tree' => FALSE,
+    '#attributes' => ['class' => ['acquiadam-search-fields']],
+  ];
+
+  $form['search']['description'] = [
+    '#prefix' => '<div class="search-description description"><p>',
+    '#suffix' => '</p></div>',
+    '#markup' => t('You may search for assets by name, metadata, and other properties. If you have navigated into a folder then the search is limited to that folder and below.'),
+  ];
+
+  $form['search']['flex-container']['keywords'] = [
     '#type' => 'textfield',
     '#title' => t('Keywords'),
     '#description' => t('Refine your search using operations like AND, OR, * and -.'),
     '#default_value' => !empty($search['keywords']) ? $search['keywords'] : '',
   ];
 
-  $form['search']['type_filter'] = [
+  $form['search']['flex-container']['type_filter'] = [
     '#type' => 'select',
     '#title' => t('Type'),
     '#empty_option' => t('Any'),
@@ -91,7 +99,7 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     '#default_value' => !empty($search['type']) ? $search['type'] : '',
   ];
 
-  $form['search']['sort'] = [
+  $form['search']['flex-container']['sort'] = [
     '#type' => 'select',
     '#title' => t('Sort'),
     '#options' => [
@@ -107,24 +115,32 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     '#default_value' => !empty($search['sort']) ? $search['sort'] : 'datecreated_desc',
   ];
 
+  $form['search']['flex-container']['search'] = [
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#name' => 'search',
+    '#attributes' => ['class' => ['no-label']],
+  ];
+
   // Gives the user a way to easily reset their search without losing their
   // place.
   $cancel_query = [];
   if (!empty($qp['folderId'])) {
     $cancel_query['folderId'] = $qp['folderId'];
   }
-  $form['search']['cancel'] = [
+  $form['search']['flex-container']['cancel'] = [
     '#type' => 'link',
     '#title' => t('Reset'),
     '#href' => current_path(),
     '#options' => ['query' => $cancel_query],
     '#access' => !empty($search),
-  ];
-
-  $form['search']['search'] = [
-    '#type' => 'submit',
-    '#value' => t('Search'),
-    '#name' => 'search',
+    '#attributes' => [
+      'class' => [
+        'form-item',
+        'reset-search',
+        'no-label',
+      ],
+    ],
   ];
 
   $form['results'] = [

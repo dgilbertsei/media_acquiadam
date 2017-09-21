@@ -8,8 +8,8 @@ ul#media-acquiadam-browser-library-list {
   list-style-type: none;
   margin: 0;
   padding: 0;
-
 }
+
 ul#media-acquiadam-browser-library-list > li {
   position: relative;
   margin: 0 15px 15px 0;
@@ -36,10 +36,30 @@ ul#media-acquiadam-browser-library-list > li.selected .label {
 }
 
 .media-acquiadam-browser-trail .jump-list {
-  position: relative;
   display: inline-block;
+  position: relative;
 }
 
-#media-acquiadam-browser-choose-asset-form .back-link {
+.acquiadam-search-fields {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.acquiadam-search-fields .form-item {
+  flex: 0 0 auto;
+  margin-bottom: 0;
   margin-right: 10px;
+}
+
+#media-acquiadam-browser-choose-asset-form .back-link,
+.acquiadam-search-fields .no-label {
+  align-self: center;
+  margin-bottom: 0;
+  margin-right: 10px;
+}
+
+.acquiadam-search-fields input[type="submit"] {
+  margin-left: 20px;
 }
