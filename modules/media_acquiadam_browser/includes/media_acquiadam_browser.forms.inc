@@ -156,6 +156,20 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     ],
   ];
 
+  $form['results']['#attached']['js'][] = [
+    'type' => 'setting',
+    'data' => [
+      'acquiadam-info' => [
+        'closeText' => t('Close'),
+        'modalSize' => [
+          'type' => 'scale',
+          'width' => empty($options) ? .6 : 1,
+          'height' => empty($options) ? .6 : 1,
+        ],
+      ],
+    ],
+  ];
+
   $form['results']['trail'] = [
     '#theme' => 'media_acquiadam_browser_trail',
     '#title' => t('Trail'),

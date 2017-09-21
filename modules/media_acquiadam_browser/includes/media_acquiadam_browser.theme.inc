@@ -338,7 +338,10 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
       'href' => sprintf('dam/nojs/%s/%d/info', $asset['type'], $asset['id']),
       'attributes' => [
         'data-action' => 'info',
-        'class' => ['ctools-use-modal'],
+        'class' => [
+          'ctools-use-modal',
+          'ctools-modal-acquiadam-info',
+        ],
       ],
       'html' => TRUE,
     ];
