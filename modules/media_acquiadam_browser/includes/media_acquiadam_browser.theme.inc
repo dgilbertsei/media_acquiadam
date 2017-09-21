@@ -111,7 +111,7 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
       if (!empty($xmp['active_fields'])) {
         foreach ($xmp['active_fields'] as $field) {
           if (!empty($field['value'])) {
-            $metadata[] = [$field['field_name'], $field['value']];
+            $metadata[$field['field']] = [$field['field_name'], $field['value']];
           }
         }
       }
@@ -132,13 +132,6 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
   ];
   drupal_alter('media_acquiadam_browser_info', $data, $context);
 
-  // Only show properties that have a value set.
-  foreach ($properties as $index => $values) {
-    if (empty($values[1])) {
-      unset($properties[$index]);
-    }
-  }
-
   if (!empty($metadata)) {
     $properties[] = [
       [
@@ -152,11 +145,13 @@ function media_acquiadam_browser_preprocess_media_acquiadam_browser_info_modal(&
 
   $variables['properties'] = theme('table', [
     'header' => [t('Name'), t('Value')],
-    'rows' => $properties,
+    'rows' => media_acquiadam_browser_convert_property_data($properties),
     'empty' => t('No information was provided.'),
     'caption' => t('Asset information'),
     'sticky' => FALSE,
   ]);
+
+  drupal_add_js(drupal_get_path('module', 'media_acquiadam_browser') . '/js/media_acquiadam_browser.info_modal.js');
 }
 
 /**
@@ -359,4 +354,54 @@ function theme_media_acquiadam_browser_jump_list(array $variables) {
   ];
 
   return render($build);
+}
+
+/**
+ * Converts property data into something more functional for rendering.
+ *
+ * @param array $properties
+ *   An array of table-style column data where the first item is the label and
+ *   the second item is the value, keyed by the property machine name.
+ *
+ * @return array
+ *   The more complex property table data.
+ */
+function media_acquiadam_browser_convert_property_data(array $properties) {
+  foreach ($properties as $key => $cols) {
+    // Only show properties that have a value set.
+    if (empty($cols[1]) && empty($cols[0]['header'])) {
+      unset($properties[$key]);
+      continue;
+    }
+    elseif (!isset($cols[1])) {
+      continue;
+    }
+    $properties[$key][0] = [
+      'data' => $cols[0],
+      'class' => drupal_html_class('property-' . $key . '-label'),
+    ];
+    $properties[$key][1] = [
+      'data' => $cols[1],
+      'class' => drupal_html_class('property-' . $key . '-value'),
+    ];
+  }
+
+  if (!empty($properties['keyword'][1]['data']) && user_access('access media acquiadam browser')) {
+    $keywords = explode(',', $properties['keyword'][1]['data']);
+    $keywords = array_map('trim', $keywords);
+    $keywords = array_filter($keywords);
+    $keywords = array_map(function ($keyword) {
+      $options = [
+        'query' => ['search' => ['keywords' => $keyword]],
+        'attributes' => [
+          'title' => t('Search for @keyword', ['@keyword' => $keyword]),
+          'class' => ['property-keyword'],
+        ],
+      ];
+      return l($keyword, '/admin/content/file/acquiadam', $options);
+    }, $keywords);
+    $properties['keyword'][1]['data'] = implode('', $keywords);
+  }
+
+  return $properties;
 }

@@ -17,3 +17,21 @@
   max-width: 400px;
   text-align: left;
 }
+
+.asset-info .properties td {
+  vertical-align: top;
+}
+
+.asset-info .property-keyword {
+  background-color: #f7f5f5;
+  border: 1px solid #d0cece;
+  border-radius: 5px;
+  display: inline-block;
+  margin: 2px;
+  padding: 5px 10px;
+  text-decoration: none;
+}
+
+.asset-info .property-keyword:hover {
+  background-color: #fff;
+}

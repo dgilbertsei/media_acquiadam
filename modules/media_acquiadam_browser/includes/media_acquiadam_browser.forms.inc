@@ -124,15 +124,13 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
 
   // Gives the user a way to easily reset their search without losing their
   // place.
-  $cancel_query = [];
-  if (!empty($qp['folderId'])) {
-    $cancel_query['folderId'] = $qp['folderId'];
-  }
   $form['search']['flex-container']['cancel'] = [
     '#type' => 'link',
     '#title' => t('Reset'),
     '#href' => current_path(),
-    '#options' => ['query' => $cancel_query],
+    '#options' => [
+      'query' => drupal_get_query_parameters(NULL, ['q', 'page', 'search', 'aa']),
+    ],
     '#access' => !empty($search),
     '#attributes' => [
       'class' => [
@@ -147,12 +145,8 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     '#type' => 'fieldset',
     '#attributes' => ['class' => ['media-browser']],
     '#attached' => [
-      'js' => [
-        drupal_get_path('module', 'media_acquiadam_browser') . '/js/media_acquiadam_browser.browser.js',
-      ],
-      'css' => [
-        drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.browser.css',
-      ],
+      'js' => [drupal_get_path('module', 'media_acquiadam_browser') . '/js/media_acquiadam_browser.browser.js'],
+      'css' => [drupal_get_path('module', 'media_acquiadam_browser') . '/css/media_acquiadam_browser.browser.css'],
     ],
   ];
 
