@@ -126,20 +126,9 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
       $extension = '';
       $file_parts = explode('.', drupal_basename($target));
 
-      $extension_overrides = variable_get('media_acquiadam_extension_overrides', "eps png");
-      // We need to convert a multiline "key value" pairing into a key value
-      // array for ease of checking in extension/mimetype lists.
-      $extension_overrides = explode("\n", $extension_overrides);
-      $parsed_overrides = [];
-      foreach ($extension_overrides as $pairing) {
-        if (!empty($pairing)) {
-          list($source, $target) = explode(' ', $pairing, 2);
-          $parsed_overrides[$source] = $target;
-        }
-      }
-
       $extensions = $mapping['extensions'];
       $mimetypes = $mapping['mimetypes'];
+      $parsed_overrides = static::getMimetypeOverrides();
 
       // Remove the first part: a full filename should not match an extension.
       array_shift($file_parts);
@@ -162,6 +151,33 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
     }
 
     return 'application/octet-stream';
+  }
+
+  /**
+   * Get a list of extensions mapped to other filetypes.
+   *
+   * @return array
+   *   An array keyed by original extensions and the file types they shuld be
+   *   treated as.
+   */
+  protected static function getMimetypeOverrides() {
+    $parsed_overrides = &drupal_static(__CLASS__ . ':' . __METHOD__);
+    if (is_null($parsed_overrides)) {
+      $parsed_overrides = [];
+      $extension_overrides = variable_get('media_acquiadam_extension_overrides', 'eps png');
+      if (!empty($extension_overrides)) {
+        // We need to convert a multiline "key value" pairing into a key value
+        // array for ease of checking in extension/mimetype lists.
+        $extension_overrides = explode("\n", $extension_overrides);
+        foreach ($extension_overrides as $pairing) {
+          if (!empty($pairing)) {
+            list($source, $target) = explode(' ', $pairing, 2);
+            $parsed_overrides[trim($source)] = trim($target);
+          }
+        }
+      }
+    }
+    return $parsed_overrides;
   }
 
   /**
