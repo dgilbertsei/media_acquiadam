@@ -57,7 +57,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
     // Skip looking up the size if we already have it stored locally.
     // If we don't do this then file listing pages can issue several requests
     // and have a delay in loading.
-    $files = entity_load('file', FALSE, array('uri' => $this->uri));
+    $files = entity_load('file', FALSE, ['uri' => $this->uri]);
     $file = !empty($files) ? reset($files) : FALSE;
     if (!empty($file->filesize)) {
       $stat = ['size' => $file->filesize];
@@ -86,7 +86,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
         // We have to use a GET request here instead of HEAD because the
         // download links we receive are not valid for a HEAD-type request and
         // will return a 403.
-        $request = drupal_http_request($uri, array('method' => 'GET'));
+        $request = drupal_http_request($uri, ['method' => 'GET']);
         if (empty($request->error) && isset($request->headers['content-length'])) {
           $stat['size'] = $request->headers['content-length'];
         }

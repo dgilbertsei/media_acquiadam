@@ -71,7 +71,7 @@ function media_acquiadam_image_style_deliver($styleName, AcquiaDAM_Assets_Abstra
 
   if ($success) {
     $image = image_load($derivative_uri);
-    file_transfer($image->source, array('Content-Type' => $image->info['mime_type'], 'Content-Length' => $image->info['file_size']));
+    file_transfer($image->source, ['Content-Type' => $image->info['mime_type'], 'Content-Length' => $image->info['file_size']]);
   }
   else {
     watchdog('media_acquiadam', 'Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);

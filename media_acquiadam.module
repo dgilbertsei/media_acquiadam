@@ -189,15 +189,15 @@ function media_acquiadam_oauth2_clients() {
  * Implements hook_stream_wrappers().
  */
 function media_acquiadam_stream_wrappers() {
-  return array(
-    'acquiadam' => array(
+  return [
+    'acquiadam' => [
       'name' => t('Acquia DAM files'),
       'class' => 'AcquiaDAMStreamWrapper',
       'description' => t('Provides read-only paths to Acquia DAM files.'),
       'type' => STREAM_WRAPPERS_REMOTE,
       'remote' => TRUE,
-    ),
-  );
+    ],
+  ];
 }
 
 /**
