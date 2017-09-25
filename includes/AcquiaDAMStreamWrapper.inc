@@ -164,7 +164,7 @@ class AcquiaDAMStreamWrapper extends DrupalRemoteStreamWrapper {
     $parsed_overrides = &drupal_static(__CLASS__ . ':' . __METHOD__);
     if (is_null($parsed_overrides)) {
       $parsed_overrides = [];
-      $extension_overrides = variable_get('media_acquiadam_extension_overrides', 'eps png');
+      $extension_overrides = drupal_strtolower(variable_get('media_acquiadam_extension_overrides', 'eps png'));
       if (!empty($extension_overrides)) {
         // We need to convert a multiline "key value" pairing into a key value
         // array for ease of checking in extension/mimetype lists.
