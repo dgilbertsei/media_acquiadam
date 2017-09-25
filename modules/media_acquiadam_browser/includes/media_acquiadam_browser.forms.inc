@@ -53,16 +53,17 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
   // the OAuth2 authentication mechanism and is a way to tell if we're in the
   // process of authenticating.
   $is_authing = !empty($qp['aa']) || !empty($qp['state']);
-  $needs_auth = !$client->isAuthenticated() && !$client->hasAuthenticationError();
+  $needs_auth = !empty($client) && !$client->isAuthenticated() && !$client->hasAuthenticationError();
   if ($needs_auth && $is_authing) {
     $client->authenticate(TRUE);
   }
+  $is_authenticated = !empty($client) && $client->isAuthenticated();
 
   $search = !empty($qp['search']) ? $qp['search'] : [];
   unset($qp['search']);
   $form['search'] = [
     '#type' => 'container',
-    '#access' => $client->isAuthenticated(),
+    '#access' => $is_authenticated,
   ];
 
   $form['search']['flex-container'] = [
@@ -192,7 +193,7 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
   $form['results']['pager'] = ['#theme' => 'pager'];
 
   try {
-    $me = $client->getUser();
+    $me = !empty($client) ? $client->getUser() : NULL;
     $user = !empty($me['username']) ?
       $me['username'] :
       t('Not authenticated');
@@ -235,17 +236,26 @@ function media_acquiadam_browser_choose_asset_form(array $form, array &$form_sta
     'submit' => [
       '#type' => 'submit',
       '#value' => t('Submit'),
-      '#access' => $client->isAuthenticated(),
+      '#access' => $is_authenticated,
     ],
   ];
 
-  if ($client->isAuthenticated()) {
+  if ($is_authenticated) {
     media_acquiadam_browser_choose_asset_form_fill_assets($form, $form_state, $options);
   }
-  else {
+  elseif (!empty($client)) {
     drupal_set_message(t('The Acquia DAM browser does not have access to your Acquia DAM account. <a href="@auth-url">Please click here to authorize access to Acquia DAM.</a>', [
       '@auth-url' => url(current_path(), ['query' => ['aa' => TRUE]]),
     ]), 'warning');
+  }
+  elseif (empty($client)) {
+    if (user_access('administer media acquiadam')) {
+      drupal_set_message(t('Unable to get a valid DAM client. Check your internet connection and try again or verify the <a href="@url">module configuration</a>.', ['@url' => url('admin/config/media/acquiadam')]), 'warning');
+    }
+    else {
+      drupal_set_message(t('Unable to get a valid DAM client. Check your internet connection and try again or please contact the site administrator.'), 'error');
+    }
+    watchdog('media_acquiadam_browser', 'Unable to get a DAM client object.', NULL, WATCHDOG_NOTICE);
   }
 
   return $form;

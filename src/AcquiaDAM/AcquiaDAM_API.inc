@@ -29,8 +29,13 @@ class AcquiaDAM_API {
     static $client;
     if (empty($client[$key])) {
 
-      $oauth2_client = oauth2_client_load($key);
-      $client[$key] = new AcquiaDAM_Client($oauth2_client);
+      try {
+        $oauth2_client = oauth2_client_load($key);
+        $client[$key] = new AcquiaDAM_Client($oauth2_client);
+      }
+      catch (Exception $x) {
+        watchdog_exception('AcquiaDAM_API', $x);
+      }
     }
 
     return $client[$key];
