@@ -26,7 +26,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
   $form['api']['media_acquiadam_client_id'] = [
     '#type' => 'textfield',
     '#title' => t('Client ID'),
-    '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_ID.'),
+    '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the support team for the CLIENT_ID.'),
     '#default_value' => variable_get('media_acquiadam_client_id'),
     '#size' => 50,
     '#required' => TRUE,
@@ -35,7 +35,7 @@ function media_acquiadam_config_settings($form, &$form_state) {
   $form['api']['media_acquiadam_client_secret'] = [
     '#type' => 'textfield',
     '#title' => t('Client Secret'),
-    '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the <a href="https://www.damsuccess.com/hc/en-us/requests/new">support team</a> for the CLIENT_Secret.'),
+    '#description' => t('Please contact your Customer Success Manager, Implementation Consultant, or file a ticket with the support team for the CLIENT_Secret.'),
     '#default_value' => variable_get('media_acquiadam_client_secret'),
     '#size' => 50,
     '#required' => TRUE,
