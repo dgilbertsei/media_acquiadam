@@ -41,6 +41,7 @@ function media_acquiadam_uninstall() {
   if (db_field_exists('file_managed', 'acquiadam_id')) {
     $schema = drupal_get_schema('file_managed');
     db_drop_field('file_managed', 'acquiadam_id');
+    db_drop_index('file_managed', 'fid_acquiadam_id');
   }
 }
 
