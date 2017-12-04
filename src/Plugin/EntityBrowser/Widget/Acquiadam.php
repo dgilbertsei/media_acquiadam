@@ -359,6 +359,15 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
+    /** @var \Drupal\media\MediaTypeInterface $media_type */
+    if (!$this->configuration['media_type'] || !($media_type = $this->entityTypeManager->getStorage('media_type')->load($this->configuration['media_type']))) {
+      return ['#markup' => $this->t('The media type is not configured correctly.')];
+    }
+
+    if ($media_type->getSource()->getPluginId() != 'acquiadam_asset') {
+      return ['#markup' => $this->t('The configured media type is not using the acquiadam_asset plugin.')];
+    }
+
     // If this is not the current entity browser widget being rendered.
     if ($this->uuid() != $form_state->getStorage()['entity_browser_current_widget']) {
       // Return an empty array.
@@ -606,14 +615,14 @@ class Acquiadam extends WidgetBase {
   protected function prepareEntities(array $form, FormStateInterface $form_state) {
     // Get asset id's from form state.
     $asset_ids = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
-    // Load bundle information.
-    /** @var MediaType $bundle */
-    $bundle = $this->entityTypeManager->getStorage('media_type')->load($this->configuration['bundle']);
-    // Get the source field for this bundle which stores the asset id.
-    $source_field = $bundle->getSource()->getSourceFieldDefinition($bundle)->getName();
+    // Load type information.
+    /** @var \Drupal\media\MediaTypeInterface $media_type */
+    $media_type = $this->entityTypeManager->getStorage('media_type')->load($this->configuration['media_type']);
+    // Get the source field for this type which stores the asset id.
+    $source_field = $media_type->getSource()->getSourceFieldDefinition($media_type)->getName();
     // Query for existing entities.
     $existing_ids = $this->entityTypeManager->getStorage('media')->getQuery()
-      ->condition('bundle', $bundle->id())
+      ->condition('bundle', $media_type->id())
       ->condition($source_field, $asset_ids, 'IN')
       ->execute();
     // Load the entities found.
@@ -635,7 +644,7 @@ class Acquiadam extends WidgetBase {
     foreach ($assets as $asset) {
       // Initialize entity values.
       $entity_values = [
-        'bundle' => $bundle->id(),
+        'bundle' => $media_type->id(),
         // This should be the current user id.
         'uid' => $this->user->id(),
         // This should be the current language code.
@@ -704,9 +713,9 @@ class Acquiadam extends WidgetBase {
    */
   public function defaultConfiguration() {
     return [
-      'submit_text' => $this->t('Select assets'),
-    ] +
-      parent::defaultConfiguration();
+        'media_type' => NULL,
+        'submit_text' => $this->t('Select assets'),
+      ] + parent::defaultConfiguration();
   }
 
   /**
@@ -715,34 +724,34 @@ class Acquiadam extends WidgetBase {
    * TODO: Add more settings for configuring this widget.
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    // Start with parent form.
     $form = parent::buildConfigurationForm($form, $form_state);
 
-    // Show options for acquia dam bundles.
-    $plugins = $this->sourceManager->getDefinitions();
-    $options = [];
-    foreach ($plugins as $plugin_id => $definition) {
-      if ($definition['class'] == 'Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset') {
-        $options[$plugin_id] = $definition['label'];
-      }
+    $media_type_options = [];
+    $media_types = $this
+      ->entityTypeManager
+      ->getStorage('media_type')
+      ->loadByProperties(['source' => 'acquiadam_asset']);
+
+    foreach ($media_types as $media_type) {
+      $media_type_options[$media_type->id()] = $media_type->label();
     }
 
-    // Add bundle dropdown to form.
-    $form['bundle'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Bundle'),
-      '#options' => $options,
-    ];
-    return $form;
-  }
+    if (empty($media_type_options)) {
+      $url = Url::fromRoute('entity.media_type.add_form')->toString();
+      $form['media_type'] = [
+        '#markup' => $this->t("You don't have media type of the Acquia DAM asset type. You should <a href='!link'>create one</a>", ['!link' => $url]),
+      ];
+    }
+    else {
+      $form['media_type'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Media type'),
+        '#default_value' => $this->configuration['media_type'],
+        '#options' => $media_type_options,
+      ];
+    }
 
-  /**
-   * Submits a configuration form.
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    parent::submitConfigurationForm($form, $form_state);
-    $values = $form_state->getValues()['table'][$this->uuid()]['form'];
-    $this->configuration['bundle'] = $values['bundle'];
+    return $form;
   }
 
   /**
