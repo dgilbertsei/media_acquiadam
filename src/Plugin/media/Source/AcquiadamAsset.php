@@ -229,16 +229,17 @@ class AcquiadamAsset extends MediaSourceBase {
         $mimetype = explode('/', $mimetype);
         // If the primary mimetype is not an image.
         if ($mimetype[0] != 'image') {
+          $icon_base = $this->configFactory->get('media.settings')->get('icon_base_uri');
           // Try to get the filetype icon using primary and secondary mimetype.
-          $thumbnail = $this->config->get('icon_base') . "/{$mimetype[0]}-{$mimetype[1]}.png";
+          $thumbnail = $icon_base . "/{$mimetype[0]}-{$mimetype[1]}.png";
           // If icon is not found.
           if (!is_file($thumbnail)) {
             // Try to get the filetype icon using only the secondary mimetype.
-            $thumbnail = $this->config->get('icon_base') . "/{$mimetype[1]}.png";
+            $thumbnail = $icon_base . "/{$mimetype[1]}.png";
             // If icon is still not found.
             if (!is_file($thumbnail)) {
               // Use a generic document icon.
-              $thumbnail = $this->config->get('icon_base') . '/document.png';
+              $thumbnail = $icon_base . '/generic.png';
             }
           }
         }
