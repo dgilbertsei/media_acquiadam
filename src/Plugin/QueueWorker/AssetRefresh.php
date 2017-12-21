@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh.
- */
-
 namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -53,4 +48,5 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
     // Save the entity to repopulate mapped fields.
     $entity->save();
   }
+
 }

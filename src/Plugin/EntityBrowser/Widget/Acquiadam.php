@@ -11,12 +11,10 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
-use Drupal\media\Entity\MediaType;
 use Drupal\media\MediaSourceManager;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Drupal\media\Entity\Media;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 
@@ -41,14 +39,14 @@ class Acquiadam extends WidgetBase {
   /**
    * The current user account.
    *
-   * @var AccountInterface
+   * @var \Drupal\Core\Session\AccountInterface
    */
   protected $user;
 
   /**
    * The current user account.
    *
-   * @var LanguageManagerInterface
+   * @var \Drupal\Core\Language\LanguageManagerInterface
    */
   protected $languageManager;
 
@@ -87,8 +85,8 @@ class Acquiadam extends WidgetBase {
    *   The user account for which to get the permissions hash.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager service.
-   * @param ModuleHandlerInterface $moduleHandler
-   * @param MediaSourceManager $sourceManager
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   * @param \Drupal\media\MediaSourceManager $sourceManager
    */
   public function __construct(
     array $configuration,
@@ -458,22 +456,22 @@ class Acquiadam extends WidgetBase {
         // Reset page to zero.
         $page = 0;
       }
-      //If the reset submit button has been clicked
+      // If the reset submit button has been clicked.
       if ($trigger_elem['#name'] == 'filter_sort_reset') {
-        //Fetch the user input.
+        // Fetch the user input.
         $user_input = $form_state->getUserInput();
-        //Fetch clean values keys (system related, not user input).
+        // Fetch clean values keys (system related, not user input).
         $clean_val_key = $form_state->getCleanValueKeys();
-        //Loop through user inputs
+        // Loop through user inputs.
         foreach ($user_input as $key => $item) {
-          //Unset only the User Input values.
+          // Unset only the User Input values.
           if (!in_array($key, $clean_val_key)) {
             unset($user_input[$key]);
           }
         }
         // Reset the user input.
         $form_state->setUserInput($user_input);
-        //Set values to user input.
+        // Set values to user input.
         $form_state->setValues($user_input);
         // Rebuild the form state values.
         $form_state->setRebuild();
@@ -543,7 +541,6 @@ class Acquiadam extends WidgetBase {
 
     // Get module path to create URL for background images.
     $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
-
 
     // Add folder buttons to form.
     foreach ($folders as $folder) {
@@ -713,9 +710,9 @@ class Acquiadam extends WidgetBase {
    */
   public function defaultConfiguration() {
     return [
-        'media_type' => NULL,
-        'submit_text' => $this->t('Select assets'),
-      ] + parent::defaultConfiguration();
+      'media_type' => NULL,
+      'submit_text' => $this->t('Select assets'),
+    ] + parent::defaultConfiguration();
   }
 
   /**

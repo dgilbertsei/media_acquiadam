@@ -231,7 +231,7 @@ input.acquiadam-browser-breadcrumb:focus {
 }
 
 /* Height is important to make sticky footer appear. Assuming window height is > 600px. */
-.entity-browser-media-browser-form{
+.entity-browser-media-browser-form {
   overflow: hidden;
 }
 

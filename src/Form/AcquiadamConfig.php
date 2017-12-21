@@ -5,7 +5,6 @@ namespace Drupal\media_acquiadam\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\media_acquiadam\Acquiadam;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use GuzzleHttp\ClientInterface;

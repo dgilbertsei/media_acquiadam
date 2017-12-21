@@ -19,7 +19,7 @@ use Drupal\media_acquiadam\Acquiadam;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * asset plugin test.
+ * Asset plugin test.
  *
  * @group media_acquiadam
  */
@@ -29,16 +29,15 @@ class AcquiadamAssetPluginTest extends UnitTestCase {
    * Tests the buildConfigurationForm method.
    */
   public function testBuildConfigurationForm() {
-//    $field = $this->getMockBuilder(FieldStorageDefinition::class)
-//      ->disableOriginalConstructor()
-//      ->getMock();
-//
-//    $field->method('getType')
-//      ->willReturn($this->returnValue('integer'));
-//
-//    $field->method('getLabel')
-//      ->willReturn($this->returnValue('Test field'));
-
+    // $field = $this->getMockBuilder(FieldStorageDefinition::class)
+    //      ->disableOriginalConstructor()
+    //      ->getMock();
+    //
+    //    $field->method('getType')
+    //      ->willReturn($this->returnValue('integer'));
+    //
+    //    $field->method('getLabel')
+    //      ->willReturn($this->returnValue('Test field'));.
     $field_storage = $this->getMockBuilder(FieldStorageDefinition::class)
       ->disableOriginalConstructor()
       ->getMock();
@@ -120,24 +119,55 @@ class AcquiadamAssetPluginTest extends UnitTestCase {
 /**
  * Testing stubs.
  */
-
 class FieldDefinitionStub extends BaseFieldDefinition {
+
+  /**
+   *
+   */
   public function __construct() {}
+
+  /**
+   *
+   */
   public function mainPropertyName() {
     return 'value';
   }
-}
 
+}
+/**
+ *
+ */
 class ItemListStub extends ItemList {
   public $value;
-  public function __construct($value) { $this->value = $value; }
+
+  /**
+   *
+   */
+  public function __construct($value) {
+    $this->value = $value;
+  }
+
+  /**
+   *
+   */
   public function first() {
     return new FieldDefinitionStub();
   }
-}
 
+}
+/**
+ *
+ */
 class AcquiadamStub extends Acquiadam {
+
+  /**
+   *
+   */
   public function __construct() {}
+
+  /**
+   *
+   */
   public function getAsset($assetId) {
     $asset = new Asset();
     $asset->filename = "testfile.jpg";
@@ -147,49 +177,90 @@ class AcquiadamStub extends Acquiadam {
     $asset->folder->id = 12345;
     return $asset;
   }
-}
 
+}
+/**
+ *
+ */
 class FormStub implements FormInterface {
   protected $entity;
+
+  /**
+   *
+   */
   public function __construct($entity) {
     $this->entity = $entity;
   }
+
+  /**
+   *
+   */
   public function getEntity() {
     return $this->entity;
   }
+
+  /**
+   *
+   */
   public function getFormId() {}
+
+  /**
+   *
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {}
+
+  /**
+   *
+   */
   public function validateForm(array &$form, FormStateInterface $form_state) {}
+
+  /**
+   *
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {}
 
 }
-
+/**
+ *
+ */
 class MediaStub extends Media {
   protected $properties = [];
   protected $sourceField;
 
+  /**
+   *
+   */
   public function __construct(array $properties) {
     $this->properties = $properties;
     $source = isset($properties['source']) ? $properties['source'] : NULL;
     $this->sourceField = new ItemListStub($source);
   }
 
+  /**
+   *
+   */
   public function hasField($name) {
     if ($name == 'source') {
-      return true;
+      return TRUE;
     }
     return isset($properties[$name]);
   }
 
+  /**
+   *
+   */
   public function id() {
     return 'acquiadam_asset';
   }
 
+  /**
+   *
+   */
   public function &__get($name) {
     if ($name == 'source') {
       return $this->sourceField;
     }
     return $this->properties[$name];
   }
-}
 
+}

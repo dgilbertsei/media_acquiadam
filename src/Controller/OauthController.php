@@ -37,7 +37,7 @@ class OauthController extends ControllerBase {
   /**
    * The media_acquiadam oauth service.
    *
-   * @var OauthInterface $oauth
+   * @var \Drupal\media_acquiadam\OauthInterface
    */
   protected $oauth;
 
@@ -79,7 +79,7 @@ class OauthController extends ControllerBase {
    *
    * Route: /user/{$user}/acquiadam.
    *
-   * @param UserInterface $user
+   * @param \Drupal\user\UserInterface $user
    *   The User object.
    *
    * @return array

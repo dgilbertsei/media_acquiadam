@@ -3,7 +3,7 @@
 namespace Drupal\media_acquiadam;
 
 /**
- * Interface AcquiadamInterface
+ * Interface AcquiadamInterface.
  *
  * @package Drupal\media_acquiadam
  */

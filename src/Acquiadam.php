@@ -60,7 +60,7 @@ class Acquiadam implements AcquiadamInterface {
    * {@inheritdoc}
    */
   public function __call($name, $arguments) {
-    $method_variable = array($this->client, $name);
+    $method_variable = [$this->client, $name];
     if (is_callable($method_variable)) {
       return call_user_func_array($method_variable, $arguments);
     }

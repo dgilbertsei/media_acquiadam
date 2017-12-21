@@ -6,7 +6,6 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\media\MediaInterface;
@@ -30,7 +29,7 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * A configured API object.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam $acquiadam
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiadam;
 
@@ -253,7 +252,7 @@ class AcquiadamAsset extends MediaSourceBase {
             $styles = ImageStyle::loadMultiple();
             // For each image style.
             foreach ($styles as $style) {
-              /** @var ImageStyle $style */
+              /** @var \Drupal\image\Entity\ImageStyle $style */
               // Flush and regenerate the styled image.
               $style->flush($file->getFileUri());
             }

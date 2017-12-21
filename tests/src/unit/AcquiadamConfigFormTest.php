@@ -9,16 +9,13 @@ use Drupal\Core\Form\FormState;
 use Drupal\media_acquiadam\Form\AcquiadamConfig;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Handler\MockHandler;
-use Drupal\media_acquiadam\Acquiadam;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use cweagans\webdam\Client as WebdamClient;
-use cweagans\webdam\Exception\InvalidCredentialsException;
 
 /**
- * config form test.
+ * Config form test.
  *
  * @group media_acquiadam
  */
@@ -181,31 +178,69 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   //    $this->assertEquals('acquiadam_pw', $config_stub->get('password'));
   //    $this->assertEquals('acquiadam_client_id', $config_stub->get('client_id'));
   //    $this->assertEquals('acquiadam_client_secret', $config_stub->get('secret'));
-  //  }
+  /**
+ * }.
+ */
 }
-
+/**
+ *
+ */
 class FormConfigFactoryStub extends ConfigFactory {
   protected $configs = [];
+
+  /**
+   *
+   */
   public function __construct() {}
+
+  /**
+   *
+   */
   public function get($name) {
     return $this->configs[$name];
   }
+
+  /**
+   *
+   */
   public function getEditable($name) {
     return $this->configs[$name];
   }
+
+  /**
+   *
+   */
   public function set($name, $config) {
     $this->configs[$name] = $config;
   }
 
 }
-
+/**
+ *
+ */
 class FormConfigStub extends Config {
   protected $data = [];
+
+  /**
+   *
+   */
   public function __construct() {}
+
+  /**
+   *
+   */
   public function save($has_trusted_data = FALSE) {}
+
+  /**
+   *
+   */
   public function set($key, $value) {
     $this->data[$key] = $value;
   }
+
+  /**
+   *
+   */
   public function get($key = '') {
     return $this->data[$key];
   }

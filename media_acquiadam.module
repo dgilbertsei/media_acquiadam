@@ -69,7 +69,7 @@ function media_acquiadam_menu_local_tasks_alter(&$data, $route_name) {
 /**
  * Implements hook_preprocess_HOOK().
  *
- * Allow custom markup for acquiadam asset checkboxes
+ * Allow custom markup for acquiadam asset checkboxes.
  */
 function media_acquiadam_preprocess_checkboxes__acquiadam_assets(&$variables) {
   $element = $variables['element'];
@@ -85,16 +85,15 @@ function media_acquiadam_preprocess_checkboxes__acquiadam_assets(&$variables) {
  * Override the preSave function from \Drupal\media\Entity\Media
  * because it ignores empty values (e.g. status = 0) and doesn't set date values
  * for created/changed because the are already set by Drupal core
- *
  */
 function media_acquiadam_media_presave($entity) {
-  //Download and set the thumbnail image
+  // Download and set the thumbnail image.
   $entity->updateQueuedThumbnail();
-  //Loop through the mapped fields
+  // Loop through the mapped fields.
   foreach ($entity->bundle->entity->getFieldMap() as $source_field => $destination_field) {
-    //If the entity has the mapped destination field
+    // If the entity has the mapped destination field.
     if ($entity->hasField($destination_field)) {
-      //Set the value of the mapped field to the asset value
+      // Set the value of the mapped field to the asset value.
       $entity->set($destination_field, $entity->getSource()->getMetadata($entity, $source_field));
     }
   }
@@ -103,9 +102,9 @@ function media_acquiadam_media_presave($entity) {
 /**
  * Implements hook_cron().
  *
- * Refresh acquiadam metadata and sync to media entities
+ * Refresh acquiadam metadata and sync to media entities.
  */
-function media_acquiadam_cron(){
+function media_acquiadam_cron() {
   // We access our configuration.
   $cron_config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
   // Default to an hourly interval. Of course, cron has to be running at least
@@ -118,25 +117,25 @@ function media_acquiadam_cron(){
   $next_execution = !empty($next_execution) ? $next_execution : 0;
   $request_time = \Drupal::time()->getRequestTime();
   if ($request_time >= $next_execution) {
-    //Load all media bundles
+    // Load all media bundles.
     $media_bundles = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple();
-    //Filter out bundles that do not have type = acquiadam_asset
-    $acquiadam_bundles = array_map( function($item){
+    // Filter out bundles that do not have type = acquiadam_asset.
+    $acquiadam_bundles = array_map(function ($item) {
       return $item->label;
-    },array_filter($media_bundles, function($item){
+    }, array_filter($media_bundles, function ($item) {
         return $item->type == 'acquiadam_asset';
-      })
+    })
     );
-    //fetch all acquiadam asset entity ID's
+    // Fetch all acquiadam asset entity ID's.
     $all_ids = \Drupal::entityQuery('media')
-      ->condition('bundle',array_keys($acquiadam_bundles), 'IN')
+      ->condition('bundle', array_keys($acquiadam_bundles), 'IN')
       ->execute();
 
     foreach ($all_ids as $id) {
       \Drupal::queue('media_acquiadam_asset_refresh')->createItem(['id' => $id]);
     }
 
-    //Set the next execution time
+    // Set the next execution time.
     \Drupal::state()->set('media_acquiadam.next_sync', $request_time + $interval);
   }
 }

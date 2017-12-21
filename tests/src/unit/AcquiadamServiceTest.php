@@ -10,13 +10,15 @@ use Drupal\user\UserDataInterface;
 use GuzzleHttp\Client as GClient;
 
 /**
- * service test
+ * Service test.
  *
  * @group media_acquiadam
  */
 class AcquiadamServiceTest extends UnitTestCase {
 
-  // Saves some typing.
+  /**
+   * Saves some typing.
+   */
   public function getConfigFactoryStub(array $configs = []) {
     return parent::getConfigFactoryStub([
       'media_acquiadam.settings' => [
@@ -24,10 +26,13 @@ class AcquiadamServiceTest extends UnitTestCase {
         'password' => 'WDpassword',
         'client_id' => 'WDclient-id',
         'secret' => 'WDsecret',
-      ]
+      ],
     ]);
   }
 
+  /**
+   *
+   */
   public function testConstructor() {
     $client_factory = new ClientFactory($this->getConfigFactoryStub(), new GClient(), $this->getMock(UserDataInterface::class), $this->getMock(AccountProxy::class));
     $acquiadam = new Acquiadam($client_factory, 'background');

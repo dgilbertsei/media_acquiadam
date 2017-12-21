@@ -32,26 +32,27 @@ class ClientFactory {
   /**
    * A user data object to retrieve API keys from.
    *
-   * @var UserDataInterface
+   * @var \Drupal\user\UserDataInterface
    */
   protected $userData;
 
   /**
    * The current user.
    *
-   * @var AccountProxyInterface
+   * @var \Drupal\Core\Session\AccountProxyInterface
    */
   protected $currentUser;
 
   /**
    * ClientFactory constructor.
-   * @param ConfigFactoryInterface $config_factory
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   A config object to retrieve Acquia DAM auth information from.
-   * @param ClientInterface $gclient
+   * @param \cweagans\webdam\ClientInterface $gclient
    *   A fully configured Guzzle client to pass to the dam client.
-   * @param UserDataInterface $user_data
+   * @param \Drupal\user\UserDataInterface $user_data
    *   A userdata object to retreive user-specific creds from.
-   * @param AccountProxyInterface $currentUser
+   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
    *   The currently authenticated user.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $gclient, UserDataInterface $user_data, AccountProxyInterface $currentUser) {
