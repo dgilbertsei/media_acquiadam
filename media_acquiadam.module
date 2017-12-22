@@ -120,11 +120,11 @@ function media_acquiadam_cron() {
     // Load all media bundles.
     $media_bundles = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple();
     // Filter out bundles that do not have type = acquiadam_asset.
-    $acquiadam_bundles = array_map(function ($item) {
-      return $item->label;
+    $acquiadam_bundles = array_map(function($item){
+      return $item->label();
     }, array_filter($media_bundles, function ($item) {
-        return $item->type == 'acquiadam_asset';
-    })
+        return $item->getSource()->getPluginId() == 'acquiadam_asset';
+      })
     );
     // Fetch all acquiadam asset entity ID's.
     $all_ids = \Drupal::entityQuery('media')
