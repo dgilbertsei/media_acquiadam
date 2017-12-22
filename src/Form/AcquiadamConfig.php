@@ -99,8 +99,7 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'password',
       '#title' => $this->t('Password'),
       '#default_value' => $config->get('password'),
-      '#description' => $this->t('The passwords of the Acquia DAM account to use for API access. Note that this field will appear blank even if you have previously saved a value.'),
-      '#required' => TRUE,
+      '#description' => $this->t('The password of the Acquia DAM account to use for API access. Note that this field will appear blank even if you have previously saved a value.'),
     ];
 
     $form['authentication']['client_id'] = [
@@ -116,7 +115,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#title' => $this->t('Client secret'),
       '#default_value' => $config->get('secret'),
       '#description' => $this->t('API Client Secret to use for API access. Contact the Acquia DAM support team to get one assigned. Note that this field will appear blank even if you have previously saved a value.'),
-      '#required' => TRUE,
     ];
 
     $form['cron'] = [
@@ -153,9 +151,11 @@ class AcquiadamConfig extends ConfigFormBase {
     try {
       // We set the client data array with the values from form_state.
       $username = $form_state->getValue('username');
-      $password = $form_state->getValue('password');
+      $password = $this->getFieldValue($form_state, 'password');
+      $form_state->setValue('password', $password);
       $client_id = $form_state->getValue('client_id');
-      $client_secret = $form_state->getValue('client_secret');
+      $client_secret = $this->getFieldValue($form_state, 'secret');
+      $form_state->setValue('client_secret', $client_secret);
 
       // Try to call checkCredentials() with details from form_state.
       $acquiadam_client = new WebdamClient($this->httpClient, $username, $password, $client_id, $client_secret);
@@ -181,6 +181,40 @@ class AcquiadamConfig extends ConfigFormBase {
       ->save();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Gets a form value from stored config.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   * @param string $field_name
+   *   The key of the field in the simple config.
+   *
+   * @return mixed
+   *   The value for the given form field, or NULL.
+   */
+  protected function getFormValueFromConfig(FormStateInterface $form_state, $field_name) {
+    $config_name = $this->getEditableConfigNames();
+    $value = $this->config(reset($config_name))->get($field_name);
+    return $value;
+  }
+
+  /**
+   * Gets a form field value, either from the form or from config.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   * @param string $field_name
+   *   The key of the field in config. (This may differ from form field key).
+   *
+   * @return mixed
+   *   The value for the given form field, or NULL.
+   */
+  protected function getFieldValue(FormStateInterface $form_state, $field_name) {
+    // If the user has entered a value use it, if not check config.
+    $value = $form_state->getValue($field_name) ?: $this->getFormValueFromConfig($form_state, $field_name);
+    return $value;
   }
 
 }
