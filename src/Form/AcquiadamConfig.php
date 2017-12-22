@@ -110,7 +110,7 @@ class AcquiadamConfig extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $form['authentication']['client_secret'] = [
+    $form['authentication']['secret'] = [
       '#type' => 'password',
       '#title' => $this->t('Client secret'),
       '#default_value' => $config->get('secret'),
@@ -155,7 +155,7 @@ class AcquiadamConfig extends ConfigFormBase {
       $form_state->setValue('password', $password);
       $client_id = $form_state->getValue('client_id');
       $client_secret = $this->getFieldValue($form_state, 'secret');
-      $form_state->setValue('client_secret', $client_secret);
+      $form_state->setValue('secret', $client_secret);
 
       // Try to call checkCredentials() with details from form_state.
       $acquiadam_client = new WebdamClient($this->httpClient, $username, $password, $client_id, $client_secret);
@@ -176,7 +176,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('username', $form_state->getValue('username'))
       ->set('password', $form_state->getValue('password'))
       ->set('client_id', $form_state->getValue('client_id'))
-      ->set('secret', $form_state->getValue('client_secret'))
+      ->set('secret', $form_state->getValue('secret'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->save();
 
