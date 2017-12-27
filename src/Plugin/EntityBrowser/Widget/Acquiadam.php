@@ -542,36 +542,40 @@ class Acquiadam extends WidgetBase {
     // Get module path to create URL for background images.
     $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
 
-    // Add folder buttons to form.
-    foreach ($folders as $folder) {
-      $form['asset-container'][$folder->name] = [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['acquiadam-browser-folder-link'],
-          'style' => 'background-image:url("/' . $modulePath . '/img/folder.png")',
-        ],
-      ];
-      // Use folder thumbnail to generate inline style, if present.
-      $backgroundImageStyle = '';
-      if (isset($folder->thumbnailurls) && !empty($folder->thumbnailurls[0]->url)) {
-        $backgroundImageStyle .= 'background-image:url("' . $folder->thumbnailurls[0]->url . '")';
+    // If no search terms, display folders.
+    if (empty($params['query'])) {
+
+      // Add folder buttons to form.
+      foreach ($folders as $folder) {
+        $form['asset-container'][$folder->name] = [
+          '#type' => 'container',
+          '#attributes' => [
+            'class' => ['acquiadam-browser-folder-link'],
+            'style' => 'background-image:url("/' . $modulePath . '/img/folder.png")',
+          ],
+        ];
+        // Use folder thumbnail to generate inline style, if present.
+        $backgroundImageStyle = '';
+        if (isset($folder->thumbnailurls) && !empty($folder->thumbnailurls[0]->url)) {
+          $backgroundImageStyle .= 'background-image:url("' . $folder->thumbnailurls[0]->url . '")';
+        }
+        $form['asset-container'][$folder->name][$folder->id] = [
+          '#type' => 'button',
+          '#value' => $folder->name,
+          '#name' => 'acquiadam_folder',
+          '#acquiadam_folder_id' => $folder->id,
+          '#acquiadam_parent_folder_id' => $current_folder->parent,
+          '#attributes' => [
+            'class' => ['acquiadam-folder-link-button'],
+            'style' => $backgroundImageStyle,
+          ],
+        ];
+        $form['asset-container'][$folder->name]['title'] = [
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => $folder->name,
+        ];
       }
-      $form['asset-container'][$folder->name][$folder->id] = [
-        '#type' => 'button',
-        '#value' => $folder->name,
-        '#name' => 'acquiadam_folder',
-        '#acquiadam_folder_id' => $folder->id,
-        '#acquiadam_parent_folder_id' => $current_folder->parent,
-        '#attributes' => [
-          'class' => ['acquiadam-folder-link-button'],
-          'style' => $backgroundImageStyle,
-        ],
-      ];
-      $form['asset-container'][$folder->name]['title'] = [
-        '#type' => 'html_tag',
-        '#tag' => 'p',
-        '#value' => $folder->name,
-      ];
     }
     // Assets are rendered as #options for a checkboxes element.
     // Start with an empty array.
@@ -579,7 +583,9 @@ class Acquiadam extends WidgetBase {
     // Add to the assets array.
     if (isset($items)) {
       foreach ($items as $folder_item) {
-        $assets[$folder_item->id] = $this->layoutMediaEntity($folder_item);
+        if ($folder_item->status === 'active') {
+          $assets[$folder_item->id] = $this->layoutMediaEntity($folder_item);
+        }
       }
     }
     // Add assets to form.
