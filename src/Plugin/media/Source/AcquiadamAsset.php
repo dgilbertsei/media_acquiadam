@@ -92,7 +92,7 @@ class AcquiadamAsset extends MediaSourceBase {
       'datemodified' => $this->t('Date modified'),
       'datecaptured' => $this->t('Date captured'),
       'folderID' => $this->t('Folder ID'),
-      'status' => $this->t('Status'),
+      'status' => $this->t('Active state'),
     ];
     return $fields;
   }

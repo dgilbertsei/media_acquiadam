@@ -5,6 +5,8 @@
  * Integrates Drupal with Acquia DAM.
  */
 
+use Drupal\Core\Render\Element;
+
 /**
  * Implements hook_theme().
  */
@@ -137,5 +139,21 @@ function media_acquiadam_cron() {
 
     // Set the next execution time.
     \Drupal::state()->set('media_acquiadam.next_sync', $request_time + $interval);
+  }
+}
+
+/**
+ * Implements HOOK_form_FORM_ID_alter().
+ */
+function media_acquiadam_form_media_type_edit_form_alter(&$form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  // Add a field mapping to the entity publishing status if one doesn't exist.
+  $mappings = &$form['source_dependent']['field_map'];
+  if (!empty($mappings)) {
+    foreach (Element::children($mappings) as $key) {
+      $options = &$mappings[$key]['#options'];
+      if (!isset($options['status'])) {
+        $options['status'] = t('Publishing status');
+      }
+    }
   }
 }
