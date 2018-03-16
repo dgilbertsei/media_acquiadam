@@ -118,7 +118,8 @@ function media_acquiadam_cron() {
   $next_execution = \Drupal::state()->get('media_acquiadam.next_sync');
   $next_execution = !empty($next_execution) ? $next_execution : 0;
   $request_time = \Drupal::time()->getRequestTime();
-  if ($request_time >= $next_execution) {
+  // -1 interval means run on every cron.
+  if ($interval == -1 || $request_time >= $next_execution) {
     // Load all media bundles.
     $media_bundles = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple();
     // Filter out bundles that do not have type = acquiadam_asset.
