@@ -205,7 +205,8 @@ class AcquiadamAsset extends MediaSourceBase {
     $file_contents = $this->acquiadam->downloadAsset($asset->id);
     // Set the path for assets.
     // If the bundle has a field mapped for the file define it.
-    $file_field = isset($bundle->field_map['file']) ? $bundle->field_map['file'] : '';
+    $field_map = $bundle->getFieldMap();
+    $file_field = isset($field_map['file']) ? $field_map['file'] : '';
     // Define path.
     $scheme = 'public';
     if ($file_field) {
