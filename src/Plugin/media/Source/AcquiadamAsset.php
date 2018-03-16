@@ -265,8 +265,41 @@ class AcquiadamAsset extends MediaSourceBase {
         return $thumbnail;
       }
     }
-    // If the file field is not mapped, use the default icon.
-    return drupal_get_path('module', 'media_acquiadam') . '/img/webdam.png';
+    return $this->getFallbackThumbnail();
+  }
+
+  /**
+   * Get a fallback image to use for the thumbnail.
+   *
+   * @return string|FALSE
+   *   The Drupal image path to use or FALSE.
+   */
+  protected function getFallbackThumbnail() {
+
+    /** @var \Drupal\Core\Config\Config $config */
+    $config = \Drupal::configFactory()
+      ->getEditable('media_acquiadam.settings');
+
+    $fallback = $config->get('fallback_thumbnail');
+    if (empty($fallback)) {
+      // There was no configured fallback image, so we should use the one
+      // bundled with the module. Drupal core prevents generating image styles
+      // from module directories, so we need to copy our placeholder to the
+      // files directory first.
+      $source = drupal_get_path('module', 'media_acquiadam') . '/img/webdam.png';
+
+      // @TODO: Technically this will default to any image named webdam.png, not
+      // necessarily the one we put there.
+      $fallback = sprintf('%s://webdam.png', file_default_scheme());
+      if (!file_exists($fallback)) {
+        $fallback = file_unmanaged_copy($source, $fallback);
+        if (!empty($fallback)) {
+          $config->set('fallback_thumbnail', $fallback)->save();
+        }
+      }
+    }
+
+    return $fallback;
   }
 
 }
