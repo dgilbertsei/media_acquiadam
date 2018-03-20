@@ -5,6 +5,7 @@ namespace Drupal\media_acquiadam\Plugin\EntityBrowser\Widget;
 use cweagans\webdam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
 use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -65,6 +66,13 @@ class Acquiadam extends WidgetBase {
   protected $sourceManager;
 
   /**
+   * An entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
    * Acquiadam constructor.
    *
    * @param array $configuration
@@ -77,6 +85,8 @@ class Acquiadam extends WidgetBase {
    *   The Event Dispatcher service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The Entity Manager service.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The Entity Field Manager service.
    * @param \Drupal\entity_browser\WidgetValidationManager $validation_manager
    *   The Widget Validation Manager service.
    * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
@@ -94,6 +104,7 @@ class Acquiadam extends WidgetBase {
     $plugin_definition,
     EventDispatcherInterface $event_dispatcher,
     EntityTypeManagerInterface $entity_type_manager,
+    EntityFieldManagerInterface $entity_field_manager,
     WidgetValidationManager $validation_manager,
     AcquiadamInterface $acquiadam,
     AccountInterface $account,
@@ -113,6 +124,7 @@ class Acquiadam extends WidgetBase {
     $this->languageManager = $languageManager;
     $this->moduleHandler = $moduleHandler;
     $this->sourceManager = $sourceManager;
+    $this->entityFieldManager = $entity_field_manager;
   }
 
   /**
@@ -125,6 +137,7 @@ class Acquiadam extends WidgetBase {
       $plugin_definition,
       $container->get('event_dispatcher'),
       $container->get('entity_type.manager'),
+      $container->get('entity_field.manager'),
       $container->get('plugin.manager.entity_browser.widget_validation'),
       $container->get('media_acquiadam.acquiadam_user_creds'),
       $container->get('current_user'),
@@ -678,9 +691,22 @@ class Acquiadam extends WidgetBase {
   public function validate(array &$form, FormStateInterface $form_state) {
     // If the primary submit button was clicked to select assets.
     if (!empty($form_state->getTriggeringElement()['#eb_widget_main_submit'])) {
+      // The media bundle.
+      $media_bundle = $this->entityTypeManager->getStorage('media_type')
+        ->load($this->configuration['media_type']);
+      // Load the field definitions for this bundle.
+      $field_definitions = $this->entityFieldManager
+        ->getFieldDefinitions('media', $media_bundle->id());
+      // Load the file settings to validate against.
+      $field_map = $media_bundle->getFieldMap();
+      $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
+        ->getSetting('file_extensions');
+      $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
       // The form input uses checkboxes which returns zero for unchecked assets.
       // Remove these unchecked assets.
       $assets = array_filter($form_state->getValue('assets'));
+      // Fetch assets.
+      $dam_assets = $this->acquiadam->getAssetMultiple($assets);
       // Get the cardinality for the media field that is being populated.
       $field_cardinality = $form_state->get([
         'entity_browser',
@@ -696,6 +722,18 @@ class Acquiadam extends WidgetBase {
         $message = $this->formatPlural($field_cardinality, 'You can not select more than 1 entity.', 'You can not select more than @count entities.');
         // Set the error message on the form.
         $form_state->setError($form['widget']['asset-container']['assets'], $message);
+      }
+      
+      // If the asset's file type does not match allowed file types.
+      foreach($dam_assets as $asset) {
+        $filetype = $asset->filetype;
+        $type_is_supported = in_array($filetype, $supported_extensions);
+
+        if (!$type_is_supported) {
+          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', ['@filetype' => $filetype, '@supported_types' => implode(', ', $supported_extensions)]);
+          // Set the error message on the form.
+          $form_state->setError($form['widget']['asset-container']['assets'], $message);
+        }
       }
     }
   }
