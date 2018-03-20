@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\media\MediaInterface;
@@ -48,10 +49,19 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $file = NULL;
 
   /**
+   * The token service.
+   *
+   * @var \Drupal\Core\Utility\Token
+   */
+  protected $token;
+
+  /**
    * AcquiadamAsset constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, AcquiadamInterface $acquiadam) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
+
+    $this->token = $token;
     $this->acquiadam = $acquiadam;
   }
 
@@ -67,6 +77,7 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('entity_field.manager'),
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
+      $container->get('token'),
       $container->get('media_acquiadam.acquiadam')
     );
   }
@@ -209,13 +220,19 @@ class AcquiadamAsset extends MediaSourceBase {
     $file_field = isset($field_map['file']) ? $field_map['file'] : '';
     // Define path.
     $scheme = 'public';
+    // Define file directory.
+    $file_directory = 'acquiadam_assets';
     if ($file_field) {
       // Get the storage scheme for the file field.
       $scheme = $field_definitions[$file_field]->getItemDefinition()->getSetting('uri_scheme');
+      // Get the file directory for the file field.
+      $file_directory = $field_definitions[$file_field]->getItemDefinition()->getSetting('file_directory');
+      // Replace the token for file directory.
+      $file_directory = $this->token->replace($file_directory);
     }
     // Set the path prefix for the file that is about to be downloaded
     // and saved in to Drupal.
-    $path = $scheme . '://acquiadam_assets/';
+    $path = $scheme . '://' . $file_directory . '/';
     // Prepare acquiadam directory for writing and only proceed if successful.
     if (file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
       // Save the file into Drupal.
