@@ -221,18 +221,20 @@ class AcquiadamAsset extends MediaSourceBase {
     // Define path.
     $scheme = 'public';
     // Define file directory.
-    $file_directory = 'acquiadam_assets';
+    $file_directory = 'acquiadam_assets/';
     if ($file_field) {
       // Get the storage scheme for the file field.
       $scheme = $field_definitions[$file_field]->getItemDefinition()->getSetting('uri_scheme');
       // Get the file directory for the file field.
       $file_directory = $field_definitions[$file_field]->getItemDefinition()->getSetting('file_directory');
       // Replace the token for file directory.
-      $file_directory = $this->token->replace($file_directory);
+      if (!empty($file_directory)) {
+        $file_directory = $this->token->replace($file_directory) . '/';
+      }
     }
     // Set the path prefix for the file that is about to be downloaded
     // and saved in to Drupal.
-    $path = $scheme . '://' . $file_directory . '/';
+    $path = $scheme . '://' . $file_directory;
     // Prepare acquiadam directory for writing and only proceed if successful.
     if (file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
       // Save the file into Drupal.
