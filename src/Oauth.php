@@ -95,6 +95,12 @@ class Oauth implements OauthInterface {
    * {@inheritdoc}
    */
   public function getAccessToken($auth_code) {
+    \Drupal::logger('media_acquiadam')
+      ->debug('Getting new access token for @username.', [
+        '@username' => \Drupal::currentUser()
+          ->getAccountName(),
+      ]);
+
     /** @var \Psr\Http\Message\ResponseInterface $response */
     $response = $this->httpClient->post("{$this->damApiBase}/oauth2/token", [
       'form_params' => [
@@ -112,6 +118,39 @@ class Oauth implements OauthInterface {
     return [
       'access_token' => $body->access_token,
       'expire_time' => time() + $body->expires_in,
+      'refresh_token' => $body->refresh_token,
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function refreshAccess($refresh_token) {
+
+    \Drupal::logger('media_acquiadam')
+      ->debug('Refreshing access token for @username.', [
+        '@username' => \Drupal::currentUser()
+          ->getAccountName(),
+      ]);
+
+    /** @var \Psr\Http\Message\ResponseInterface $response */
+    $response = $this->httpClient->post("{$this->damApiBase}/oauth2/token", [
+      'form_params' => [
+        'grant_type' => 'refresh_token',
+        'refresh_token' => $refresh_token,
+        'client_id' => $this->config->get('client_id'),
+        'client_secret' => $this->config->get('secret'),
+        'redirect_uri' => $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]),
+      ],
+    ]);
+
+    $body = (string) $response->getBody();
+    $body = json_decode($body);
+
+    return [
+      'access_token' => $body->access_token,
+      'expire_time' => time() + $body->expires_in,
+      'refresh_token' => $body->refresh_token,
     ];
   }
 

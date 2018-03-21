@@ -33,10 +33,25 @@ interface OauthInterface {
    *   The authorization token from oauth.
    *
    * @return array
-   *   Returns an array with two keys:
+   *   Returns an array with three keys:
    *     - access_token: The access token used for API authorization.
    *     - expire_time: The unix timestamp when the access token expires.
+   *     - refresh_token: The refresh token used for API authorization.
    */
   public function getAccessToken($auth_code);
+
+  /**
+   * Refresh an existing access token.
+   *
+   * @param string $refresh_token
+   *   The refresh token.
+   *
+   * @return array
+   *   Returns an array with three keys:
+   *     - access_token: The access token used for API authorization.
+   *     - expire_time: The unix timestamp when the access token expires.
+   *     - refresh_token: The refresh token used for API authorization.
+   */
+  public function refreshAccess($refresh_token);
 
 }

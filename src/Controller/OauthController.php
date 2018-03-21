@@ -92,21 +92,32 @@ class OauthController extends ControllerBase {
     }
 
     $access_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
+    $refresh_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
     $access_token_expiration = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
 
-    if ($access_token !== NULL && $access_token_expiration > time()) {
+    $is_expired = empty($access_token) || $access_token_expiration <= time();
+
+    if (!$is_expired || ($is_expired && !empty($refresh_token))) {
       return [
         [
           '#markup' => '<p>' . $this->t('You are authenticated with Acquia DAM.') . '</p>',
         ],
         [
-          '#markup' => $this->getLinkGenerator()->generate('Reauthenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
+          '#markup' => '<p>' . $this->t('Your authentication expires on @date.', [
+              '@date' => \Drupal::service('date.formatter')
+                ->format($access_token_expiration),
+            ]) . '</p>',
+        ],
+        [
+          '#markup' => $this->getLinkGenerator()
+            ->generate('Reauthenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
         ],
       ];
     }
     else {
       $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
       $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
+      $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
 
       return [
         [
@@ -149,6 +160,7 @@ class OauthController extends ControllerBase {
 
     $this->userData->set('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token', $access_token['access_token']);
     $this->userData->set('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration', $access_token['expire_time']);
+    $this->userData->set('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token', $access_token['refresh_token']);
 
     return new RedirectResponse($authFinishRedirect);
   }

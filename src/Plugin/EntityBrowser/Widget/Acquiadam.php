@@ -7,17 +7,20 @@ use cweagans\webdam\Entity\Folder;
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
 use Drupal\media\MediaSourceManager;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
+
 
 /**
  * Uses a view to provide entity listing in a browser's widget.
@@ -73,6 +76,11 @@ class Acquiadam extends WidgetBase {
   protected $entityFieldManager;
 
   /**
+   * @var \Drupal\user\UserDataInterface User data manager.
+   */
+  protected $userData;
+
+  /**
    * Acquiadam constructor.
    *
    * @param array $configuration
@@ -97,6 +105,8 @@ class Acquiadam extends WidgetBase {
    *   The language manager service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    * @param \Drupal\media\MediaSourceManager $sourceManager
+   * @param \Drupal\user\UserDataInterface $userData
+   *   A userdata object to retrieve user-specific data from.
    */
   public function __construct(
     array $configuration,
@@ -110,7 +120,8 @@ class Acquiadam extends WidgetBase {
     AccountInterface $account,
     LanguageManagerInterface $languageManager,
     ModuleHandlerInterface $moduleHandler,
-    MediaSourceManager $sourceManager
+    MediaSourceManager $sourceManager,
+    UserDataInterface $userData
   ) {
     parent::__construct(
       $configuration,
@@ -125,6 +136,7 @@ class Acquiadam extends WidgetBase {
     $this->moduleHandler = $moduleHandler;
     $this->sourceManager = $sourceManager;
     $this->entityFieldManager = $entity_field_manager;
+    $this->userData = $userData;
   }
 
   /**
@@ -143,7 +155,8 @@ class Acquiadam extends WidgetBase {
       $container->get('current_user'),
       $container->get('language_manager'),
       $container->get('module_handler'),
-      $container->get('plugin.manager.media.source')
+      $container->get('plugin.manager.media.source'),
+      $container->get('user.data')
     );
   }
 
@@ -384,26 +397,38 @@ class Acquiadam extends WidgetBase {
       // Return an empty array.
       return [];
     }
-    try {
-      $this->acquiadam->getAccountSubscriptionDetails();
-    }
-    catch (InvalidCredentialsException $e) {
-      $form['message'] = [
-        '#theme' => 'asset_browser_message',
-        '#message' => $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
-          // @TODO: Remove usage of \Drupal here.
-          '%authenticate' => \Drupal::l('authenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => \Drupal::request()->getRequestUri()])),
-        ]),
-        '#attached' => [
-          'library' => [
-            'media_acquiadam/asset_browser',
+
+    $auth = $this->acquiadam->getAuthState();
+    if (empty($auth['valid_token'])) {
+      try {
+        $auth = $this->acquiadam->checkAuth();
+        if (!empty($auth['valid_token'])) {
+          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_access_token', $auth['access_token']);
+          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_access_token_expiration', $auth['access_token_expiry']);
+          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_refresh_token', $auth['refresh_token']);
+        }
+      } catch (InvalidCredentialsException $x) {
+        $form['message'] = [
+          '#theme' => 'asset_browser_message',
+          '#message' => $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
+            '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [
+              'auth_finish_redirect' => \Drupal::request()
+                ->getRequestUri(),
+            ])->toString(),
+          ]),
+          '#attached' => [
+            'library' => [
+              'media_acquiadam/asset_browser',
+            ],
           ],
-        ],
-      ];
-      return $form;
+        ];
+        return $form;
+      }
     }
+
     // Start by inheriting parent form.
     $form = parent::getForm($original_form, $form_state, $additional_widget_parameters);
+
     // Attach the modal library.
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     // This form is submitted and rebuilt when a folder is clicked.

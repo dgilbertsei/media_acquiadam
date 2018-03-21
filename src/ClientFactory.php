@@ -2,7 +2,6 @@
 
 namespace Drupal\media_acquiadam;
 
-use cweagans\webdam\Client;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserDataInterface;
@@ -69,7 +68,7 @@ class ClientFactory {
    *   The switch for which credentials the client object
    *   should be configured with.
    *
-   * @return \cweagans\webdam\Client
+   * @return \Drupal\media_acquiadam\Client
    *   A configured DAM HTTP client object.
    */
   public function get($credentials = 'background') {
@@ -85,7 +84,8 @@ class ClientFactory {
     if ($credentials == 'current') {
       $access_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
       $access_token_expiration = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
-      $client->setToken($access_token, $access_token_expiration);
+      $refresh_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
+      $client->setToken($access_token, $access_token_expiration, $refresh_token);
     }
 
     return $client;
