@@ -3,3 +3,6 @@ password:
 client_id:
 secret:
 sync_interval: '3600'
+oauth:
+  excluded_redirect_keys:
+    - original_path

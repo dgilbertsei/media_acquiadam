@@ -5,6 +5,8 @@ namespace Drupal\media_acquiadam;
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
+use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Url;
 use GuzzleHttp\ClientInterface;
 
 /**
@@ -158,8 +160,22 @@ class Oauth implements OauthInterface {
    * {@inheritdoc}
    */
   public function setAuthFinishRedirect($authFinishRedirect) {
-    // TODO: sanitize and validate $redirect_uri.
-    $this->authFinishRedirect = $authFinishRedirect;
+    $parsed_url = UrlHelper::parse($authFinishRedirect);
+
+    $filterable_keys = \Drupal::config('media_acquiadam.settings')->get('oauth.excluded_redirect_keys');
+    if (empty($filterable_keys) || !is_array($filterable_keys)) {
+      $filterable_keys = [
+        // The Entity Browser Block module will break the authentication flow
+        // when used within Panels IPE. Filtering out this query parameter
+        // works around the issue.
+        'original_path',
+      ];
+    }
+
+    $this->authFinishRedirect = Url::fromUri('base:' . $parsed_url['path'], [
+      'query' => UrlHelper::filterQueryParameters($parsed_url['query'], $filterable_keys),
+      'fragment' => $parsed_url['fragment'],
+    ])->toString();
   }
 
   /**
