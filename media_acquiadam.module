@@ -107,39 +107,25 @@ function media_acquiadam_media_presave($entity) {
  * Refresh acquiadam metadata and sync to media entities.
  */
 function media_acquiadam_cron() {
-  // We access our configuration.
-  $cron_config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
-  // Default to an hourly interval. Of course, cron has to be running at least
-  // hourly for this to work.
+
+  $cron_config = \Drupal::configFactory()
+    ->getEditable('media_acquiadam.settings');
+
   $interval = $cron_config->get('sync_interval');
+  // 3600 seconds = 1 hour
   $interval = !empty($interval) ? $interval : 3600;
-  // We usually don't want to act every time cron runs (which could be every
-  // minute) so keep a time for the next run in the site state.
+
+  // Rate limit so we're not syncing every minute even if cron is configured to.
   $next_execution = \Drupal::state()->get('media_acquiadam.next_sync');
   $next_execution = !empty($next_execution) ? $next_execution : 0;
   $request_time = \Drupal::time()->getRequestTime();
+
   // -1 interval means run on every cron.
-  if ($interval == -1 || $request_time >= $next_execution) {
-    // Load all media bundles.
-    $media_bundles = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple();
-    // Filter out bundles that do not have type = acquiadam_asset.
-    $acquiadam_bundles = array_map(function($item){
-      return $item->label();
-    }, array_filter($media_bundles, function ($item) {
-        return $item->getSource()->getPluginId() == 'acquiadam_asset';
-      })
-    );
-    // Fetch all acquiadam asset entity ID's.
-    $all_ids = \Drupal::entityQuery('media')
-      ->condition('bundle', array_keys($acquiadam_bundles), 'IN')
-      ->execute();
-
-    foreach ($all_ids as $id) {
-      \Drupal::queue('media_acquiadam_asset_refresh')->createItem(['id' => $id]);
-    }
-
-    // Set the next execution time.
+  $process_queues = ($interval == -1 || $request_time >= $next_execution);
+  if ($process_queues) {
     \Drupal::state()->set('media_acquiadam.next_sync', $request_time + $interval);
+    media_acquiadam_refresh_asset_sync_queue();
+    media_acquiadam_purge_expired_tokens();
   }
 }
 
@@ -156,5 +142,103 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, \Drupal\Core\Fo
         $options['status'] = t('Publishing status');
       }
     }
+  }
+}
+
+/**
+ * Adds media items to the asset sync queue for later proessing.
+ *
+ * @return int The number of items currently in the queue.
+ */
+function media_acquiadam_refresh_asset_sync_queue() {
+  $queue = \Drupal::queue('media_acquiadam_asset_refresh');
+  // We only want to re-queue everything when the queue is totally empty. This
+  // should help minimize the number of duplicate syncs we perform on assets.
+  if ($queue->numberOfItems() <= 0) {
+
+    // Load all media bundles so we can filter down to the ones using the DAM
+    // plugin.
+    try {
+      $media_bundles = \Drupal::entityTypeManager()
+        ->getStorage('media_type')
+        ->loadMultiple();
+      $media_bundles = array_filter($media_bundles, function ($bundle) {
+        /** @var \Drupal\media\Entity\MediaType $bundle */
+        return $bundle->getSource()->getPluginId() == 'acquiadam_asset';
+      });
+    }
+    catch (Exception $x) {
+      watchdog_exception('media_acquiadam', $x);
+      $media_bundles = [];
+    }
+
+    // Re-queue all available assets for syncing.
+    if (!empty($media_bundles)) {
+      // It would be nice to additionally filter by last created/changed, but
+      // that information is not reliable as it may have been overridden by an
+      // asset sync.
+      $media_ids = \Drupal::entityQuery('media')
+        ->condition('bundle', array_keys($media_bundles), 'IN')
+        ->execute();
+      if (!empty($media_ids)) {
+        foreach ($media_ids as $media_id) {
+          $queue->createItem(['media_id' => $media_id]);
+        }
+      }
+    }
+  }
+
+  return $queue->numberOfItems();
+}
+
+/**
+ * Purge Acquia DAM authentication tokens for inactive Drupal users.
+ */
+function media_acquiadam_purge_expired_tokens() {
+  $cookie_params = session_get_cookie_params();
+  // 2000000 is the Drupal default value for cookie lifetime (approx 23 days).
+  $lifetime = $cookie_params['lifetime'] ?: 2000000;
+
+  // The user data keys associated with DAM authentication.
+  $purgable_keys = [
+    'acquiadam_access_token',
+    'acquiadam_refresh_token',
+    'acquiadam_access_token_expiration',
+  ];
+
+  try {
+    $db = \Drupal::database();
+
+    $expired_tokens_query = $db
+      ->select('users_data', 'ud_expired')
+      ->fields('ud_expired', ['uid'])
+      ->condition('ud_expired.module', 'media_acquiadam')
+      ->condition('ud_expired.name', 'acquiadam_access_token_expiration')
+      ->condition('ud_expired.value', REQUEST_TIME - $lifetime, '<=');
+
+    // Select our UID list into a temporary table so we can delete without
+    // involving PHP. queryTemporary requires a string-based query at this time.
+    $temporary_table = $db->queryTemporary((string) $expired_tokens_query, $expired_tokens_query->getArguments());
+    $temporary_query = $db->select($temporary_table, 'tt')
+      ->fields('tt', ['uid']);
+
+    $deleted_count = $db
+      ->delete('users_data')
+      ->condition('module', 'media_acquiadam')
+      ->condition('name', $purgable_keys, 'IN')
+      ->condition('uid', $temporary_query, 'IN')
+      ->execute();
+
+    if ($deleted_count > 0) {
+      \Drupal::logger('media_acquiadam')
+        ->info('Deleted @count records (approx. @estimate inactive users).', [
+          '@count' => $deleted_count,
+          '@estimate' => intval($deleted_count / count($purgable_keys)),
+        ]);
+    }
+  } catch (Exception $x) {
+    Drupal::logger('media_acquiadam')
+      ->error('Unable to purge old authentication tokens.');
+    watchdog_exception('media_acquiadam', $x);
   }
 }

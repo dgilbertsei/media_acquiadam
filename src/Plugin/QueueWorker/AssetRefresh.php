@@ -4,6 +4,7 @@ namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
+use Drupal\Core\Queue\SuspendQueueException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,24 +34,32 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function processItem($data) {
-    /** @var \Drupal\media\Entity\Media $entity */
-    $entity = \Drupal::entityTypeManager()->getStorage('media')->load($data['id']);
 
-    /** @var \Drupal\media\Entity\MediaType $bundle */
-    $bundle = \Drupal::entityTypeManager()->getStorage('media_type')->load($entity->bundle());
-
-    foreach ($bundle->getFieldMap() as $entity_field => $mapped_field) {
-      // Set all mapped field values to NULL so that they are repopulated from Acquia DAM on save.
-      if ($entity->hasField($mapped_field)) {
-        $entity->set($mapped_field, NULL);
-      }
+    if (empty($data['media_id'])) {
+      return;
     }
 
-    // Set flag for thumbnail to be regenerated.
-    $entity->updateQueuedThumbnail();
+    /** @var \Drupal\media\Entity\Media $entity */
+    $entity = \Drupal::entityTypeManager()
+      ->getStorage('media')
+      ->load($data['media_id']);
+    if (empty($entity)) {
+      \Drupal::logger('media_acquiadam')
+        ->error('Unable to load media entity @media_id in order to refresh the associated asset. Was the item deleted?', ['@media_id' => $data['media_id']]);
+      return;
+    }
 
-    // Save the entity to repopulate mapped fields.
-    $entity->save();
+    try {
+      // Re-save the entity, prompting the clearing and redownloading of
+      // metadata and asset file.
+      $entity->save();
+    } catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')
+        ->error('Exception thrown trying to refresh asset (media: @id)', [
+          '@id' => $entity->id(),
+        ]);
+      \watchdog_exception('media_acquiadam', $x);
+      throw new SuspendQueueException($x->getMessage());
+    }
   }
-
 }
