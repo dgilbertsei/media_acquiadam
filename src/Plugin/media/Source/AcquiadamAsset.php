@@ -35,6 +35,13 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $acquiadam;
 
   /**
+   * Array of DAM XMP fields keyed by field (prefixed with "xmp_").
+   *
+   * @var array
+   */
+  protected $acquiadamXmpFields;
+
+  /**
    * The asset that we're going to render details for.
    *
    * @var \cweagans\webdam\Entity\Asset
@@ -63,6 +70,7 @@ class AcquiadamAsset extends MediaSourceBase {
 
     $this->token = $token;
     $this->acquiadam = $acquiadam;
+    $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
   }
 
   /**
@@ -86,8 +94,8 @@ class AcquiadamAsset extends MediaSourceBase {
    * {@inheritdoc}
    */
   public function getMetadataAttributes() {
+    // The asset properties.
     // @TODO: Determine if other properties need to be added here.
-    // @TODO: Determine how to support custom metadata.
     $fields = [
       'file' => $this->t('File'),
       'type_id' => $this->t('Type ID'),
@@ -105,6 +113,12 @@ class AcquiadamAsset extends MediaSourceBase {
       'folderID' => $this->t('Folder ID'),
       'status' => $this->t('Active state'),
     ];
+
+    // Add additional XMP fields to fields array.
+    foreach($this->acquiadamXmpFields as $xmp_id => $xmp_field) {
+      $fields[$xmp_id] = $xmp_field['label'];
+    }
+
     return $fields;
   }
 
@@ -127,9 +141,23 @@ class AcquiadamAsset extends MediaSourceBase {
     }
     // If the asset has not been loaded.
     if (!$this->asset) {
-      // Load the asset.
-      $this->asset = $this->acquiadam->getAsset($assetID);
+      // Load the asset including XMP metadata.
+      $this->asset = $this->acquiadam->getAsset($assetID, TRUE);
     }
+
+    // Return values of XMP metadata.
+    if (array_key_exists($name, $this->acquiadamXmpFields)) {
+      // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
+      $xmp_field = substr($name, 4);
+      if (isset($this->asset->xmp_metadata[$xmp_field])) {
+        return $this->asset->xmp_metadata[$xmp_field]['value'];
+      }
+      else {
+        return NULL;
+      }
+    }
+    
+    // Return values of asset properties.
     switch ($name) {
       case 'default_name':
         return parent::getMetadata($media, 'default_name');
@@ -181,6 +209,7 @@ class AcquiadamAsset extends MediaSourceBase {
 
       case 'status':
         return intval($this->asset->status == 'active');
+
     }
 
     return FALSE;

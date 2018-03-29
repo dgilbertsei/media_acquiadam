@@ -133,6 +133,8 @@ function media_acquiadam_cron() {
  * Implements HOOK_form_FORM_ID_alter().
  */
 function media_acquiadam_form_media_type_edit_form_alter(&$form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  $form['#attached']['library'][] = 'media_acquiadam/asset_form';
+
   // Add a field mapping to the entity publishing status if one doesn't exist.
   $mappings = &$form['source_dependent']['field_map'];
   if (!empty($mappings)) {
@@ -142,6 +144,22 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, \Drupal\Core\Fo
         $options['status'] = t('Publishing status');
       }
     }
+  }
+
+  // Insert headline before first XMP field in the fieldset.
+  $mapping_keys = array_keys($mappings);
+  $xmp_keys = preg_grep('/xmp_.+/i', $mapping_keys);
+  reset($xmp_keys);
+  $offset = key($xmp_keys);
+  
+  if ($offset) {
+    $xmp_header = ['xmp_header' =>[
+      '#type' => 'html_tag',
+      '#tag' => 'h4',
+      '#value' => t('Field Mapping: XMP Metadata'),
+      '#attributes' => ['class' => 'fieldset-subhead'],
+    ]];
+    array_splice($mappings, $offset, 0, $xmp_header);
   }
 }
 

@@ -14,3 +14,10 @@ asset_details:
   css:
     theme:
       css/asset-details.css: {}
+
+asset_form:
+  version: 1.x
+  js: {}
+  css:
+    theme:
+      css/asset-form.css: {}

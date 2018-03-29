@@ -156,4 +156,35 @@ class Client extends OriginalClient {
     }
   }
 
+  /**
+   * Get a list of metadata.
+   *
+   * @return array
+   *   A list of active xmp metadata fields.
+   */
+  public function getActiveXmpFields() {
+    $this->checkAuth();
+    
+    $response = $this->client->request(
+      'GET',
+      $this->baseUrl . '/metadataschemas/xmp?full=1',
+      ['headers' => $this->getDefaultHeaders()]
+    );
+
+    $response = json_decode((string) $response->getBody());
+
+    $metadata = [];
+    foreach ($response->xmpschema as $field) {
+      if ($field->status == 'active') {
+        $metadata['xmp_' . strtolower($field->field)] = [
+          'name' => $field->name,
+          'label' => $field->label,
+          'type' => $field->type,
+        ];
+      }
+    }
+
+    return $metadata;
+  }
+
 }
