@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ * Installation related hooks and functions.
+ */
+
+/**
+ * Implements HOOK_schema().
+ */
+function media_acquiadam_schema() {
+  $schema = [];
+
+  $schema['acquiadam_assets_data'] = [
+    'description' => 'Acquia DAM asset information.',
+    'fields' => [
+      'asset_id' => [
+        'description' => 'The asset ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'name' => [
+        'description' => 'The identifier of the data.',
+        'type' => 'varchar_ascii',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'value' => [
+        'description' => 'The value.',
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+      ],
+      'serialized' => [
+        'description' => 'Whether value is serialized.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['asset_id', 'name'],
+    'indexes' => [
+      'asset_id' => ['asset_id'],
+      'name' => ['name'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Installs the new asset data schema if necessary.
+ */
+function media_acquiadam_update_8101(&$sandbox) {
+
+  $table_name = 'acquiadam_assets_data';
+
+  $db_schema = \Drupal::database()->schema();
+  if ($db_schema->tableExists($table_name)) {
+    return;
+  }
+
+  $new_schema = media_acquiadam_schema();
+  $db_schema->createTable($table_name, $new_schema[$table_name]);
+}

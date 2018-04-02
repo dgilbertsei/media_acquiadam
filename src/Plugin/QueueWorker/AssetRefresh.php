@@ -21,7 +21,8 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {}
+  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+  }
 
   /**
    * {@inheritdoc}
@@ -45,7 +46,31 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       ->load($data['media_id']);
     if (empty($entity)) {
       \Drupal::logger('media_acquiadam')
-        ->error('Unable to load media entity @media_id in order to refresh the associated asset. Was the item deleted?', ['@media_id' => $data['media_id']]);
+        ->error('Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?', ['@media_id' => $data['media_id']]);
+      return;
+    }
+
+    try {
+      /** @var $source \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset */
+      $source = $entity->getSource();
+      $assetID = $source->getAssetID($entity);
+      if (empty($assetID)) {
+        \Drupal::logger('media_acquiadam')
+          ->error('Unable to load asset ID from media entity @media_id. This might mean that the DAM and Drupal relationship has been broken. Please check the media entity.', ['@media_id' => $data['media_id']]);
+        return;
+      }
+      $asset = $source->getAsset($assetID);
+      if (empty($asset)) {
+        \Drupal::logger('media_acquiadam')
+          ->warning('Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.', [
+            '@media_id' => $data['media_id'],
+            '@assetID' => $assetID,
+          ]);
+        return;
+      }
+    } catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')
+        ->error('Error trying to check asset from media entity @media_id', ['@media_id' => $data['media_id']]);
       return;
     }
 
@@ -54,11 +79,9 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       // metadata and asset file.
       $entity->save();
     } catch (\Exception $x) {
-      \Drupal::logger('media_acquiadam')
-        ->error('Exception thrown trying to refresh asset (media: @id)', [
-          '@id' => $entity->id(),
-        ]);
-      \watchdog_exception('media_acquiadam', $x);
+      // If we're hitting an exception after the above checks there might be
+      // something impacting the overall system, so prevent further queue
+      // processing.
       throw new SuspendQueueException($x->getMessage());
     }
   }

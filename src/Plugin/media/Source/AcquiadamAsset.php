@@ -7,13 +7,15 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Utility\Token;
+use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\AssetDataInterface;
+use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\file\Entity\File;
 
 /**
  * Provides media type plugin for Acquia DAM assets.
@@ -63,14 +65,21 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $token;
 
   /**
+   * The asset data service.
+   * @var \Drupal\media_acquiadam\AssetData
+   */
+  protected $asset_data;
+
+  /**
    * AcquiadamAsset constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
 
     $this->token = $token;
     $this->acquiadam = $acquiadam;
     $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
+    $this->asset_data = $asset_data;
   }
 
   /**
@@ -86,7 +95,8 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
       $container->get('token'),
-      $container->get('media_acquiadam.acquiadam')
+      $container->get('media_acquiadam.acquiadam'),
+      $container->get('media_acquiadam.asset_data')
     );
   }
 
@@ -97,21 +107,21 @@ class AcquiadamAsset extends MediaSourceBase {
     // The asset properties.
     // @TODO: Determine if other properties need to be added here.
     $fields = [
-      'file' => $this->t('File'),
-      'type_id' => $this->t('Type ID'),
-      'filename' => $this->t('Filename'),
-      'filesize' => $this->t('Filesize'),
-      'width' => $this->t('Width'),
-      'height' => $this->t('Height'),
-      'description' => $this->t('Description'),
-      'filetype' => $this->t('Filetype'),
       'colorspace' => $this->t('Color space'),
-      'version' => $this->t('Version'),
+      'datecaptured' => $this->t('Date captured'),
       'datecreated' => $this->t('Date created'),
       'datemodified' => $this->t('Date modified'),
-      'datecaptured' => $this->t('Date captured'),
+      'description' => $this->t('Description'),
+      'file' => $this->t('File'),
+      'filename' => $this->t('Filename'),
+      'filesize' => $this->t('Filesize'),
+      'filetype' => $this->t('Filetype'),
       'folderID' => $this->t('Folder ID'),
+      'height' => $this->t('Height'),
       'status' => $this->t('Active state'),
+      'type_id' => $this->t('Type ID'),
+      'version' => $this->t('Version'),
+      'width' => $this->t('Width'),
     ];
 
     // Add additional XMP fields to fields array.
@@ -123,41 +133,105 @@ class AcquiadamAsset extends MediaSourceBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Get the asset ID for the given media entity.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to pull the asset ID from.
+   *
+   * @return integer|bool
+   *   The asset ID or FALSE on failure.
    */
-  public function getMetadata(MediaInterface $media, $name) {
-    $assetID = NULL;
+  public function getAssetID(MediaInterface $media) {
     if (isset($this->configuration['source_field'])) {
       $source_field = $this->configuration['source_field'];
 
       if ($media->hasField($source_field)) {
         $property_name = $media->{$source_field}->first()->mainPropertyName();
-        $assetID = $media->{$source_field}->{$property_name};
+        return $media->{$source_field}->{$property_name};
       }
     }
-    // If we don't have an asset ID, there's not much we can do.
-    if (is_null($assetID)) {
-      return FALSE;
+    return FALSE;
+  }
+
+  /**
+   * Retrieve an asset from Acquia DAM.
+   *
+   * @param integer $assetID
+   *   The ID of the asset to retrieve.
+   * @param bool $includeXMP
+   *   TRUE to include XMP metadata.
+   *
+   * @return bool|\cweagans\webdam\Entity\Asset
+   */
+  public function getAsset($assetID, $includeXMP = FALSE) {
+    // Temporarily cache loaded assets to handle multiple save calls in a
+    // single request.
+    $assets = &\drupal_static('AcquiaDAMAsset::getAsset', []);
+    try {
+      $needs_first_get = !isset($assets[$assetID]);
+      // @BUG: XMP-less assets may bypass static caching.
+      // Technically if the asset doesn't have xmp_metadata (and always
+      // returns an empty value) this will bypass the cache version each call.
+      $needs_xmp_get = $includeXMP && empty($assets[$assetID]->xmp_metadata);
+      if ($needs_first_get || $needs_xmp_get) {
+        $assets[$assetID] = $this->acquiadam->getAsset($assetID, $includeXMP);
+      }
+    } catch (ClientException $x) {
+      // We want specific handling for 404 errors so we can provide a more
+      // relateable error message.
+      if (404 == $x->getCode()) {
+        \Drupal::logger('media_acquiadam')
+          ->warning('Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?', ['@assetID' => $assetID]);
+
+        // In the event of a 404 we assume the asset has been deleted within
+        // Acquia DAM and need to save that state for excluding it from cron
+        // syncs in the future.
+        $this->asset_data->set($assetID, 'remote_deleted', TRUE);
+      }
+      else {
+        watchdog_exception('media_acquiadam', $x);
+      }
+    } catch (\Exception $x) {
+      watchdog_exception('media_acquiadam', $x);
     }
-    // If the asset has not been loaded.
-    if (!$this->asset) {
-      // Load the asset including XMP metadata.
-      $this->asset = $this->acquiadam->getAsset($assetID, TRUE);
+    finally {
+      if (!isset($assets[$assetID])) {
+        $assets[$assetID] = FALSE;
+      }
+    }
+
+    return $assets[$assetID];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMetadata(MediaInterface $media, $name) {
+    $assetID = $this->getAssetID($media);
+    if (empty($assetID)) {
+      return NULL;
+    }
+
+    if (empty($this->asset)) {
+      $asset = $this->getAsset($assetID, TRUE);
+      if (empty($asset)) {
+        return NULL;
+      }
+      $this->asset = $asset;
     }
 
     // Return values of XMP metadata.
     if (array_key_exists($name, $this->acquiadamXmpFields)) {
       // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
       $xmp_field = substr($name, 4);
-      if (isset($this->asset->xmp_metadata[$xmp_field])) {
+      if (isset($this->asset->xmp_metadata[$xmp_field]['value'])) {
         return $this->asset->xmp_metadata[$xmp_field]['value'];
       }
       else {
         return NULL;
       }
     }
-    
-    // Return values of asset properties.
+
     switch ($name) {
       case 'default_name':
         return parent::getMetadata($media, 'default_name');
@@ -165,85 +239,61 @@ class AcquiadamAsset extends MediaSourceBase {
       case 'thumbnail_uri':
         return $this->thumbnail($media);
 
-      case 'type_id':
-        return $this->asset->type_id;
-
-      case 'filename':
-        return $this->asset->filename;
-
-      case 'filesize':
-        return $this->asset->filesize;
-
-      case 'width':
-        return $this->asset->width;
-
-      case 'height':
-        return $this->asset->height;
-
-      case 'description':
-        return $this->asset->description;
-
-      case 'filetype':
-        return $this->asset->filetype;
-
-      case 'colorspace':
-        return $this->asset->colorspace;
-
-      case 'version':
-        return $this->asset->version;
-
-      case 'datecreated':
-        return $this->asset->date_created_unix;
-
-      case 'datemodified':
-        return $this->asset->date_modified_unix;
-
-      case 'datecaptured':
-        return $this->asset->datecapturedUnix;
-
       case 'folderID':
-        return $this->asset->folder->id;
+        return isset($this->asset->folder->id) ? $this->asset->folder->id : NULL;
 
       case 'file':
         return $this->file ? $this->file->id() : NULL;
 
       case 'status':
-        return intval($this->asset->status == 'active');
+        return isset($this->asset->status) ? intval($this->asset->status == 'active') : NULL;
 
+      default:
+        // The key should be the local property name and the value should be the
+        // DAM provided property name.
+        $property_name_mapping = [
+          'colorspace' => 'colorspace',
+          'datecaptured' => 'datecapturedUnix',
+          'datecreated' => 'date_created_unix',
+          'datemodified' => 'date_modified_unix',
+          'description' => 'description',
+          'filename' => 'filename',
+          'filesize' => 'filesize',
+          'filetype' => 'filetype',
+          'height' => 'height',
+          'type_id' => 'type_id',
+          'version' => 'version',
+          'width' => 'width',
+        ];
+        if (in_array($name, $property_name_mapping)) {
+          $property_name = $property_name_mapping[$name];
+          return isset($this->asset->{$property_name}) ? $this->asset->{$property_name} : NULL;
+        }
     }
 
-    return FALSE;
+    return NULL;
   }
 
   /**
    * {@inheritdoc}
    */
   public function thumbnail(MediaInterface $media) {
-    // Load the bundle for this asset.
-    $bundle = $this->entityTypeManager->getStorage('media_type')->load($media->bundle());
-    // Load the field definitions for this bundle.
-    $field_definitions = $this->entityFieldManager->getFieldDefinitions($media->getEntityTypeId(), $media->bundle());
-    // If a source field is set for this bundle.
-    if (isset($this->configuration['source_field'])) {
-      // Set the name of the source field.
-      $source_field = $this->configuration['source_field'];
-      // If the media entity has the source field.
-      if ($media->hasField($source_field)) {
-        // Set the property name for the source field.
-        $property_name = $media->{$source_field}->first()->mainPropertyName();
-        // Get the asset ID value from the source field.
-        $assetID = $media->{$source_field}->{$property_name};
-      }
-    }
-    // If we don't have an asset ID, there's not much we can do.
-    if (is_null($assetID)) {
+    $assetID = $this->getAssetID($media);
+    if (empty($assetID)) {
       return FALSE;
     }
-    // Load the asset.
-    $asset = $this->acquiadam->getAsset($assetID);
+
+    $asset = $this->getAsset($assetID);
+    if (empty($asset)) {
+      return FALSE;
+    }
+
     // Download the asset file as a string.
     $file_contents = $this->acquiadam->downloadAsset($asset->id);
     // Set the path for assets.
+    // Load the bundle for this asset.
+    $bundle = $this->entityTypeManager->getStorage('media_type')
+      ->load($media->bundle());
     // If the bundle has a field mapped for the file define it.
     $field_map = $bundle->getFieldMap();
     $file_field = isset($field_map['file']) ? $field_map['file'] : '';
@@ -252,6 +302,8 @@ class AcquiadamAsset extends MediaSourceBase {
     // Define file directory.
     $file_directory = 'acquiadam_assets/';
     if ($file_field) {
+      // Load the field definitions for this bundle.
+      $field_definitions = $this->entityFieldManager->getFieldDefinitions($media->getEntityTypeId(), $media->bundle());
       // Get the storage scheme for the file field.
       $scheme = $field_definitions[$file_field]->getItemDefinition()->getSetting('uri_scheme');
       // Get the file directory for the file field.
