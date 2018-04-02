@@ -60,18 +60,27 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
         return;
       }
       $asset = $source->getAsset($assetID);
-      if (empty($asset)) {
-        \Drupal::logger('media_acquiadam')
-          ->warning('Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.', [
-            '@media_id' => $data['media_id'],
-            '@assetID' => $assetID,
-          ]);
-        return;
-      }
     } catch (\Exception $x) {
       \Drupal::logger('media_acquiadam')
         ->error('Error trying to check asset from media entity @media_id', ['@media_id' => $data['media_id']]);
       return;
+    }
+
+    if (empty($asset)) {
+      \Drupal::logger('media_acquiadam')
+        ->warning('Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.', [
+          '@media_id' => $data['media_id'],
+          '@assetID' => $assetID,
+        ]);
+
+      $is_dam_deleted = \Drupal::service('media_acquiadam.asset_data')
+        ->get($assetID, 'remote_deleted');
+      // We want to trigger the entity save in the event that the asset has been
+      // deleted so that the entity gets unpublished. In all other scenarios we
+      // want to prevent the save call.
+      if (!$is_dam_deleted) {
+        return;
+      }
     }
 
     try {
