@@ -161,3 +161,12 @@ In order to add a Acquia DAM asset to a piece of content you will need to add a 
 The media entity module provides a default embed button which can be configured at /admin/config/content/embed.  It can be configured to use a specific entity browser and allow for different display modes.
 
 - NOTE: When choosing an entity browser to use for the media embed button, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button.  You may want to use the "iFrame" display plugin or create a separate Entity Browser to use with the media embed button
+
+### Acquia DAM Usage Report
+For a usage report, enable the media_acquiadam_report module. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
+
+The usage report can be accessed beneath the Media tab at /admin/content/media or directly via /acquiadam/asset/report. 
+
+This module depends on the entity_usage module for it's media use count and references. For configuration options, refer to the entity_usage documentation: https://www.drupal.org/docs/8/modules/entity-usage.
+
+- NOTE: Usage count currently includes revisions. A node, with versioning enabled and a media item attached to it, will display a use count for each revision that references the media item. Track the discussion and improvements to this behavior here: https://www.drupal.org/project/entity_usage/issues/2952210
