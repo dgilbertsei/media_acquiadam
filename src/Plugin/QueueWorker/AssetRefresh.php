@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @QueueWorker (
  *   id = "media_acquiadam_asset_refresh",
  *   title = @Translation("Acquia DAM Asset Refresh"),
- *   cron = {"time" = 10}
+ *   cron = {"time" = 30}
  * )
  */
 class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInterface {
