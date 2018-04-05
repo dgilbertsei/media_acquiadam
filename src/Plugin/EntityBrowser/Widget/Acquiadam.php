@@ -534,6 +534,8 @@ class Acquiadam extends WidgetBase {
     if ($current_folder->id) {
       // Fetch the folder object.
       $current_folder = $this->acquiadam->getFolder($current_folder->id);
+      // Store the list of folders for rendering later.
+      $folders = $current_folder->folders;
       // Fetch a list of assets for the folder.
       $folder_assets = $this->acquiadam->getFolderAssets($current_folder->id, $params);
       // If there is a filter applied for the file type.
@@ -542,8 +544,6 @@ class Acquiadam extends WidgetBase {
         // results so pager works correctly.
         $current_folder->numassets = $folder_assets->facets->types->{$params['types']};
       }
-      // Store the list of folders for rendering later.
-      $folders = $folder_assets->folders;
       // Set items to array of assets in the current folder.
       $items = $folder_assets->items;
     }

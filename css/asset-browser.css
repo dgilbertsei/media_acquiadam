@@ -19,10 +19,11 @@
 .acquiadam-asset-browser .form-item.form-type-checkbox,
 .acquiadam-browser-folder-link {
   width: 180px;
-  height: 180px;
   display: inline-block;
   margin: 5px;
+  min-height: 180px;
   padding: 5px;
+  vertical-align: top;
 }
 
 .acquiadam-asset-browser .form-item.form-type-checkbox {
