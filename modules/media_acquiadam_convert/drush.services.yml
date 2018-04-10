@@ -1,0 +1,5 @@
+services:
+  media_acquiadam_convert.commands:
+    class: \Drupal\media_acquiadam_convert\Commands\MediaAcquiadamConvertCommands
+    tags:
+      - { name: drush.command }

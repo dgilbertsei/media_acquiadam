@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Drupal hooks and other functions.
+ */
+
+use Drupal\Component\Utility\Unicode;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\ClientFactory;
+
+/**
+ * Gets an Acquia DAM client.
+ *
+ * @return \Drupal\media_acquiadam\Client|null
+ *   The Acquia DAM client or NULL.
+ */
+function media_acquiadam_convert_get_background_dam_client() {
+
+  static $dam = NULL;
+  if (is_null($dam)) {
+    /** @var \Drupal\media_acquiadam\ClientFactory $factory */
+    $factory = new ClientFactory(\Drupal::configFactory(), \Drupal::httpClient(), \Drupal::service('user.data'), \Drupal::currentUser());
+    /** @var \Drupal\media_acquiadam\Client $dam */
+    $dam = new Acquiadam($factory, 'background');
+  }
+  return $dam;
+}

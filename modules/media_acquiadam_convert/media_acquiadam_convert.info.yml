@@ -1,0 +1,7 @@
+name: "Media: Acquia DAM type converter"
+description: "Provides functionality for leveraging Acquia DAM to convert assets from one image type to another."
+core: 8.x
+type: module
+package: Media
+dependencies:
+  - media_acquiadam
