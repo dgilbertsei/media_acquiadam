@@ -93,6 +93,9 @@ function media_acquiadam_media_presave($entity) {
 
   /** @var $source \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset */
   $source = $entity->getSource();
+  if ('acquiadam_asset' !== $source->getPluginId()) {
+    return;
+  }
 
   $assetID = $source->getAssetID($entity);
   if (empty($assetID)) {
