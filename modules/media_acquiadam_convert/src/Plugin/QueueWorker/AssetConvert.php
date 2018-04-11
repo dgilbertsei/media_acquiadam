@@ -164,7 +164,12 @@ class AssetConvert extends QueueWorkerBase implements ContainerFactoryPluginInte
       return FALSE;
     }
     elseif (!empty($data['last_run']) && $data['last_run'] == \REQUEST_TIME) {
-      throw new RequeueException('Conversion queue rate limiting was triggered.');
+
+      // If it's been longer than 5 minutes then ignore this limiting. This can
+      // happen when manually processing the queue with drush.
+      if ((\REQUEST_TIME + 5*60) >= time()) {
+        throw new RequeueException('Conversion queue rate limiting was triggered.');
+      }
     }
 
     $convert_key = sprintf('%s_to_%s', $data['originalType'], $data['destinationType']);
