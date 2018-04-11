@@ -136,8 +136,14 @@ function media_acquiadam_media_presave($entity) {
  * Implements hook_ENTITY_TYPE_delete().
  */
 function media_acquiadam_media_delete(EntityInterface $entity) {
+  /** @var $source \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset */
+  $source = $entity->getSource();
+  if ('acquiadam_asset' !== $source->getPluginId()) {
+    return;
+  }
+
   /** @var \Drupal\media\Entity\Media $entity */
-  $asset_id = $entity->getSource()->getAssetID($entity);
+  $asset_id = $source->getAssetID($entity);
   if (!empty($asset_id)) {
     $usages = media_acquiadam_get_cross_bundle_usage($asset_id);
     // If usages is empty then that means no media entities are referencing the
