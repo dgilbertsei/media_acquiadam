@@ -33,29 +33,48 @@ class AssetData implements AssetDataInterface {
   /**
    * {@inheritdoc}
    */
-  public function get($assetID, $name = NULL) {
+  public function get($assetID = NULL, $name = NULL) {
     $query = $this->connection->select('acquiadam_assets_data', 'ad')
-      ->fields('ad')
-      ->condition('asset_id', $assetID);
+      ->fields('ad');
+    if (isset($assetID)) {
+      $query->condition('asset_id', $assetID);
+    }
     if (isset($name)) {
       $query->condition('name', $name);
     }
     $result = $query->execute();
 
-    // If $name was provided we should only return the specific value instead
-    // of an array with just the value in it.
-    if (isset($name)) {
-      $result = $result->fetchAllAssoc('name');
-      if (isset($result[$name])) {
-        return $result[$name]->serialized ? unserialize($result[$name]->value) : $result[$name]->value;
+    // A specific value for a specific asset ID was requested.
+    if (isset($assetID) && isset($name)) {
+      $result = $result->fetchAllAssoc('asset_id');
+      if (isset($result[$assetID])) {
+        return $result[$assetID]->serialized ? unserialize($result[$assetID]->value) : $result[$assetID]->value;
       }
       return NULL;
     }
 
     $return = [];
-    foreach ($result as $record) {
-      $return[$record->name] = ($record->serialized ? unserialize($record->value) : $record->value);
+    // All values for a given asset ID were requested.
+    if (isset($assetID)) {
+      foreach ($result as $record) {
+        $return[$record->name] = $record->serialized ? unserialize($record->value) : $record->value;
+      }
+      return $return;
     }
+
+    // All asset IDs for a given value were requested.
+    if (isset($name)) {
+      foreach ($result as $record) {
+        $return[$record->asset_id] = $record->serialized ? unserialize($record->value) : $record->value;
+      }
+      return $return;
+    }
+
+    // Everything was requested.
+    foreach ($result as $record) {
+      $return[$record->asset_id][$record->name] = $record->serialized ? unserialize($record->value) : $record->value;
+    }
+
     return $return;
   }
 
