@@ -2,12 +2,12 @@
 
 namespace Drupal\media_acquiadam\Plugin\media\Source;
 
+use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Utility\Token;
-use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\media\MediaInterface;
@@ -23,8 +23,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @MediaSource(
  *   id = "acquiadam_asset",
  *   label = @Translation("Acquia DAM asset"),
- *   description = @Translation("Provides business logic and metadata for assets stored on Acquia DAM."),
- *   allowed_field_types = {"integer"},
+ *   description = @Translation("Provides business logic and metadata for
+ *   assets stored on Acquia DAM."), allowed_field_types = {"integer"},
  * )
  */
 class AcquiadamAsset extends MediaSourceBase {
@@ -32,7 +32,8 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * A configured API object.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client
+   *   $acquiadam
    */
   protected $acquiadam;
 
@@ -51,13 +52,6 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $asset = NULL;
 
   /**
-   * The file entity.
-   *
-   * @var \Drupal\file\Entity\File
-   */
-  protected $file = NULL;
-
-  /**
    * The token service.
    *
    * @var \Drupal\Core\Utility\Token
@@ -66,12 +60,31 @@ class AcquiadamAsset extends MediaSourceBase {
 
   /**
    * The asset data service.
-   * @var \Drupal\media_acquiadam\AssetData
+   *
+   * @var \Drupal\media_acquiadam\AssetData $asset_data
    */
   protected $asset_data;
 
   /**
+   * Media: Acquia DAM config.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig $config
+   */
+  protected $config;
+
+  /**
    * AcquiadamAsset constructor.
+   *
+   * @param array $configuration
+   * @param $plugin_id
+   * @param $plugin_definition
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $field_type_manager
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Utility\Token $token
+   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
+   * @param \Drupal\media_acquiadam\AssetDataInterface $asset_data
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
@@ -80,6 +93,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $this->acquiadam = $acquiadam;
     $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
     $this->asset_data = $asset_data;
+    $this->config = $config_factory->get('media_acquiadam.settings');
   }
 
   /**
@@ -104,8 +118,6 @@ class AcquiadamAsset extends MediaSourceBase {
    * {@inheritdoc}
    */
   public function getMetadataAttributes() {
-    // The asset properties.
-    // @TODO: Determine if other properties need to be added here.
     $fields = [
       'colorspace' => $this->t('Color space'),
       'datecaptured' => $this->t('Date captured'),
@@ -125,7 +137,7 @@ class AcquiadamAsset extends MediaSourceBase {
     ];
 
     // Add additional XMP fields to fields array.
-    foreach($this->acquiadamXmpFields as $xmp_id => $xmp_field) {
+    foreach ($this->acquiadamXmpFields as $xmp_id => $xmp_field) {
       $fields[$xmp_id] = $xmp_field['label'];
     }
 
@@ -147,7 +159,9 @@ class AcquiadamAsset extends MediaSourceBase {
 
       if ($media->hasField($source_field)) {
         $property_name = $media->{$source_field}->first()->mainPropertyName();
-        return $media->{$source_field}->{$property_name};
+        if (!empty($media->{$source_field}->{$property_name})) {
+          return $media->{$source_field}->{$property_name};
+        }
       }
     }
     return FALSE;
@@ -193,8 +207,7 @@ class AcquiadamAsset extends MediaSourceBase {
       }
     } catch (\Exception $x) {
       watchdog_exception('media_acquiadam', $x);
-    }
-    finally {
+    } finally {
       if (!isset($assets[$assetID])) {
         $assets[$assetID] = FALSE;
       }
@@ -204,16 +217,40 @@ class AcquiadamAsset extends MediaSourceBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Get the asset from a media entity.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get an asset from.
+   *
+   * @return bool|\cweagans\webdam\Entity\Asset
+   *   The asset or FALSE on failure.
+   */
+  public function getAssetFromEntity(MediaInterface $media) {
+    $assetID = $this->getAssetID($media);
+    if (!empty($assetID)) {
+      return $this->getAsset($assetID, TRUE);
+    }
+    return FALSE;
+  }
+
+  /**
+   * Gets the metadata for the given entity.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get metadata from.
+   * @param string $name
+   *   The metadata item to get the value of.
+   *
+   * @return mixed|null
+   *   The metadata value or NULL if unset.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Core\TypedData\Exception\MissingDataException
    */
   public function getMetadata(MediaInterface $media, $name) {
-    $assetID = $this->getAssetID($media);
-    if (empty($assetID)) {
-      return NULL;
-    }
 
     if (empty($this->asset)) {
-      $asset = $this->getAsset($assetID, TRUE);
+      $asset = $this->getAssetFromEntity($media);
       if (empty($asset)) {
         return NULL;
       }
@@ -224,12 +261,9 @@ class AcquiadamAsset extends MediaSourceBase {
     if (array_key_exists($name, $this->acquiadamXmpFields)) {
       // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
       $xmp_field = substr($name, 4);
-      if (isset($this->asset->xmp_metadata[$xmp_field]['value'])) {
-        return $this->asset->xmp_metadata[$xmp_field]['value'];
-      }
-      else {
-        return NULL;
-      }
+      return isset($this->asset->xmp_metadata[$xmp_field]['value']) ?
+        $this->asset->xmp_metadata[$xmp_field]['value'] :
+        NULL;
     }
 
     switch ($name) {
@@ -243,7 +277,11 @@ class AcquiadamAsset extends MediaSourceBase {
         return isset($this->asset->folder->id) ? $this->asset->folder->id : NULL;
 
       case 'file':
-        return $this->file ? $this->file->id() : NULL;
+        $file = $this->createOrGetFile($media);
+        if (!empty($file) && $file instanceof FileInterface) {
+          return $file->id();
+        }
+        return NULL;
 
       case 'status':
         return isset($this->asset->status) ? intval($this->asset->status == 'active') : NULL;
@@ -267,7 +305,9 @@ class AcquiadamAsset extends MediaSourceBase {
         ];
         if (in_array($name, $property_name_mapping)) {
           $property_name = $property_name_mapping[$name];
-          return isset($this->asset->{$property_name}) ? $this->asset->{$property_name} : NULL;
+          return isset($this->asset->{$property_name}) ?
+            $this->asset->{$property_name} :
+            NULL;
         }
     }
 
@@ -278,94 +318,249 @@ class AcquiadamAsset extends MediaSourceBase {
    * {@inheritdoc}
    */
   public function thumbnail(MediaInterface $media) {
-    $assetID = $this->getAssetID($media);
-    if (empty($assetID)) {
-      return FALSE;
+    $asset = $this->getAssetFromEntity($media);
+    if (empty($asset)) {
+      return $this->getFallbackThumbnail();
     }
 
-    $asset = $this->getAsset($assetID);
+    $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
+    $mimetype = \Drupal::service('file.mime_type.guesser')->guess($fake_name);
+    list($discrete_type, $subtype) = explode('/', $mimetype, 2);
+    $is_image = 'image' == $discrete_type;
+
+    $file = $this->createOrGetFile($media);
+    if (empty($file) || !$file instanceof FileInterface) {
+      return $this->getFallbackThumbnail();
+    }
+
+    $thumbnail = $is_image ?
+      $this->getImageThumbnail($file) :
+      $this->getGenericIcon($mimetype);
+
+    return !empty($thumbnail) ?
+      $thumbnail :
+      $this->getFallbackThumbnail();
+  }
+
+  /**
+   * Get an image path from a file.
+   *
+   * @param \Drupal\file\FileInterface $file
+   *   The image file to get the image path for.
+   *
+   * @return bool|string
+   *   The image path to use or FALSE on failure.
+   */
+  protected function getImageThumbnail(FileInterface $file) {
+    /** @var \Drupal\Core\Image\Image $image */
+    $image = \Drupal::service('image.factory')->get($file->getFileUri());
+
+    if ($image->isValid()) {
+      // Pre-create all image styles.
+      $styles = ImageStyle::loadMultiple();
+      foreach ($styles as $style) {
+        /** @var \Drupal\image\Entity\ImageStyle $style */
+        $style->flush($file->getFileUri());
+      }
+      return $file->getFileUri();
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Gets a generic file icon based on mimetype.
+   *
+   * @param array $mimetype
+   *   An array of a discrete type and a subtype.
+   *
+   * @return bool|string
+   *   A path to a generic filetype icon or FALSE on failure.
+   */
+  protected function getGenericIcon(array $mimetype) {
+    $icon_base = $this->configFactory->get('media.settings')
+      ->get('icon_base_uri');
+
+    $generic_paths = [
+      sprintf('%s/%s-%s.png', $icon_base, $mimetype[0], $mimetype[1]),
+      sprintf('%s/%s.png', $icon_base, $mimetype[1]),
+      sprintf('%s/generic.png', $icon_base),
+    ];
+    foreach ($generic_paths as $generic_path) {
+      if (is_file($generic_path)) {
+        return $generic_path;
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * Gets the destination path for Acquia DAM assets.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get file field information from.
+   *
+   * @return string
+   *   The final folder to store the asset locally.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   */
+  protected function getAssetFileDestination(MediaInterface $media) {
+    $scheme = \file_default_scheme();
+    $file_directory = 'acquiadam_assets';
+
+    // We need to pull the File field settings off of the media bundle and use
+    // its path information.
+    $file_field = $this->getMediaFileField($media);
+    if (!empty($file_field)) {
+      // Load the field definitions for this bundle.
+      $field_definitions = $this->entityFieldManager->getFieldDefinitions($media->getEntityTypeId(), $media->bundle());
+      // Get the storage scheme for the file field.
+      $scheme = $field_definitions[$file_field]->getItemDefinition()
+        ->getSetting('uri_scheme');
+      // Get the file directory for the file field.
+      $file_directory = $field_definitions[$file_field]->getItemDefinition()
+        ->getSetting('file_directory');
+      // Replace the token for file directory.
+      if (!empty($file_directory)) {
+        $file_directory = $this->token->replace($file_directory);
+      }
+    }
+
+    return sprintf('%s://%s', $scheme, $file_directory);
+  }
+
+  /**
+   * Gets the file field being used to store the asset.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get the mapped file field.
+   *
+   * @return bool|string
+   *   The name of the file field on the media bundle or FALSE on failure.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   */
+  protected function getMediaFileField(MediaInterface $media) {
+    /** @var \Drupal\media\Entity\MediaType $bundle */
+    $bundle = $this->entityTypeManager->getStorage('media_type')
+      ->load($media->bundle());
+    $field_map = $bundle->getFieldMap();
+    return empty($field_map['file']) ? FALSE : $field_map['file'];
+  }
+
+  /**
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get the existing file ID from.
+   *
+   * @return bool|int
+   *   The existing file ID or FALSE if one was not found.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+   */
+  protected function getExistingFileID(MediaInterface $media) {
+    $file_field = $this->getMediaFileField($media);
+    if ($media->hasField($file_field)) {
+      /** @var \Drupal\file\Plugin\Field\FieldType\FileItem $file */
+      $file = $media->get($file_field)->first();
+      if (!empty($file->target_id)) {
+        return $file->target_id;
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * Creates a new file for an asset.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The parent media entity.
+   * @param int $replace
+   *   FILE_EXISTS_REPLACE or FILE_EXISTS_RENAME to replace existing or create
+   *   new files.
+   *
+   * @return bool|\Drupal\file\FileInterface
+   *   The created file or FALSE on failure.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   */
+  protected function createNewFile(MediaInterface $media, $replace = \FILE_EXISTS_RENAME) {
+    $asset = $this->getAssetFromEntity($media);
     if (empty($asset)) {
       return FALSE;
     }
 
-    // Download the asset file as a string.
-    $file_contents = $this->acquiadam->downloadAsset($asset->id);
-    // Set the path for assets.
-    // Load the bundle for this asset.
-    $bundle = $this->entityTypeManager->getStorage('media_type')
-      ->load($media->bundle());
-    // If the bundle has a field mapped for the file define it.
-    $field_map = $bundle->getFieldMap();
-    $file_field = isset($field_map['file']) ? $field_map['file'] : '';
-    // Define path.
-    $scheme = 'public';
-    // Define file directory.
-    $file_directory = 'acquiadam_assets/';
-    if ($file_field) {
-      // Load the field definitions for this bundle.
-      $field_definitions = $this->entityFieldManager->getFieldDefinitions($media->getEntityTypeId(), $media->bundle());
-      // Get the storage scheme for the file field.
-      $scheme = $field_definitions[$file_field]->getItemDefinition()->getSetting('uri_scheme');
-      // Get the file directory for the file field.
-      $file_directory = $field_definitions[$file_field]->getItemDefinition()->getSetting('file_directory');
-      // Replace the token for file directory.
-      if (!empty($file_directory)) {
-        $file_directory = $this->token->replace($file_directory) . '/';
-      }
+    // Ensure we can write to our destination directory.
+    $destination_folder = $this->getAssetFileDestination($media);
+    $destination_name = $asset->filename;
+    $destination_path = sprintf('%s/%s', $destination_folder, $destination_name);
+    if (!file_prepare_directory($destination_folder, FILE_CREATE_DIRECTORY)) {
+      return FALSE;
     }
-    // Set the path prefix for the file that is about to be downloaded
-    // and saved in to Drupal.
-    $path = $scheme . '://' . $file_directory;
-    // Prepare acquiadam directory for writing and only proceed if successful.
-    if (file_prepare_directory($path, FILE_CREATE_DIRECTORY)) {
-      // Save the file into Drupal.
-      $file = file_save_data($file_contents, $path . $asset->id . '.' . $asset->filetype, FILE_EXISTS_REPLACE);
-      // If the file was saved.
-      if ($file instanceof FileInterface || $file instanceof File) {
-        $this->file = $file;
-        // Get the mimetype of the file.
-        $mimetype = $file->getMimeType();
-        // Split the mimetype into 2 parts (primary/secondary)
-        $mimetype = explode('/', $mimetype);
-        // If the primary mimetype is not an image.
-        if ($mimetype[0] != 'image') {
-          $icon_base = $this->configFactory->get('media.settings')->get('icon_base_uri');
-          // Try to get the filetype icon using primary and secondary mimetype.
-          $thumbnail = $icon_base . "/{$mimetype[0]}-{$mimetype[1]}.png";
-          // If icon is not found.
-          if (!is_file($thumbnail)) {
-            // Try to get the filetype icon using only the secondary mimetype.
-            $thumbnail = $icon_base . "/{$mimetype[1]}.png";
-            // If icon is still not found.
-            if (!is_file($thumbnail)) {
-              // Use a generic document icon.
-              $thumbnail = $icon_base . '/generic.png';
-            }
-          }
-        }
-        else {
-          // Load the image.
-          $image = \Drupal::service('image.factory')->get($file->getFileUri());
-          /** @var \Drupal\Core\Image\Image $image */
-          // If the image is valid.
-          if ($image->isValid()) {
-            // Load all image styles.
-            $styles = ImageStyle::loadMultiple();
-            // For each image style.
-            foreach ($styles as $style) {
-              /** @var \Drupal\image\Entity\ImageStyle $style */
-              // Flush and regenerate the styled image.
-              $style->flush($file->getFileUri());
-            }
-          }
-          // Use the URI of the image.
-          $thumbnail = $file->getFileUri();
-        }
-        // Return the file URI.
-        return $thumbnail;
-      }
+
+    // If the module was configured to enforce an image size limit then we
+    // need to grab the nearest matching pre-created size.
+    $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
+    $mimetype = \Drupal::service('file.mime_type.guesser')->guess($fake_name);
+    list($discrete_type, $subtype) = explode('/', $mimetype, 2);
+    $is_image = 'image' == $discrete_type;
+
+    $size_limit = $this->config->get('size_limit');
+    if (!empty($size_limit) && -1 !== $size_limit && $is_image) {
+      $largest_tn = $this->getThumbnailUrlBySize($asset, $size_limit);
+      $file = \system_retrieve_file($largest_tn, $destination_path, TRUE, $replace);
     }
-    return $this->getFallbackThumbnail();
+    else {
+      $file_contents = $this->acquiadam->downloadAsset($asset->id);
+      $file = \file_save_data($file_contents, $destination_path, $replace);
+    }
+
+    $is_valid = !empty($file) && $file instanceof FileInterface;
+
+    return $is_valid ? $file : FALSE;
+  }
+
+  /**
+   * Returns an associated file or creates a new one.
+   *
+   * @param \Drupal\media\MediaInterface $media
+   *   The media entity to get a file for.
+   *
+   * @return bool|\Drupal\file\FileInterface
+   *   A file entity or FALSE on failure.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+   */
+  protected function createOrGetFile(MediaInterface $media) {
+
+    // If we're getting an updated version of the asset we need to grab a new
+    // version of the file.
+    $asset = $this->getAssetFromEntity($media);
+    $current_version = intval($this->asset_data->get($asset->id, 'version'));
+    $new_version = intval($asset->version);
+    $is_updated_version = $new_version > 1 && $new_version != $current_version;
+    if ($is_updated_version) {
+      // Track the new version for future reference.
+      $this->asset_data->set($asset->id, 'version', $new_version);
+    }
+
+    $file = FALSE;
+    // If there is already a file on the media entity then we should use that.
+    $fid = $this->getExistingFileID($media);
+    if (!empty($fid)) {
+      $file = $this->entityTypeManager->getStorage('file')->load($fid);
+    }
+
+    if (empty($file) || $is_updated_version) {
+      $replace = $is_updated_version ?
+        \FILE_EXISTS_REPLACE :
+        \FILE_EXISTS_RENAME;
+      $file = $this->createNewFile($media, $replace);
+    }
+
+    return $file;
   }
 
   /**
@@ -400,6 +595,46 @@ class AcquiadamAsset extends MediaSourceBase {
     }
 
     return $fallback;
+  }
+
+  /**
+   * Get the URL to the DAM-provided thumbnail if possible.
+   *
+   * @param Asset $asset
+   *   The asset to get the thumbnail size from.
+   * @param int $thumbnailSize
+   *   Find the closest thumbnail size without going over when multiple
+   *   thumbnails are available.
+   *
+   * @return string|false
+   *   The preview URL or FALSE if none available.
+   */
+  public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 1280) {
+
+    if (!empty($asset->thumbnailurls[0]->url)) {
+      // Copy thumbnail array to variable to avoid a notice about indirect
+      // access.
+      $thumbnails = $asset->thumbnailurls;
+      // Default to first regardless of size.
+      $biggest_matching = $thumbnails[0]->url;
+      foreach ($thumbnails as $tn) {
+        if (!empty($tn->url) && $thumbnailSize >= $tn->size) {
+          // Certain types do not have a 1280 size available despite returning
+          // an URL. We either have to hard code mime types as they crop up, or
+          // check if the URL is accessible on our own. Other URL sizes do not
+          // appear to have this issue.
+          if (1280 == $tn->size) {
+            $response = \Drupal::httpClient()->head($tn->url);
+            if (403 == $response->getStatusCode()) {
+              continue;
+            }
+          }
+          $biggest_matching = $tn->url;
+        }
+      }
+      return $biggest_matching;
+    }
+    return FALSE;
   }
 
 }

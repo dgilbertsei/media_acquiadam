@@ -91,6 +91,11 @@ function media_acquiadam_preprocess_checkboxes__acquiadam_assets(&$variables) {
  */
 function media_acquiadam_media_presave($entity) {
 
+  // Only go for a resync when updating existing entities.
+  if ($entity->isNew()) {
+    return;
+  }
+
   /** @var $source \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset */
   $source = $entity->getSource();
   if ('acquiadam_asset' !== $source->getPluginId()) {

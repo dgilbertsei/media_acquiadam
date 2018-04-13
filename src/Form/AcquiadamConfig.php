@@ -2,13 +2,13 @@
 
 namespace Drupal\media_acquiadam\Form;
 
+use cweagans\webdam\Client as WebdamClient;
+use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use cweagans\webdam\Exception\InvalidCredentialsException;
 use GuzzleHttp\ClientInterface;
-use cweagans\webdam\Client as WebdamClient;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class AcquiadamConfig.
@@ -141,6 +141,27 @@ class AcquiadamConfig extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
+    $form['image'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Image configuration'),
+    ];
+
+    $form['image']['size_limit'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image size limit'),
+      '#description' => $this->t('Limit the source size used when importing image assets. The largest available size up to the selected will be used.'),
+      '#options' => [
+        -1 => $this->t('Original size'),
+        100 => 100,
+        150 => 150,
+        220 => 220,
+        310 => 310,
+        550 => 550,
+        1280 => 1280,
+      ],
+      '#default_value' => empty($config->get('size_limit')) ? -1 : $config->get('size_limit'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -178,6 +199,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('client_id', $form_state->getValue('client_id'))
       ->set('secret', $form_state->getValue('secret'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
+      ->set('size_limit', $form_state->getValue('size_limit'))
       ->save();
 
     parent::submitForm($form, $form_state);
