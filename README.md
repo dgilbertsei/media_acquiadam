@@ -113,7 +113,8 @@ Additional fields may be added to store the Acquia DAM asset metadata.  Here is 
 
 - status: General -> Boolean
 - description: Text -> Text (plain)
-- type_id: Text -> Text (plain)
+- id: Number -> Number (integer)
+- type: Text -> Text (plain)
 - filename: Text -> Text (plain)
 - filesize: Number -> Number (decimal)
 - width: Number -> Number (integer)
@@ -125,6 +126,8 @@ Additional fields may be added to store the Acquia DAM asset metadata.  Here is 
 - datemodified: General -> Timestamp
 - datecaptured: General -> Timestamp
 - folderID: Number -> Number (integer)
+
+Additional XMP metadata field mapping options, depending on the fields enabled in Acquia DAM, will also be available (ex. city, state, customfield1 etc.)
 
 #### Configure field mapping for media bundle fields
 Return to the media bundle configuration page and set the field mappings for the fields that you created.  When a Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site.  When the media entity is created the Acquia DAM values will be mapped to the entity fields that you have configured.  The mapped field values will be periodically synchronized with Acquia DAM via cron.

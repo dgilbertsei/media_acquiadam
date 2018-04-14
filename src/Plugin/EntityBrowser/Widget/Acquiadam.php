@@ -724,6 +724,11 @@ class Acquiadam extends WidgetBase {
         ->getFieldDefinitions('media', $media_bundle->id());
       // Load the file settings to validate against.
       $field_map = $media_bundle->getFieldMap();
+      if (!isset($field_map['file'])) {
+        $message = $this->t('Missing file mapping. Check your media configuration.');
+        $form_state->setError($form['widget']['asset-container']['assets'], $message);
+        return;
+      }
       $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
         ->getSetting('file_extensions');
       $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));

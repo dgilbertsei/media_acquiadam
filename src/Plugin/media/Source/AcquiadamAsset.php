@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
@@ -117,6 +118,68 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * {@inheritdoc}
    */
+  public function defaultConfiguration() {
+    return [
+      'source_field' => 'field_acquiadam_asset_id',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    // Fieldset with configuration options not needed.
+    hide($form);
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $submitted_config = array_intersect_key($form_state->getValues(), $this->configuration);
+    foreach ($submitted_config as $config_key => $config_value) {
+      $this->configuration[$config_key] = $config_value;
+    }
+
+    // For consistency, always use the default source_field field name.
+    $default_field_name = $this->defaultConfiguration()['source_field'];
+    // Check if it already exists so it can be used as a shared field.
+    $storage = $this->entityTypeManager->getStorage('field_storage_config');
+    $existing_source_field = $storage->load('media.' . $default_field_name);
+
+    // Set or create the source field.
+    if ($existing_source_field) {
+      // If the default field already exists, return the default field name.
+      $this->configuration['source_field'] = $default_field_name;
+    }
+    else {
+      // Default source field name does not exist, so create a new one.
+      $field_storage = $this->createSourceFieldStorage();
+      $field_storage->save();
+      $this->configuration['source_field'] = $field_storage->getName();
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function createSourceFieldStorage() {
+    $default_field_name = $this->defaultConfiguration()['source_field'];
+
+    // Create the field.
+    return $this->entityTypeManager
+      ->getStorage('field_storage_config')
+      ->create([
+        'entity_type' => 'media',
+        'field_name' => $default_field_name,
+        'type' => reset($this->pluginDefinition['allowed_field_types']),
+      ]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getMetadataAttributes() {
     $fields = [
       'colorspace' => $this->t('Color space'),
@@ -131,7 +194,8 @@ class AcquiadamAsset extends MediaSourceBase {
       'folderID' => $this->t('Folder ID'),
       'height' => $this->t('Height'),
       'status' => $this->t('Active state'),
-      'type_id' => $this->t('Type ID'),
+      'type' => $this->t('Type'),
+      'id' => $this->t('Asset ID'),
       'version' => $this->t('Version'),
       'width' => $this->t('Width'),
     ];
@@ -299,7 +363,8 @@ class AcquiadamAsset extends MediaSourceBase {
           'filesize' => 'filesize',
           'filetype' => 'filetype',
           'height' => 'height',
-          'type_id' => 'type_id',
+          'id' => 'id',
+          'type' => 'type',
           'version' => 'version',
           'width' => 'width',
         ];

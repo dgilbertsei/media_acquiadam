@@ -368,3 +368,58 @@ function media_acquiadam_get_cross_bundle_usage($assetID) {
 
   return $usages;
 }
+
+/**
+ * Implements hook_views_data().
+ */
+function media_acquiadam_views_data() {
+  // Expose acquiadam_assets_data table to views.
+  $data['acquiadam_assets_data']['table']['group'] = t('Acquia DAM');
+  $data['acquiadam_assets_data']['name'] = [
+    'title' => t('Acquia DAM asset data name'),
+    'help' => t('The name of the asset data.'),
+    'field' => [
+      'id' => 'standard',
+    ],
+    'sort' => [
+      'id' => 'standard',
+    ],
+    'filter' => [
+      'id' => 'string',
+    ],
+    'argument' => [
+      'id' => 'string',
+    ],
+  ];
+
+  return $data;
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function media_acquiadam_views_data_alter(array &$data) {
+  // The default source_field defined in MediaSource plugin.
+  $source_field = \Drupal::service('plugin.manager.media.source')
+    ->createInstance('acquiadam_asset')
+    ->defaultConfiguration()['source_field'];
+  // The source field table contains the media item's asset id.
+  $source_field_table = 'media__' . $source_field;
+  // The asset id.
+  $source_field_asset_id = $source_field . '_value';
+
+  // Grouping display in Views UI.
+  $data[$source_field_table]['table']['group'] = t('Acquia DAM');
+  // Provide a relationship between source field and asset data tables
+  $data[$source_field_table]['acquiadam_source_to_asset_data'] = [
+    'title' => t('Asset field to data'),
+    'help' => t('Creates a relationship between the media source field to the asset data.'),
+    'relationship' => [
+      'base' => 'acquiadam_assets_data',
+      'base field' => 'asset_id',
+      'field' => $source_field_asset_id,
+      'id' => 'standard',
+      'label' => t('Asset data'),
+    ],
+  ];
+}
