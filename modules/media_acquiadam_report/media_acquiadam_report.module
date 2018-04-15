@@ -5,6 +5,8 @@
  * Provide views data for media_acquiadam_report.module.
  */
 
+use Drupal\views\ViewExecutable;
+
 /**
  * Implements hook_views_query_alter().
  * 
