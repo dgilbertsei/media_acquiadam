@@ -400,7 +400,7 @@ class AcquiadamAsset extends MediaSourceBase {
 
     $thumbnail = $is_image ?
       $this->getImageThumbnail($file) :
-      $this->getGenericIcon($mimetype);
+      $this->getGenericIcon([$discrete_type, $subtype]);
 
     return !empty($thumbnail) ?
       $thumbnail :
