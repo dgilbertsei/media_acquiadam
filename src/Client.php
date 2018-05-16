@@ -165,7 +165,13 @@ class Client extends OriginalClient {
    *   A list of active xmp metadata fields.
    */
   public function getActiveXmpFields() {
-    $this->checkAuth();
+    try {
+      $this->checkAuth();
+    } catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')
+        ->error('Unable to authenticate to retrieve xmp field data.');
+      return [];
+    }
 
     $response = $this->client->request(
       'GET',
