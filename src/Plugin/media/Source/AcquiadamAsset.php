@@ -572,7 +572,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $is_image = 'image' == $discrete_type;
 
     $size_limit = $this->config->get('size_limit');
-    if (!empty($size_limit) && -1 !== $size_limit && $is_image) {
+    if (!empty($size_limit) && '-1' !== $size_limit && $is_image) {
       $largest_tn = $this->getThumbnailUrlBySize($asset, $size_limit);
       $file = \system_retrieve_file($largest_tn, $destination_path, TRUE, $replace);
     }
