@@ -173,11 +173,17 @@ class Client extends OriginalClient {
       return [];
     }
 
-    $response = $this->client->request(
-      'GET',
-      $this->baseUrl . '/metadataschemas/xmp?full=1',
-      ['headers' => $this->getDefaultHeaders()]
-    );
+    try {
+      $response = $this->client->request(
+        'GET',
+        $this->baseUrl . '/metadataschemas/xmp?full=1',
+        ['headers' => $this->getDefaultHeaders()]
+      );
+    } catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')
+        ->error('Unable to get xmp field data.');
+      return [];
+    }
 
     $response = json_decode((string) $response->getBody());
 
