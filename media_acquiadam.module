@@ -40,6 +40,10 @@ function media_acquiadam_field_formatter_info_alter(&$info) {
   if (isset($info['image']) && !in_array('file', $info['image']['field_types'])) {
     $info['image']['field_types'][] = 'file';
   }
+  // Allow using the responsive image formatter on a file field.
+  if (isset($info['responsive_image']) && !in_array('file', $info['responsive_image']['field_types'])) {
+    $info['responsive_image']['field_types'][] = 'file';
+  }
 }
 
 /**
@@ -208,7 +212,7 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, \Drupal\Core\Fo
   $xmp_keys = preg_grep('/xmp_.+/i', $mapping_keys);
   reset($xmp_keys);
   $offset = key($xmp_keys);
-  
+
   if ($offset) {
     $xmp_header = ['xmp_header' =>[
       '#type' => 'html_tag',
