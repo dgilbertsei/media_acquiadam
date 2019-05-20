@@ -1,0 +1,5 @@
+{
+  "name": "drupal/lightning_acquiadam",
+  "description": "Integrates the Acquia DAM module with Lightning.",
+  "type": "drupal-module"
+}

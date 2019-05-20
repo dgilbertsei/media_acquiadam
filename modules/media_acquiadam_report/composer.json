@@ -1,0 +1,16 @@
+{
+  "name": "drupal/media_acquiadam_report",
+  "type": "drupal-module",
+  "description": "Provides DAM asset usage information.",
+  "require": {
+    "drupal/entity_usage": "^2.0@alpha"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    }
+  ],
+  "minimum-stability": "alpha",
+  "prefer-stable": true
+}

@@ -22,7 +22,8 @@
     "type": "drupal-module",
     "license": "GPL-2.0+",
     "require": {
-        "cweagans/php-webdam-client": "dev-master"
+        "cweagans/php-webdam-client": "dev-master",
+        "drupal/fallback_formatter": "^1.0"
     },
     "extra": {
         "patches": {

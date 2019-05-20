@@ -1,0 +1,5 @@
+{
+  "name": "drupal/media_acquiadam_example",
+  "description": "Example configuration of the Media: Acquia DAM module.",
+  "type": "drupal-module"
+}
