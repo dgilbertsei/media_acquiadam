@@ -91,6 +91,18 @@ class OauthController extends ControllerBase {
       throw new NotFoundHttpException();
     }
 
+    $settings_not_set_message = '';
+
+    /** @var \Drupal\Core\Config\Config $media_acquiadam_settings */
+    $media_acquiadam_settings = $this->config('media_acquiadam.settings');
+    if (!$media_acquiadam_settings->get('username') || !$media_acquiadam_settings->get('client_id')) {
+      $settings_not_set_message = $this->getLinkGenerator()->generate($this->t('Please enter credentials for authentication'), Url::fromRoute('media_acquiadam.config', [], [
+        'query' => [
+          'destination' => "/user/{$this->currentUser->id()}/acquiadam",
+        ],
+      ]));
+    }
+
     $access_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
     $refresh_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
     $access_token_expiration = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
@@ -109,8 +121,7 @@ class OauthController extends ControllerBase {
             ]) . '</p>',
         ],
         [
-          '#markup' => $this->getLinkGenerator()
-            ->generate('Reauthenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
+          '#markup' => $settings_not_set_message ?: $this->getLinkGenerator()->generate('Reauthenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
         ],
       ];
     }
@@ -124,7 +135,7 @@ class OauthController extends ControllerBase {
           '#markup' => '<p>' . $this->t('You are not authenticated with Acquia DAM.') . '</p>',
         ],
         [
-          '#markup' => $this->getLinkGenerator()->generate('Authenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
+          '#markup' => $settings_not_set_message ?: $this->getLinkGenerator()->generate('Authenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
         ],
       ];
     }
