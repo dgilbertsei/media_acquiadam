@@ -4,7 +4,7 @@ core: 8.x
 type: module
 package: Media
 dependencies:
-  - media_acquiadam
-  - file
-  - image
-  - entity_usage
+  - media_acquiadam:media_acquiadam
+  - drupal:file
+  - drupal:image
+  - entity_usage:entity_usage

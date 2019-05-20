@@ -4,7 +4,7 @@ core: 8.x
 type: module
 package: Media
 dependencies:
-  - media_acquiadam
-  - file
-  - image
-  - fallback_formatter
+  - media_acquiadam:media_acquiadam
+  - drupal:file
+  - drupal:image
+  - fallback_formatter:fallback_formatter
