@@ -744,6 +744,11 @@ class Acquiadam extends WidgetBase {
         'cardinality',
         'cardinality',
       ]);
+
+      if (!count($assets)) {
+        $form_state->setError($form['widget']['asset-container'], $this->t('Please select an asset.'));
+      }
+
       // If the field cardinality is limited and the number of assets selected
       // is greater than the field cardinality.
       if ($field_cardinality > 0 && count($assets) > $field_cardinality) {
