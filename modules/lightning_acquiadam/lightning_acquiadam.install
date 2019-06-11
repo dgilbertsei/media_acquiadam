@@ -1,0 +1,29 @@
+<?php
+/**
+ * @file
+ * Drupal install and update hooks.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function lightning_acquiadam_requirements($phase) {
+  $requirements = [];
+
+  if ('runtime' === $phase) {
+    $requirements['lightning_acquiadam_deprecated'] = [
+      'title' => t('Media: Acquia DAM'),
+      'description' => t('The Lightning: Acquia DAM module should be uninstalled. It has been deprecated in favor of Media: Acquia DAM - Example Configuration.'),
+      'severity' => REQUIREMENT_ERROR,
+    ];
+  }
+  elseif ('install' === $phase) {
+    $requirements['lightning_acquiadam_noinstall'] = [
+      'title' => t('Media: Acquia DAM'),
+      'description' => t('The Lightning: Acquia DAM module should not be installed. It has been deprecated in favor of Media: Acquia DAM - Example Configuration.'),
+      'severity' => REQUIREMENT_ERROR,
+    ];
+  }
+
+  return $requirements;
+}

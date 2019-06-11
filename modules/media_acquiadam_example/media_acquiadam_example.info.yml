@@ -7,4 +7,5 @@ dependencies:
   - media_acquiadam:media_acquiadam
   - drupal:file
   - drupal:image
+  - media:media
   - fallback_formatter:fallback_formatter

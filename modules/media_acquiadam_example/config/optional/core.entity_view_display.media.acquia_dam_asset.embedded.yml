@@ -6,7 +6,6 @@ dependencies:
     - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
     - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
     - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
-    - field.field.media.acquia_dam_asset.field_media_in_library
     - media.type.acquia_dam_asset
   module:
     - fallback_formatter
@@ -16,13 +15,17 @@ bundle: acquia_dam_asset
 mode: embedded
 content:
   field_acquiadam_asset_file:
+    type: fallback
     weight: 0
+    region: content
     label: hidden
     settings:
       formatters:
         file_default:
           status: true
           weight: -49
+          settings:
+            use_description_as_link_text: true
           formatter: file_default
         file_rss_enclosure:
           status: false
@@ -32,9 +35,23 @@ content:
           status: false
           weight: -47
           formatter: file_url_plain
-        file_table:
+        file_video:
           status: false
           weight: -46
+          settings:
+            controls: true
+            autoplay: false
+            loop: false
+            multiple_file_display_type: tags
+            muted: false
+            width: 640
+            height: 480
+          formatter: file_video
+        file_table:
+          status: false
+          weight: -45
+          settings:
+            use_description_as_link_text: true
           formatter: file_table
         image:
           status: true
@@ -43,36 +60,11 @@ content:
             image_style: medium
             image_link: ''
           formatter: image
-        image_url:
-          status: false
-          weight: -45
-          settings:
-            image_style: ''
-          formatter: image_url
-        entity_reference_entity_view:
-          status: false
-          weight: -44
-          settings:
-            view_mode: default
-          formatter: entity_reference_entity_view
-        entity_reference_entity_id:
-          status: false
-          weight: -43
-          formatter: entity_reference_entity_id
-        entity_reference_label:
-          status: false
-          weight: -42
-          settings:
-            link: true
-          formatter: entity_reference_label
     third_party_settings: {  }
-    type: fallback
-    region: content
 hidden:
   created: true
   field_acquiadam_asset_descrip: true
   field_acquiadam_asset_id: true
-  field_media_in_library: true
   name: true
   thumbnail: true
   uid: true

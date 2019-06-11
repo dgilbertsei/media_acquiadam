@@ -11,13 +11,13 @@ field_name: field_acquiadam_asset_file
 entity_type: media
 bundle: acquia_dam_asset
 label: 'Asset file'
-description: 'This field will hold the original file data that was uploaded to Acquia DAM. '
+description: 'This field will hold the original file data that was uploaded to Acquia DAM.'
 required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  file_directory: acquiadam-assets
+  file_directory: 'acquiadam/[date:custom:Y]-[date:custom:m]'
   file_extensions: 'jpg gif png svg pdf doc docx ppt pptx xls xlsx txt mp4 mpg mpeg webm'
   max_filesize: ''
   description_field: false

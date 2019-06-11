@@ -1,10 +1,12 @@
 name: "Lightning: Acquia DAM"
-description: "Integrates the Acquia DAM module with Lightning."
+description: "DEPRECATED: Integrates the Acquia DAM module with Lightning."
 core: 8.x
 type: module
 package: Media
 dependencies:
   - media_acquiadam:media_acquiadam
+  - media_acquiadam_example:media_acquiadam_example
   - drupal:file
   - drupal:image
   - fallback_formatter:fallback_formatter
+hidden: true
