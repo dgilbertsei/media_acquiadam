@@ -1,6 +1,8 @@
 {
     "name": "drupal/media_acquiadam",
+    "type": "drupal-module",
     "description": "Integrates the Media module ecosystem with Acquia DAM.",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Mobomo",
@@ -13,19 +15,14 @@
             "homepage": "https://www.cweagans.net"
         }
     ],
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://packages.drupal.org/8"
-        }
-    ],
-    "type": "drupal-module",
-    "license": "GPL-2.0+",
     "require": {
         "cweagans/php-webdam-client": "dev-master",
         "drupal/fallback_formatter": "^1.0"
     },
     "extra": {
+        "branch-alias": {
+            "dev-8.x-1.x": "1.x-dev"
+        },
         "patches": {
             "drupal/core": {
                 "#2241865: Do not create a new file entity to overwrite an existing entity": "https://www.drupal.org/files/issues/2241865-50.patch"

@@ -1,41 +1,49 @@
+---
 language: php
-dist: trusty
 
-sudo: false
+php: "7.1"
 
-php:
-  - 7.1
+addons:
+  chrome: stable
 
 cache:
   directories:
-    - $HOME/.cache
-    - $HOME/.composer/cache
+    - "$HOME/.composer/cache"
+    - "$HOME/.drush/cache"
+    - "$TMPDIR/phpstan/cache"
 
-mysql:
-  database: drupal_travis_db
-  username: root
-  encoding: utf8
+env:
+  global:
+    - ORCA_SUT_NAME=drupal/media_acquiadam
+    - ORCA_SUT_BRANCH=8.x-1.x
+    - ORCA_VERSION=v1.0.0-alpha13
+
+matrix:
+  fast_finish: true
+  include:
+    - { name: "Static code analysis", env: ORCA_JOB=STATIC_CODE_ANALYSIS }
+    - { name: "Deprecated code scan", env: ORCA_JOB=DEPRECATED_CODE_SCAN_SUT }
+    - { name: "Isolated test w/ recommended package versions", env: ORCA_JOB=ISOLATED_RECOMMENDED }
+    - { name: "Integrated test w/ recommended package versions", env: ORCA_JOB=INTEGRATED_RECOMMENDED }
+    - { name: "Integrated test w/ recommended package versions & previous minor release of Drupal core", env: ORCA_JOB=CORE_PREVIOUS }
+    - { name: "Isolated test w/ dev package versions", env: ORCA_JOB=ISOLATED_DEV }
+    - { name: "Integrated test w/ dev package versions", env: ORCA_JOB=INTEGRATED_DEV }
+    - { name: "Integrated test w/ dev package versions & next minor dev version of Drupal core", env: ORCA_JOB=CORE_NEXT }
+  allow_failures:
+    - env: ORCA_JOB=ISOLATED_DEV
+    - env: ORCA_JOB=INTEGRATED_DEV
+    - env: ORCA_JOB=CORE_NEXT
+    # Temporary allowances.
+    - env: ORCA_JOB=DEPRECATED_CODE_SCAN_SUT
 
 before_install:
-  - echo 'sendmail_path="$(which true)"' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-  # Travis automatically CDs into mobomo/media_webdam
-  - cd ../../
-  - git clone https://github.com/mobomo/media_acquiadam_dev
-  - cd media_acquiadam_dev
+  - git clone --branch ${ORCA_VERSION} --depth 1 https://github.com/acquia/orca.git ../orca
+  - ../orca/bin/travis/before_install.sh
 
-install:
-  - make dependencies
-  - rm -r ./modules/contrib/media_acquiadam/*
-  - mv $TRAVIS_BUILD_DIR/* ./modules/contrib/media_acquiadam/
-  #- make travis-install-site
+install: ../orca/bin/travis/install.sh
 
-script:
-  - make test-unit
-  #- make travis-test-browser
+before_script: ../orca/bin/travis/before_script.sh
 
-after_script:
-  - make report-coverage
+script: ../orca/bin/travis/script.sh
 
-notifications:
-  slack: mobomo:IUUkblgpWtwuJjnYcBo3a2nN
-  email: false
+after_failure: ../orca/bin/travis/after_failure.sh
