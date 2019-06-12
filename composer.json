@@ -22,11 +22,6 @@
     "extra": {
         "branch-alias": {
             "dev-8.x-1.x": "1.x-dev"
-        },
-        "patches": {
-            "drupal/core": {
-                "#2241865: Do not create a new file entity to overwrite an existing entity": "https://www.drupal.org/files/issues/2241865-50.patch"
-            }
         }
     }
 }

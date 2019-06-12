@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
@@ -74,6 +75,13 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $config;
 
   /**
+   * Drupal file system service.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $file_system;
+
+  /**
    * AcquiadamAsset constructor.
    *
    * @param array $configuration
@@ -86,8 +94,9 @@ class AcquiadamAsset extends MediaSourceBase {
    * @param \Drupal\Core\Utility\Token $token
    * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
    * @param \Drupal\media_acquiadam\AssetDataInterface $asset_data
+   * @param \Drupal\Core\File\FileSystemInterface $file_system
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data, FileSystemInterface $file_system) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
 
     $this->token = $token;
@@ -95,6 +104,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
     $this->asset_data = $asset_data;
     $this->config = $config_factory->get('media_acquiadam.settings');
+    $this->file_system = $file_system;
   }
 
   /**
@@ -111,7 +121,8 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('config.factory'),
       $container->get('token'),
       $container->get('media_acquiadam.acquiadam'),
-      $container->get('media_acquiadam.asset_data')
+      $container->get('media_acquiadam.asset_data'),
+      $container->get('file_system')
     );
   }
 
@@ -565,7 +576,7 @@ class AcquiadamAsset extends MediaSourceBase {
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
-  protected function createNewFile(MediaInterface $media, $replace = \FILE_EXISTS_RENAME) {
+  protected function createNewFile(MediaInterface $media, $replace = FileSystemInterface::EXISTS_RENAME) {
     $asset = $this->getAssetFromEntity($media);
     if (empty($asset)) {
       return FALSE;
@@ -575,24 +586,37 @@ class AcquiadamAsset extends MediaSourceBase {
     $destination_folder = $this->getAssetFileDestination($media);
     $destination_name = $asset->filename;
     $destination_path = sprintf('%s/%s', $destination_folder, $destination_name);
-    if (!file_prepare_directory($destination_folder, FILE_CREATE_DIRECTORY)) {
+    if (!$this->file_system->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
       return FALSE;
     }
 
-    // If the module was configured to enforce an image size limit then we
-    // need to grab the nearest matching pre-created size.
+    // If the module was configured to enforce an image size limit then we need
+    // to grab the nearest matching pre-created size.
     $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
     $mimetype = \Drupal::service('file.mime_type.guesser')->guess($fake_name);
     list($discrete_type, $subtype) = explode('/', $mimetype, 2);
     $is_image = 'image' == $discrete_type;
 
+    $existing = $this->entityTypeManager->getStorage('file')
+      ->loadByProperties(['uri' => $destination_path]);
+    $existing = !empty($existing) ? reset($existing) : FALSE;
+
     $size_limit = $this->config->get('size_limit');
     if (!empty($size_limit) && -1 != $size_limit && $is_image) {
       $largest_tn = $this->getThumbnailUrlBySize($asset, $size_limit);
-      $file = \system_retrieve_file($largest_tn, $destination_path, TRUE, $replace);
+      $file_contents = \file_get_contents($largest_tn);
     }
     else {
       $file_contents = $this->acquiadam->downloadAsset($asset->id);
+    }
+
+    if (!empty($existing) && FileSystemInterface::EXISTS_REPLACE === $replace) {
+      $uri = $this->file_system->saveData($file_contents, $destination_path, $replace);
+      $file = $existing;
+      $file->setFileUri($uri);
+      $file->save();
+    }
+    else {
       $file = \file_save_data($file_contents, $destination_path, $replace);
     }
 
