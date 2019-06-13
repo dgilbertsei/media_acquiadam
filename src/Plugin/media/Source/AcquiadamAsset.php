@@ -3,6 +3,7 @@
 namespace Drupal\media_acquiadam\Plugin\media\Source;
 
 use cweagans\webdam\Entity\Asset;
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -605,6 +606,9 @@ class AcquiadamAsset extends MediaSourceBase {
     if (!empty($size_limit) && -1 != $size_limit && $is_image) {
       $largest_tn = $this->getThumbnailUrlBySize($asset, $size_limit);
       $file_contents = \file_get_contents($largest_tn);
+      // The DAM can return a different filetype from the original asset type,
+      // so we need to handle that scenario by updating the target filename.
+      $destination_path = $this->getNewDestinationByUri($destination_folder, $largest_tn, $asset->name);
     }
     else {
       $file_contents = $this->acquiadam->downloadAsset($asset->id);
@@ -623,6 +627,28 @@ class AcquiadamAsset extends MediaSourceBase {
     $is_valid = !empty($file) && $file instanceof FileInterface;
 
     return $is_valid ? $file : FALSE;
+  }
+
+  /**
+   * Gets a new filename for an asset based on the URL returned by the DAM.
+   *
+   * @param $destination
+   *   The destination folder the asset is being saved to.
+   * @param $uri
+   *   The URI that was returned by the DAM API for the asset.
+   * @param $original_name
+   *   The original asset filename.
+   *
+   * @return string
+   *   The updated destination path with the new filename.
+   */
+  protected function getNewDestinationByUri($destination, $uri, $original_name) {
+    $path = parse_url($uri, PHP_URL_PATH);
+    $path = basename($path);
+    $ext = pathinfo($path, \PATHINFO_EXTENSION);
+
+    $base_file_name = pathinfo($original_name, \PATHINFO_FILENAME);
+    return sprintf('%s/%s.%s', $destination, $base_file_name, $ext);
   }
 
   /**
