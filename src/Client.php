@@ -20,6 +20,13 @@ class Client extends OriginalClient {
   protected $refreshToken;
 
   /**
+   * Datastore for the active XMP fields.
+   *
+   * @var array
+   */
+  protected $activeXmpFields;
+
+  /**
    * Authenticates with the DAM service and retrieves an access token, or uses
    * existing one.
    *
@@ -165,6 +172,10 @@ class Client extends OriginalClient {
    *   A list of active xmp metadata fields.
    */
   public function getActiveXmpFields() {
+    if (!is_null($this->activeXmpFields)) {
+      return $this->activeXmpFields;
+    }
+
     try {
       $this->checkAuth();
     } catch (\Exception $x) {
@@ -187,10 +198,10 @@ class Client extends OriginalClient {
 
     $response = json_decode((string) $response->getBody());
 
-    $metadata = [];
+    $this->activeXmpFields = [];
     foreach ($response->xmpschema as $field) {
       if ($field->status == 'active') {
-        $metadata['xmp_' . strtolower($field->field)] = [
+        $this->activeXmpFields['xmp_' . strtolower($field->field)] = [
           'name' => $field->name,
           'label' => $field->label,
           'type' => $field->type,
@@ -198,7 +209,7 @@ class Client extends OriginalClient {
       }
     }
 
-    return $metadata;
+    return $this->activeXmpFields;
   }
 
   /**
