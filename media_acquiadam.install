@@ -144,3 +144,26 @@ function media_acquiadam_update_8102(&$sandbox) {
     }
   }
 }
+
+/**
+ * Migrate type mappings to the new type_id property.
+ */
+function media_acquiadam_update_8103(&$sandbox) {
+  $media_bundles = \Drupal::entityTypeManager()
+    ->getStorage('media_type')
+    ->loadByProperties(['source' => 'acquiadam_asset']);
+
+  /** @var \Drupal\media\Entity\MediaType $bundle */
+  foreach ($media_bundles as $name => $bundle) {
+    $mapping = $bundle->getFieldMap();
+
+    // Only migrate if there is no type_id set already. This should always be
+    // the cause.
+    if (isset($mapping['type']) && !isset($mapping['type_id'])) {
+      $mapping['type_id'] = $mapping['type'];
+      unset($mapping['type']);
+      $bundle->setFieldMap($mapping);
+      $bundle->save();
+    }
+  }
+}

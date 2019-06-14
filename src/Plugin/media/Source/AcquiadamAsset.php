@@ -195,6 +195,7 @@ class AcquiadamAsset extends MediaSourceBase {
       'height' => $this->t('Height'),
       'status' => $this->t('Active state'),
       'type' => $this->t('Type'),
+      'type_id' => $this->t('Type ID'),
       'id' => $this->t('Asset ID'),
       'version' => $this->t('Version'),
       'width' => $this->t('Width'),
@@ -350,6 +351,20 @@ class AcquiadamAsset extends MediaSourceBase {
       case 'status':
         return isset($this->asset->status) ? intval($this->asset->status == 'active') : NULL;
 
+      case 'type':
+        if (isset($this->asset->type_id)) {
+          $type_mapping = [
+            1 => 'Image',
+            2 => 'Video',
+            3 => 'Document',
+            4 => 'Presentation',
+            5 => 'Other',
+          ];
+
+          return $type_mapping[$this->asset->type_id] ?: NULL;
+        }
+        return NULL;
+
       default:
         // The key should be the local property name and the value should be the
         // DAM provided property name.
@@ -364,7 +379,7 @@ class AcquiadamAsset extends MediaSourceBase {
           'filetype' => 'filetype',
           'height' => 'height',
           'id' => 'id',
-          'type' => 'type',
+          'type_id' => 'type_id',
           'version' => 'version',
           'width' => 'width',
         ];
