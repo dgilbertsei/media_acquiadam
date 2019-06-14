@@ -5,6 +5,7 @@ namespace Drupal\media_acquiadam\Plugin\media\Source;
 use cweagans\webdam\Entity\Asset;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -83,6 +84,13 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $file_system;
 
   /**
+   * Drupal date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $date_formatter;
+
+  /**
    * AcquiadamAsset constructor.
    *
    * @param array $configuration
@@ -96,8 +104,9 @@ class AcquiadamAsset extends MediaSourceBase {
    * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
    * @param \Drupal\media_acquiadam\AssetDataInterface $asset_data
    * @param \Drupal\Core\File\FileSystemInterface $file_system
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data, FileSystemInterface $file_system) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data, FileSystemInterface $file_system, DateFormatterInterface $date_formatter) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
 
     $this->token = $token;
@@ -106,6 +115,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $this->asset_data = $asset_data;
     $this->config = $config_factory->get('media_acquiadam.settings');
     $this->file_system = $file_system;
+    $this->date_formatter = $date_formatter;
   }
 
   /**
@@ -123,7 +133,8 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('token'),
       $container->get('media_acquiadam.acquiadam'),
       $container->get('media_acquiadam.asset_data'),
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('date.formatter')
     );
   }
 
@@ -198,6 +209,12 @@ class AcquiadamAsset extends MediaSourceBase {
       'datecaptured' => $this->t('Date captured'),
       'datecreated' => $this->t('Date created'),
       'datemodified' => $this->t('Date modified'),
+      'datecaptured_date' => $this->t('Date captured (Date)'),
+      'datecreated_date' => $this->t('Date created (Date)'),
+      'datemodified_date' => $this->t('Date modified (Date)'),
+      'datecaptured_unix' => $this->t('Date captured (Timestamp)'),
+      'datecreated_unix' => $this->t('Date created (Timestamp)'),
+      'datemodified_unix' => $this->t('Date modified (Timestamp)'),
       'description' => $this->t('Description'),
       'file' => $this->t('File'),
       'filename' => $this->t('Filename'),
@@ -377,14 +394,32 @@ class AcquiadamAsset extends MediaSourceBase {
         }
         return NULL;
 
+      case 'datecaptured_date':
+      case 'datecreated_date':
+      case 'datemodified_date':
+        $date_property_mapping = [
+          'datecaptured_date' => 'datecapturedUnix',
+          'datecreated_date' => 'date_created_unix',
+          'datemodified_date' => 'date_modified_unix',
+        ];
+        $date_property = $date_property_mapping[$name];
+        if (!empty($this->asset->{$date_property})) {
+          // html_datetime includes the timezone so we must use a custom format.
+          return $this->date_formatter->format($this->asset->{$date_property}, 'custom', 'Y-m-d\TH:i:s');
+        }
+        return NULL;
+
       default:
         // The key should be the local property name and the value should be the
         // DAM provided property name.
         $property_name_mapping = [
           'colorspace' => 'colorspace',
-          'datecaptured' => 'datecapturedUnix',
-          'datecreated' => 'date_created_unix',
-          'datemodified' => 'date_modified_unix',
+          'datecaptured' => 'datecaptured',
+          'datecreated' => 'datecreated',
+          'datemodified' => 'datemodified',
+          'datecaptured_unix' => 'datecapturedUnix',
+          'datecreated_unix' => 'date_created_unix',
+          'datemodified_unix' => 'date_modified_unix',
           'description' => 'description',
           'filename' => 'filename',
           'filesize' => 'filesize',
@@ -395,7 +430,7 @@ class AcquiadamAsset extends MediaSourceBase {
           'version' => 'version',
           'width' => 'width',
         ];
-        if (in_array($name, $property_name_mapping)) {
+        if (array_key_exists($name, $property_name_mapping)) {
           $property_name = $property_name_mapping[$name];
           return isset($this->asset->{$property_name}) ?
             $this->asset->{$property_name} :

@@ -167,3 +167,33 @@ function media_acquiadam_update_8103(&$sandbox) {
     }
   }
 }
+
+/**
+ * Migrate time mappings to the new datetime properties.
+ */
+function media_acquiadam_update_8104(&$sandbox) {
+  $media_bundles = \Drupal::entityTypeManager()
+    ->getStorage('media_type')
+    ->loadByProperties(['source' => 'acquiadam_asset']);
+
+  $mappings = [
+    'datecaptured' => 'datecaptured_unix',
+    'datecreated' => 'datecreated_unix',
+    'datemodified' => 'datemodified_unix',
+  ];
+
+  /** @var \Drupal\media\Entity\MediaType $bundle */
+  foreach ($media_bundles as $bundle) {
+    $field_mapping = $bundle->getFieldMap();
+
+    foreach ($mappings as $from => $to) {
+      if (isset($field_mapping[$from]) && !isset($field_mapping[$to])) {
+        $field_mapping[$to] = $field_mapping[$from];
+        unset($field_mapping[$from]);
+      }
+    }
+
+    $bundle->setFieldMap($field_mapping);
+    $bundle->save();
+  }
+}
