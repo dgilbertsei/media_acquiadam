@@ -3,6 +3,7 @@
 namespace Drupal\media_acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
@@ -30,7 +31,8 @@ class OauthController extends ControllerBase {
       $container->get('media_acquiadam.oauth'),
       $container->get('request_stack'),
       $container->get('user.data'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('date.formatter')
     );
   }
 
@@ -56,22 +58,23 @@ class OauthController extends ControllerBase {
   protected $userData;
 
   /**
+   * Drupal Date Formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $dateFormatter;
+
+  /**
    * AcquiadamController constructor.
    *
-   * @param \Drupal\media_acquiadam\OauthInterface $oauth
-   *   The oauth service.
-   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
-   *   The request stack.
-   * @param \Drupal\user\UserDataInterface $user_data
-   *   The user data service.
-   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
-   *   The current user account.
+   * {@inheritdoc}
    */
-  public function __construct(OauthInterface $oauth, RequestStack $request_stack, UserDataInterface $user_data, AccountProxyInterface $currentUser) {
+  public function __construct(OauthInterface $oauth, RequestStack $request_stack, UserDataInterface $user_data, AccountProxyInterface $currentUser, DateFormatterInterface $dateFormatter) {
     $this->oauth = $oauth;
     $this->request = $request_stack->getCurrentRequest();
     $this->userData = $user_data;
     $this->currentUser = $currentUser;
+    $this->dateFormatter = $dateFormatter;
   }
 
   /**
@@ -116,8 +119,7 @@ class OauthController extends ControllerBase {
         ],
         [
           '#markup' => '<p>' . $this->t('Your authentication expires on @date.', [
-              '@date' => \Drupal::service('date.formatter')
-                ->format($access_token_expiration),
+              '@date' => $this->dateFormatter->format($access_token_expiration),
             ]) . '</p>',
         ],
         [

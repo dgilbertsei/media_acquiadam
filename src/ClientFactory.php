@@ -3,16 +3,18 @@
 namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class ClientFactory.
  *
  * @package Drupal\media_acquiadam
  */
-class ClientFactory {
+class ClientFactory implements ContainerFactoryPluginInterface {
 
   /**
    * A config object to retrieve Acquia DAM auth information from.
@@ -26,7 +28,7 @@ class ClientFactory {
    *
    * @var \GuzzleHttp\ClientInterface
    */
-  protected $gclient;
+  protected $guzzleClient;
 
   /**
    * A user data object to retrieve API keys from.
@@ -47,18 +49,30 @@ class ClientFactory {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   A config object to retrieve Acquia DAM auth information from.
-   * @param \cweagans\webdam\ClientInterface $gclient
+   * @param \GuzzleHttp\ClientInterface $guzzleClient
    *   A fully configured Guzzle client to pass to the dam client.
-   * @param \Drupal\user\UserDataInterface $user_data
+   * @param \Drupal\user\UserDataInterface $userData
    *   A userdata object to retreive user-specific creds from.
    * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
    *   The currently authenticated user.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $gclient, UserDataInterface $user_data, AccountProxyInterface $currentUser) {
+  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $guzzleClient, UserDataInterface $userData, AccountProxyInterface $currentUser) {
     $this->config = $config_factory->get('media_acquiadam.settings');
-    $this->client = $gclient;
-    $this->userData = $user_data;
+    $this->guzzleClient = $guzzleClient;
+    $this->userData = $userData;
     $this->currentUser = $currentUser;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  static public function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('http_client'),
+      $container->get('user.data'),
+      $container->get('current_user')
+    );
   }
 
   /**
@@ -72,13 +86,11 @@ class ClientFactory {
    *   A configured DAM HTTP client object.
    */
   public function get($credentials = 'background') {
-    $client = new Client(
-      $this->client,
+    $client = $this->getWithCredentials(
       $this->config->get('username'),
       $this->config->get('password'),
       $this->config->get('client_id'),
-      $this->config->get('secret')
-    );
+      $this->config->get('secret'));
 
     // Set the user's credentials in the client if necessary.
     if ($credentials == 'current') {
@@ -89,6 +101,25 @@ class ClientFactory {
     }
 
     return $client;
+  }
+
+  /**
+   * Gets a base DAM Client object using the specified credentials.
+   *
+   * @param string $username
+   *   The username to authenticate with.
+   * @param string $password
+   *   The password to authenticate with.
+   * @param string $client_id
+   *   The client ID to authenticate with.
+   * @param string $secret
+   *   The secret to authenticate with.
+   *
+   * @return \Drupal\media_acquiadam\Client
+   *   The Acquia DAM client.
+   */
+  public function getWithCredentials($username, $password, $client_id, $secret) {
+    return new Client($this->guzzleClient, $username, $password, $client_id, $secret);
   }
 
 }

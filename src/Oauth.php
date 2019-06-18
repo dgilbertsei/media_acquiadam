@@ -4,15 +4,19 @@ namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
 use GuzzleHttp\ClientInterface;
 
 /**
  * OAuth Class.
  */
-class Oauth implements OauthInterface {
+class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
 
   /**
    * The base URL to use for the DAM API.
@@ -57,22 +61,45 @@ class Oauth implements OauthInterface {
   protected $authFinishRedirect;
 
   /**
+   * Drupal logger instance.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $loggerChannel;
+
+  /**
+   * The current user.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
    * Oauth constructor.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Drupal\Core\Access\CsrfTokenGenerator $csrfTokenGenerator
-   *   The CSRF Token generator.
-   * @param \Drupal\Core\Routing\UrlGeneratorInterface $urlGenerator
-   *   The URL generator.
-   * @param \GuzzleHttp\ClientInterface $httpClient
-   *   The HTTP guzzle Client.
+   * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, CsrfTokenGenerator $csrfTokenGenerator, UrlGeneratorInterface $urlGenerator, ClientInterface $httpClient) {
+  public function __construct(ConfigFactoryInterface $config_factory, CsrfTokenGenerator $csrfTokenGenerator, UrlGeneratorInterface $urlGenerator, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerChannelFactory, AccountProxyInterface $account) {
     $this->config = $config_factory->get('media_acquiadam.settings');
     $this->csrfTokenGenerator = $csrfTokenGenerator;
     $this->urlGenerator = $urlGenerator;
     $this->httpClient = $httpClient;
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->currentUser = $account;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('csrf_token'),
+      $container->get('url_generator.non_bubbling'),
+      $container->get('http_client'),
+      $container->get('logger.factory'),
+      $container->get('current_user')
+    );
   }
 
   /**
@@ -97,10 +124,9 @@ class Oauth implements OauthInterface {
    * {@inheritdoc}
    */
   public function getAccessToken($auth_code) {
-    \Drupal::logger('media_acquiadam')
+    $this->loggerChannel
       ->debug('Getting new access token for @username.', [
-        '@username' => \Drupal::currentUser()
-          ->getAccountName(),
+        '@username' => $this->currentUser->getAccountName(),
       ]);
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
@@ -129,10 +155,9 @@ class Oauth implements OauthInterface {
    */
   public function refreshAccess($refresh_token) {
 
-    \Drupal::logger('media_acquiadam')
+    $this->loggerChannel
       ->debug('Refreshing access token for @username.', [
-        '@username' => \Drupal::currentUser()
-          ->getAccountName(),
+        '@username' => $this->currentUser->getAccountName(),
       ]);
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
@@ -162,7 +187,7 @@ class Oauth implements OauthInterface {
   public function setAuthFinishRedirect($authFinishRedirect) {
     $parsed_url = UrlHelper::parse($authFinishRedirect);
 
-    $filterable_keys = \Drupal::config('media_acquiadam.settings')->get('oauth.excluded_redirect_keys');
+    $filterable_keys = $this->config->get('oauth.excluded_redirect_keys');
     if (empty($filterable_keys) || !is_array($filterable_keys)) {
       $filterable_keys = [
         // The Entity Browser Block module will break the authentication flow

@@ -11,6 +11,8 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Image\ImageFactory;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
@@ -18,8 +20,10 @@ use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\AssetDataInterface;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 
 /**
  * Provides media type plugin for Acquia DAM assets.
@@ -77,36 +81,46 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $config;
 
   /**
-   * Drupal file system service.
+   * Drupal filesystem service.
    *
    * @var \Drupal\Core\File\FileSystemInterface
    */
-  protected $file_system;
+  protected $fileSystem;
 
   /**
-   * Drupal date formatter service.
+   * Drupal logger instance.
    *
-   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
-  protected $date_formatter;
+  protected $loggerChannel;
+
+  /**
+   * Drupal MimeTypeGuesser service.
+   *
+   * @var \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface
+   */
+  protected $mimeTypeGuesser;
+
+  /**
+   * Drupal ImageFactory service.
+   *
+   * @var \Drupal\Core\Image\ImageFactory
+   */
+  protected $imageFactory;
+
+  /**
+   * Guzzle HTTP Client.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
 
   /**
    * AcquiadamAsset constructor.
    *
-   * @param array $configuration
-   * @param $plugin_id
-   * @param $plugin_definition
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
-   * @param \Drupal\Core\Field\FieldTypePluginManagerInterface $field_type_manager
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param \Drupal\Core\Utility\Token $token
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
-   * @param \Drupal\media_acquiadam\AssetDataInterface $asset_data
-   * @param \Drupal\Core\File\FileSystemInterface $file_system
-   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+   * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data, FileSystemInterface $file_system, DateFormatterInterface $date_formatter) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, FileSystemInterface $fileSystem, Token $token, AcquiadamInterface $acquiadam, AssetDataInterface $asset_data, LoggerChannelFactoryInterface $loggerChannelFactory, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory, ClientInterface $httpClient) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager, $field_type_manager, $config_factory);
 
     $this->token = $token;
@@ -114,8 +128,11 @@ class AcquiadamAsset extends MediaSourceBase {
     $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
     $this->asset_data = $asset_data;
     $this->config = $config_factory->get('media_acquiadam.settings');
-    $this->file_system = $file_system;
-    $this->date_formatter = $date_formatter;
+    $this->fileSystem = $fileSystem;
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->mimeTypeGuesser = $mimeTypeGuesser;
+    $this->imageFactory = $imageFactory;
+    $this->httpClient = $httpClient;
   }
 
   /**
@@ -130,11 +147,14 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('entity_field.manager'),
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
+      $container->get('file_system'),
       $container->get('token'),
       $container->get('media_acquiadam.acquiadam'),
       $container->get('media_acquiadam.asset_data'),
-      $container->get('file_system'),
-      $container->get('date.formatter')
+      $container->get('logger.factory'),
+      $container->get('file.mime_type.guesser'),
+      $container->get('image.factory'),
+      $container->get('http_client')
     );
   }
 
@@ -231,8 +251,10 @@ class AcquiadamAsset extends MediaSourceBase {
     ];
 
     // Add additional XMP fields to fields array.
-    foreach ($this->acquiadamXmpFields as $xmp_id => $xmp_field) {
-      $fields[$xmp_id] = $xmp_field['label'];
+    if (!empty($this->acquiadamXmpFields)) {
+      foreach ($this->acquiadamXmpFields as $xmp_id => $xmp_field) {
+        $fields[$xmp_id] = $xmp_field['label'];
+      }
     }
 
     return $fields;
@@ -288,7 +310,7 @@ class AcquiadamAsset extends MediaSourceBase {
       // We want specific handling for 404 errors so we can provide a more
       // relateable error message.
       if (404 == $x->getCode()) {
-        \Drupal::logger('media_acquiadam')
+        $this->loggerChannel
           ->warning('Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?', ['@assetID' => $assetID]);
 
         // In the event of a 404 we assume the asset has been deleted within
@@ -451,7 +473,7 @@ class AcquiadamAsset extends MediaSourceBase {
     }
 
     $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
-    $mimetype = \Drupal::service('file.mime_type.guesser')->guess($fake_name);
+    $mimetype = $this->mimeTypeGuesser->guess($fake_name);
     list($discrete_type, $subtype) = explode('/', $mimetype, 2);
     $is_image = 'image' == $discrete_type;
 
@@ -480,7 +502,7 @@ class AcquiadamAsset extends MediaSourceBase {
    */
   protected function getImageThumbnail(FileInterface $file) {
     /** @var \Drupal\Core\Image\Image $image */
-    $image = \Drupal::service('image.factory')->get($file->getFileUri());
+    $image = $this->imageFactory->get($file->getFileUri());
 
     if ($image->isValid()) {
       // Pre-create all image styles.
@@ -622,14 +644,14 @@ class AcquiadamAsset extends MediaSourceBase {
     $destination_folder = $this->getAssetFileDestination($media);
     $destination_name = $asset->filename;
     $destination_path = sprintf('%s/%s', $destination_folder, $destination_name);
-    if (!$this->file_system->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
+    if (!$this->fileSystem->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
       return FALSE;
     }
 
     // If the module was configured to enforce an image size limit then we need
     // to grab the nearest matching pre-created size.
     $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
-    $mimetype = \Drupal::service('file.mime_type.guesser')->guess($fake_name);
+    $mimetype = $this->mimeTypeGuesser->guess($fake_name);
     list($discrete_type, $subtype) = explode('/', $mimetype, 2);
     $is_image = 'image' == $discrete_type;
 
@@ -650,7 +672,7 @@ class AcquiadamAsset extends MediaSourceBase {
     }
 
     if (!empty($existing) && FileSystemInterface::EXISTS_REPLACE === $replace) {
-      $uri = $this->file_system->saveData($file_contents, $destination_path, $replace);
+      $uri = $this->fileSystem->saveData($file_contents, $destination_path, $replace);
       $file = $existing;
       $file->setFileUri($uri);
       $file->save();
@@ -737,8 +759,7 @@ class AcquiadamAsset extends MediaSourceBase {
   protected function getFallbackThumbnail() {
 
     /** @var \Drupal\Core\Config\Config $config */
-    $config = \Drupal::configFactory()
-      ->getEditable('media_acquiadam.settings');
+    $config = $this->configFactory->getEditable('media_acquiadam.settings');
 
     $fallback = $config->get('fallback_thumbnail');
     if (empty($fallback)) {
@@ -789,7 +810,7 @@ class AcquiadamAsset extends MediaSourceBase {
           // check if the URL is accessible on our own. Other URL sizes do not
           // appear to have this issue.
           if (1280 == $tn->size) {
-            $response = \Drupal::httpClient()->head($tn->url);
+            $response = $this->httpClient->head($tn->url);
             if (403 == $response->getStatusCode()) {
               continue;
             }

@@ -10,7 +10,7 @@ services:
     arguments: ['@media_acquiadam.client_factory', 'current']
   media_acquiadam.oauth:
     class: Drupal\media_acquiadam\Oauth
-    arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client']
+    arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client', '@logger.factory', '@current_user']
   media_acquiadam.asset_data:
     class: Drupal\media_acquiadam\AssetData
     arguments: ['@database']

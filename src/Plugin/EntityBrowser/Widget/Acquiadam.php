@@ -20,6 +20,7 @@ use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 
 /**
@@ -81,6 +82,13 @@ class Acquiadam extends WidgetBase {
   protected $userData;
 
   /**
+   * Drupal RequestStack service.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
    * Acquiadam constructor.
    *
    * @param array $configuration
@@ -121,7 +129,8 @@ class Acquiadam extends WidgetBase {
     LanguageManagerInterface $languageManager,
     ModuleHandlerInterface $moduleHandler,
     MediaSourceManager $sourceManager,
-    UserDataInterface $userData
+    UserDataInterface $userData,
+    RequestStack $requestStack
   ) {
     parent::__construct(
       $configuration,
@@ -137,6 +146,7 @@ class Acquiadam extends WidgetBase {
     $this->sourceManager = $sourceManager;
     $this->entityFieldManager = $entity_field_manager;
     $this->userData = $userData;
+    $this->requestStack = $requestStack;
   }
 
   /**
@@ -156,7 +166,8 @@ class Acquiadam extends WidgetBase {
       $container->get('language_manager'),
       $container->get('module_handler'),
       $container->get('plugin.manager.media.source'),
-      $container->get('user.data')
+      $container->get('user.data'),
+      $container->get('request_stack')
     );
   }
 
@@ -412,8 +423,7 @@ class Acquiadam extends WidgetBase {
           '#theme' => 'asset_browser_message',
           '#message' => $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
             '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [
-              'auth_finish_redirect' => \Drupal::request()
-                ->getRequestUri(),
+              'auth_finish_redirect' => $this->requestStack->getCurrentRequest()->getRequestUri(),
             ])->toString(),
           ]),
           '#attached' => [

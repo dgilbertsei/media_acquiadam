@@ -2,6 +2,9 @@
 
 namespace Drupal\media_acquiadam;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 /**
  * Class Acquiadam.
  *
@@ -9,7 +12,7 @@ namespace Drupal\media_acquiadam;
  *
  * @package Drupal\media_acquiadam
  */
-class Acquiadam implements AcquiadamInterface {
+class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
 
   /**
    * A dam client.
@@ -33,6 +36,16 @@ class Acquiadam implements AcquiadamInterface {
   /**
    * {@inheritdoc}
    */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $container->get('media_acquiadam.client_factory'),
+      'background'
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getFlattenedFolderList($folder_id = NULL) {
     $folder_data = [];
 
@@ -40,7 +53,8 @@ class Acquiadam implements AcquiadamInterface {
       $folders = $this->client->getTopLevelFolders();
     }
     else {
-      $folders = $this->client->getFolder($folder_id)->folders;
+      $folder = $this->client->getFolder($folder_id);
+      $folders = !empty($folder->folders) ? $folder->folders : [];
     }
 
     foreach ($folders as $folder) {

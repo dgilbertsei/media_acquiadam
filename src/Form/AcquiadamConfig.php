@@ -2,12 +2,11 @@
 
 namespace Drupal\media_acquiadam\Form;
 
-use cweagans\webdam\Client as WebdamClient;
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use GuzzleHttp\ClientInterface;
+use Drupal\media_acquiadam\ClientFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,36 +17,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class AcquiadamConfig extends ConfigFormBase {
 
   /**
-   * The Guzzle client to use for communication with the DAM API.
+   * Acquia DAM client factory.
    *
-   * @var \GuzzleHttp\ClientInterface
-   *   A guzzle http client.
+   * @var \Drupal\media_acquiadam\ClientFactory
    */
-  protected $httpClient;
-
-  /**
-   * A user data object to retrieve API keys from.
-   *
-   * @var UserDataInterface
-   */
-  protected $userData;
-
-  /**
-   * The current user.
-   *
-   * @var AccountProxyInterface
-   */
-  protected $currentUser;
+  protected $acquiaDamClientFactory;
 
   /**
    * AcquiadamConfig constructor.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
+   * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client) {
-    $this->configFactory = $config_factory;
-    $this->httpClient = $http_client;
+  public function __construct(ConfigFactoryInterface $config_factory, ClientFactory $acquiaDamClientFactory) {
+    parent::__construct($config_factory);
+    $this->acquiaDamClientFactory = $acquiaDamClientFactory;
   }
 
   /**
@@ -56,7 +39,7 @@ class AcquiadamConfig extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('http_client')
+      $container->get('media_acquiadam.client_factory')
     );
   }
 
@@ -169,7 +152,6 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    try {
       // We set the client data array with the values from form_state.
       $username = $form_state->getValue('username');
       $password = $this->getFieldValue($form_state, 'password');
@@ -178,8 +160,8 @@ class AcquiadamConfig extends ConfigFormBase {
       $client_secret = $this->getFieldValue($form_state, 'secret');
       $form_state->setValue('secret', $client_secret);
 
-      // Try to call checkCredentials() with details from form_state.
-      $acquiadam_client = new WebdamClient($this->httpClient, $username, $password, $client_id, $client_secret);
+    try {
+      $acquiadam_client = $this->acquiaDamClientFactory->getWithCredentials($username, $password, $client_id, $client_secret);
       $acquiadam_client->getAccountSubscriptionDetails();
     }
     // If checkCredentials() throws an exception,
@@ -208,15 +190,13 @@ class AcquiadamConfig extends ConfigFormBase {
   /**
    * Gets a form value from stored config.
    *
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
    * @param string $field_name
    *   The key of the field in the simple config.
    *
    * @return mixed
    *   The value for the given form field, or NULL.
    */
-  protected function getFormValueFromConfig(FormStateInterface $form_state, $field_name) {
+  protected function getFormValueFromConfig($field_name) {
     $config_name = $this->getEditableConfigNames();
     $value = $this->config(reset($config_name))->get($field_name);
     return $value;
@@ -235,7 +215,7 @@ class AcquiadamConfig extends ConfigFormBase {
    */
   protected function getFieldValue(FormStateInterface $form_state, $field_name) {
     // If the user has entered a value use it, if not check config.
-    $value = $form_state->getValue($field_name) ?: $this->getFormValueFromConfig($form_state, $field_name);
+    $value = $form_state->getValue($field_name) ?: $this->getFormValueFromConfig($field_name);
     return $value;
   }
 
