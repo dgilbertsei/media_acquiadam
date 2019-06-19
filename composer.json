@@ -5,14 +5,9 @@
     "license": "GPL-2.0-or-later",
     "authors": [
         {
-            "name": "Mobomo",
-            "email": "sales@mobomo.com",
-            "homepage": "https://www.mobomo.com"
-        },
-        {
-            "name": "Cameron Eagans",
-            "email": "me@cweagans.net",
-            "homepage": "https://www.cweagans.net"
+            "name": "Acquia",
+            "email": "sales@acquia.com",
+            "homepage": "https://acquia.com"
         }
     ],
     "require": {
