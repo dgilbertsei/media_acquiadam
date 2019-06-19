@@ -22,7 +22,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-
 /**
  * Uses a view to provide entity listing in a browser's widget.
  *
@@ -34,6 +33,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * )
  */
 class Acquiadam extends WidgetBase {
+
   /**
    * The dam interface.
    *
@@ -77,7 +77,9 @@ class Acquiadam extends WidgetBase {
   protected $entityFieldManager;
 
   /**
-   * @var \Drupal\user\UserDataInterface User data manager.
+   * User data manager.
+   *
+   * @var \Drupal\user\UserDataInterface
    */
   protected $userData;
 
@@ -91,54 +93,10 @@ class Acquiadam extends WidgetBase {
   /**
    * Acquiadam constructor.
    *
-   * @param array $configuration
-   *   The config array with information about the module.
-   * @param string $plugin_id
-   *   The plugin_id for this plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
-   *   The Event Dispatcher service.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The Entity Manager service.
-   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
-   *   The Entity Field Manager service.
-   * @param \Drupal\entity_browser\WidgetValidationManager $validation_manager
-   *   The Widget Validation Manager service.
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
-   *   The dam Interface.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   The user account for which to get the permissions hash.
-   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
-   *   The language manager service.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
-   * @param \Drupal\media\MediaSourceManager $sourceManager
-   * @param \Drupal\user\UserDataInterface $userData
-   *   A userdata object to retrieve user-specific data from.
+   * {@inheritdoc}
    */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    EventDispatcherInterface $event_dispatcher,
-    EntityTypeManagerInterface $entity_type_manager,
-    EntityFieldManagerInterface $entity_field_manager,
-    WidgetValidationManager $validation_manager,
-    AcquiadamInterface $acquiadam,
-    AccountInterface $account,
-    LanguageManagerInterface $languageManager,
-    ModuleHandlerInterface $moduleHandler,
-    MediaSourceManager $sourceManager,
-    UserDataInterface $userData,
-    RequestStack $requestStack
-  ) {
-    parent::__construct(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $event_dispatcher,
-      $entity_type_manager,
-      $validation_manager);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, WidgetValidationManager $validation_manager, AcquiadamInterface $acquiadam, AccountInterface $account, LanguageManagerInterface $languageManager, ModuleHandlerInterface $moduleHandler, MediaSourceManager $sourceManager, UserDataInterface $userData, RequestStack $requestStack) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $event_dispatcher, $entity_type_manager, $validation_manager);
     $this->acquiadam = $acquiadam;
     $this->user = $account;
     $this->languageManager = $languageManager;
@@ -151,260 +109,69 @@ class Acquiadam extends WidgetBase {
 
   /**
    * {@inheritdoc}
+   *
+   * TODO: Add more settings for configuring this widget.
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildConfigurationForm($form, $form_state);
+
+    $media_type_options = [];
+    $media_types = $this->entityTypeManager->getStorage('media_type')
+      ->loadByProperties(['source' => 'acquiadam_asset']);
+
+    foreach ($media_types as $media_type) {
+      $media_type_options[$media_type->id()] = $media_type->label();
+    }
+
+    if (empty($media_type_options)) {
+      $url = Url::fromRoute('entity.media_type.add_form')->toString();
+      $form['media_type'] = [
+        '#markup' => $this->t("You don't have media type of the Acquia DAM asset type. You should <a href='!link'>create one</a>", ['!link' => $url]),
+      ];
+    }
+    else {
+      $form['media_type'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Media type'),
+        '#default_value' => $this->configuration['media_type'],
+        '#options' => $media_type_options,
+      ];
+    }
+
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('event_dispatcher'),
-      $container->get('entity_type.manager'),
-      $container->get('entity_field.manager'),
-      $container->get('plugin.manager.entity_browser.widget_validation'),
-      $container->get('media_acquiadam.acquiadam_user_creds'),
-      $container->get('current_user'),
-      $container->get('language_manager'),
-      $container->get('module_handler'),
-      $container->get('plugin.manager.media.source'),
-      $container->get('user.data'),
-      $container->get('request_stack')
-    );
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'));
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getBreadcrumb(Folder $current_folder, array $breadcrumbs = []) {
-    // If the folder being rendered is already in the breadcrumb trail
-    // and the breadcrumb trail is longer than 1 (i.e. root folder only)
-    if (array_key_exists($current_folder->id, $breadcrumbs) && count($breadcrumbs) > 1) {
-      // This indicates that the user has navigated "Up" the folder structure
-      // 1 or more levels.
-      do {
-        // Go to the end of the breadcrumb array.
-        end($breadcrumbs);
-        // Fetch the folder id of the last breadcrumb.
-        $id = key($breadcrumbs);
-        // If current folder id doesn't match the folder id of last breadcrumb.
-        if ($id != $current_folder->id && count($breadcrumbs) > 1) {
-          // Remove the last breadcrumb since the user has navigated "Up"
-          // at least 1 folder.
-          array_pop($breadcrumbs);
-        }
-        // If the folder id of the last breadcrumb does not equal the current
-        // folder id then keep removing breadcrumbs from the end.
-      } while ($id != $current_folder->id && count($breadcrumbs) > 1);
-    }
-    // If the parent folder id of the current folder is in the breadcrumb trail
-    // then the user MIGHT have navigated down into a subfolder.
-    if (is_object($current_folder) && property_exists($current_folder, 'parent') && array_key_exists($current_folder->parent, $breadcrumbs)) {
-      // Go to the end of the breadcrumb array.
-      end($breadcrumbs);
-      // If the last folder id in the breadcrumb equals the parent folder id of
-      // the current folder the the user HAS navigated down into a subfolder.
-      if (key($breadcrumbs) == $current_folder->parent) {
-        // Add the current folder to the breadcrumb.
-        $breadcrumbs[$current_folder->id] = $current_folder->name;
-      }
-    }
-    // Reset the breadcrumb array so that it can be rendered in order.
-    reset($breadcrumbs);
-    // Create a container for the breadcrumb.
-    $form['breadcrumb-container'] = [
-      '#type' => 'container',
-      // Custom element property to store breadcrumbs array.
-      // This is fetched from the form state every time the form is rebuilt
-      // due to navigating between folders.
-      '#breadcrumbs' => $breadcrumbs,
-      '#attributes' => [
-        'class' => ['breadcrumb acquiadam-browser-breadcrumb-container'],
-      ],
-    ];
-    // Add the breadcrumb buttons to the form.
-    foreach ($breadcrumbs as $folder_id => $folder_name) {
-      $form['breadcrumb-container'][$folder_id] = [
-        '#type' => 'button',
-        '#value' => $folder_name,
-        '#name' => 'acquiadam_folder',
-        '#acquiadam_folder_id' => $folder_id,
-        '#acquiadam_parent_folder_id' => $folder_name,
-        '#prefix' => '<li>',
-        '#suffix' => '</li>',
-        '#attributes' => [
-          'class' => ['acquiadam-browser-breadcrumb'],
-        ],
-      ];
-    }
-    return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   *
-   * Create a custom pager.
-   */
-  public function getPager(Folder $current_folder, $page, $num_per_page) {
-    // Add container for pager.
-    $form['pager-container'] = [
-      '#type' => 'container',
-      // Store page number in container so it can be retrieved from form state.
-      '#page' => $page,
-      '#attributes' => [
-        'class' => ['acquiadam-asset-browser-pager'],
-      ],
-    ];
-    // If not on the first page.
-    if ($page > 0) {
-      // Add a button to go to the first page.
-      $form['pager-container']['first'] = [
-        '#type' => 'button',
-        '#value' => '<<',
-        '#name' => 'acquiadam_pager',
-        '#acquiadam_page' => 0,
-        '#attributes' => [
-          'class' => ['page-button', 'page-first'],
-        ],
-      ];
-      // Add a button to go to the previous page.
-      $form['pager-container']['previous'] = [
-        '#type' => 'button',
-        '#value' => '<',
-        '#name' => 'acquiadam_pager',
-        '#acquiadam_page' => $page - 1,
-        '#attributes' => [
-          'class' => ['page-button', 'page-previous'],
-        ],
-      ];
-    }
-    // Last available page based on number of assets in folder
-    // divided by number of assets to show per page.
-    $last_page = floor($current_folder->numassets / $num_per_page);
-    // First page to show in the pager.
-    // Try to put the button for the current page in the middle by starting at
-    // the current page number minus 4.
-    $start_page = max(0, $page - 4);
-    // Last page to show in the pager.  Don't go beyond the last available page.
-    $end_page = min($start_page + 9, $last_page);
-    // Create buttons for pages from start to end.
-    for ($i = $start_page; $i <= $end_page; $i++) {
-      $form['pager-container']['page_' . $i] = [
-        '#type' => 'button',
-        '#value' => $i + 1,
-        '#name' => 'acquiadam_pager',
-        '#acquiadam_page' => $i,
-        '#attributes' => [
-          'class' => [($i == $page ? 'page-current' : ''), 'page-button'],
-        ],
-      ];
-    }
-    // If not on the last page.
-    if ($end_page > $page) {
-      // Add a button to go to the next page.
-      $form['pager-container']['next'] = [
-        '#type' => 'button',
-        '#value' => '>',
-        '#name' => 'acquiadam_pager',
-        '#acquiadam_page' => $page + 1,
-        '#attributes' => [
-          'class' => ['page-button', 'page-next'],
-        ],
-      ];
-      // Add a button to go to the last page.
-      $form['pager-container']['last'] = [
-        '#type' => 'button',
-        '#value' => '>>',
-        '#name' => 'acquiadam_pager',
-        '#acquiadam_page' => $last_page,
-        '#attributes' => [
-          'class' => ['page-button', 'page-last'],
-        ],
-      ];
-    }
-    return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   *
-   * Create form elements for sorting and filtering/searching.
-   */
-  public function getFilterSort() {
-    // Add container for pager.
-    $form['filter-sort-container'] = [
-      '#type' => 'container',
-      '#attributes' => [
-        'class' => ['filter-sort-container'],
-      ],
-    ];
-    // Add dropdown for sort by.
-    $form['filter-sort-container']['sortby'] = [
-      '#type' => 'select',
-      '#title' => 'Sort by',
-      '#options' => [
-        'filename' => 'File name',
-        'filesize' => 'File size',
-        'datecreated' => 'Date created',
-        'datemodified' => 'Date modified',
-      ],
-      '#default_value' => 'datecreated',
-    ];
-    // Add dropdown for sort direction.
-    $form['filter-sort-container']['sortdir'] = [
-      '#type' => 'select',
-      '#title' => 'Sort direction',
-      '#options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
-      '#default_value' => 'asc',
-    ];
-    // Add dropdown for filtering on asset type.
-    $form['filter-sort-container']['types'] = [
-      '#type' => 'select',
-      '#title' => 'File type',
-      '#options' => [
-        '' => 'All',
-        'image' => 'Image',
-        'audiovideo' => 'Audio/Video',
-        'document' => 'Document',
-        'presentation' => 'Presentation',
-        'other' => 'Other',
-      ],
-      '#default_value' => '',
-    ];
-    // Add textfield for keyword search.
-    $form['filter-sort-container']['query'] = [
-      '#type' => 'textfield',
-      '#title' => 'Search',
-      '#size' => 24,
-    ];
-    // Add submit button to apply sort/filter criteria.
-    $form['filter-sort-container']['filter-sort-submit'] = [
-      '#type' => 'button',
-      '#value' => 'Apply',
-      '#name' => 'filter_sort_submit',
-    ];
-    // Add form reset button.
-    $form['filter-sort-container']['filter-sort-reset'] = [
-      '#type' => 'button',
-      '#value' => 'Reset',
-      '#name' => 'filter_sort_reset',
-    ];
-    return $form;
+  public function defaultConfiguration() {
+    return [
+      'media_type' => NULL,
+      'submit_text' => $this->t('Select assets'),
+    ] + parent::defaultConfiguration();
   }
 
   /**
    * {@inheritdoc}
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
+    $media_type_storage = $this->entityTypeManager->getStorage('media_type');
     /** @var \Drupal\media\MediaTypeInterface $media_type */
-    if (!$this->configuration['media_type'] || !($media_type = $this->entityTypeManager->getStorage('media_type')->load($this->configuration['media_type']))) {
+    if (!$this->configuration['media_type'] || !($media_type = $media_type_storage->load($this->configuration['media_type']))) {
       return ['#markup' => $this->t('The media type is not configured correctly.')];
     }
-
-    if ($media_type->getSource()->getPluginId() != 'acquiadam_asset') {
+    elseif ($media_type->getSource()->getPluginId() != 'acquiadam_asset') {
       return ['#markup' => $this->t('The configured media type is not using the acquiadam_asset plugin.')];
     }
-
     // If this is not the current entity browser widget being rendered.
-    if ($this->uuid() != $form_state->getStorage()['entity_browser_current_widget']) {
+    elseif ($this->uuid() != $form_state->getStorage()['entity_browser_current_widget']) {
       // Return an empty array.
       return [];
     }
@@ -418,12 +185,14 @@ class Acquiadam extends WidgetBase {
           $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_access_token_expiration', $auth['access_token_expiry']);
           $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_refresh_token', $auth['refresh_token']);
         }
-      } catch (InvalidCredentialsException $x) {
+      }
+      catch (InvalidCredentialsException $x) {
         $form['message'] = [
           '#theme' => 'asset_browser_message',
           '#message' => $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
             '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [
-              'auth_finish_redirect' => $this->requestStack->getCurrentRequest()->getRequestUri(),
+              'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
+                ->getRequestUri(),
             ])->toString(),
           ]),
           '#attached' => [
@@ -662,22 +431,161 @@ class Acquiadam extends WidgetBase {
 
   /**
    * {@inheritdoc}
+   *
+   * Create form elements for sorting and filtering/searching.
+   */
+  public function getFilterSort() {
+    // Add container for pager.
+    $form['filter-sort-container'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['filter-sort-container'],
+      ],
+    ];
+    // Add dropdown for sort by.
+    $form['filter-sort-container']['sortby'] = [
+      '#type' => 'select',
+      '#title' => 'Sort by',
+      '#options' => [
+        'filename' => 'File name',
+        'filesize' => 'File size',
+        'datecreated' => 'Date created',
+        'datemodified' => 'Date modified',
+      ],
+      '#default_value' => 'datecreated',
+    ];
+    // Add dropdown for sort direction.
+    $form['filter-sort-container']['sortdir'] = [
+      '#type' => 'select',
+      '#title' => 'Sort direction',
+      '#options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
+      '#default_value' => 'asc',
+    ];
+    // Add dropdown for filtering on asset type.
+    $form['filter-sort-container']['types'] = [
+      '#type' => 'select',
+      '#title' => 'File type',
+      '#options' => [
+        '' => 'All',
+        'image' => 'Image',
+        'audiovideo' => 'Audio/Video',
+        'document' => 'Document',
+        'presentation' => 'Presentation',
+        'other' => 'Other',
+      ],
+      '#default_value' => '',
+    ];
+    // Add textfield for keyword search.
+    $form['filter-sort-container']['query'] = [
+      '#type' => 'textfield',
+      '#title' => 'Search',
+      '#size' => 24,
+    ];
+    // Add submit button to apply sort/filter criteria.
+    $form['filter-sort-container']['filter-sort-submit'] = [
+      '#type' => 'button',
+      '#value' => 'Apply',
+      '#name' => 'filter_sort_submit',
+    ];
+    // Add form reset button.
+    $form['filter-sort-container']['filter-sort-reset'] = [
+      '#type' => 'button',
+      '#value' => 'Reset',
+      '#name' => 'filter_sort_reset',
+    ];
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getBreadcrumb(Folder $current_folder, array $breadcrumbs = []) {
+    // If the folder being rendered is already in the breadcrumb trail
+    // and the breadcrumb trail is longer than 1 (i.e. root folder only)
+    if (array_key_exists($current_folder->id, $breadcrumbs) && count($breadcrumbs) > 1) {
+      // This indicates that the user has navigated "Up" the folder structure
+      // 1 or more levels.
+      do {
+        // Go to the end of the breadcrumb array.
+        end($breadcrumbs);
+        // Fetch the folder id of the last breadcrumb.
+        $id = key($breadcrumbs);
+        // If current folder id doesn't match the folder id of last breadcrumb.
+        if ($id != $current_folder->id && count($breadcrumbs) > 1) {
+          // Remove the last breadcrumb since the user has navigated "Up"
+          // at least 1 folder.
+          array_pop($breadcrumbs);
+        }
+        // If the folder id of the last breadcrumb does not equal the current
+        // folder id then keep removing breadcrumbs from the end.
+      } while ($id != $current_folder->id && count($breadcrumbs) > 1);
+    }
+    // If the parent folder id of the current folder is in the breadcrumb trail
+    // then the user MIGHT have navigated down into a subfolder.
+    if (is_object($current_folder) && property_exists($current_folder, 'parent') && array_key_exists($current_folder->parent, $breadcrumbs)) {
+      // Go to the end of the breadcrumb array.
+      end($breadcrumbs);
+      // If the last folder id in the breadcrumb equals the parent folder id of
+      // the current folder the the user HAS navigated down into a subfolder.
+      if (key($breadcrumbs) == $current_folder->parent) {
+        // Add the current folder to the breadcrumb.
+        $breadcrumbs[$current_folder->id] = $current_folder->name;
+      }
+    }
+    // Reset the breadcrumb array so that it can be rendered in order.
+    reset($breadcrumbs);
+    // Create a container for the breadcrumb.
+    $form['breadcrumb-container'] = [
+      '#type' => 'container',
+      // Custom element property to store breadcrumbs array.
+      // This is fetched from the form state every time the form is rebuilt
+      // due to navigating between folders.
+      '#breadcrumbs' => $breadcrumbs,
+      '#attributes' => [
+        'class' => ['breadcrumb acquiadam-browser-breadcrumb-container'],
+      ],
+    ];
+    // Add the breadcrumb buttons to the form.
+    foreach ($breadcrumbs as $folder_id => $folder_name) {
+      $form['breadcrumb-container'][$folder_id] = [
+        '#type' => 'button',
+        '#value' => $folder_name,
+        '#name' => 'acquiadam_folder',
+        '#acquiadam_folder_id' => $folder_id,
+        '#acquiadam_parent_folder_id' => $folder_name,
+        '#prefix' => '<li>',
+        '#suffix' => '</li>',
+        '#attributes' => [
+          'class' => ['acquiadam-browser-breadcrumb'],
+        ],
+      ];
+    }
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   protected function prepareEntities(array $form, FormStateInterface $form_state) {
     // Get asset id's from form state.
     $asset_ids = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
     // Load type information.
     /** @var \Drupal\media\MediaTypeInterface $media_type */
-    $media_type = $this->entityTypeManager->getStorage('media_type')->load($this->configuration['media_type']);
+    $media_type = $this->entityTypeManager->getStorage('media_type')
+      ->load($this->configuration['media_type']);
     // Get the source field for this type which stores the asset id.
-    $source_field = $media_type->getSource()->getSourceFieldDefinition($media_type)->getName();
+    $source_field = $media_type->getSource()
+      ->getSourceFieldDefinition($media_type)
+      ->getName();
     // Query for existing entities.
-    $existing_ids = $this->entityTypeManager->getStorage('media')->getQuery()
+    $existing_ids = $this->entityTypeManager->getStorage('media')
+      ->getQuery()
       ->condition('bundle', $media_type->id())
       ->condition($source_field, $asset_ids, 'IN')
       ->execute();
     // Load the entities found.
-    $entities = $this->entityTypeManager->getStorage('media')->loadMultiple($existing_ids);
+    $entities = $this->entityTypeManager->getStorage('media')
+      ->loadMultiple($existing_ids);
     // Loop through the existing entities.
     foreach ($entities as $entity) {
       // Set the asset id of the current entity.
@@ -708,16 +616,40 @@ class Acquiadam extends WidgetBase {
         $source_field => $asset->id,
       ];
       // Create a new entity to represent the asset.
-      $entity = $this->entityTypeManager->getStorage('media')->create($entity_values);
+      $entity = $this->entityTypeManager->getStorage('media')
+        ->create($entity_values);
       // Save the entity.
       $entity->save();
       // Reload the entity to make sure we have everything populated properly.
-      $entity = $this->entityTypeManager->getStorage('media')->load($entity->id());
+      $entity = $this->entityTypeManager->getStorage('media')
+        ->load($entity->id());
       // Add the new entity to the array of returned entities.
       $entities[] = $entity;
     }
     // Return the entities.
     return $entities;
+  }
+
+  /**
+   * Format display of one asset in media browser.
+   *
+   * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
+   *
+   * @return string
+   *   Element HTML markup.
+   */
+  public function layoutMediaEntity(Asset $acquiadamAsset) {
+    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
+
+    $assetName = $acquiadamAsset->name;
+    if (!empty($acquiadamAsset->thumbnailurls)) {
+      $thumbnail = '<div class="acquiadam-asset-thumb"><img src="' . $acquiadamAsset->thumbnailurls[2]->url . '" alt="' . $assetName . '" /></div>';
+    }
+    else {
+      $thumbnail = '<span class="acquiadam-browser-empty">No preview available.</span>';
+    }
+    $element = '<div class="acquiadam-asset-checkbox">' . $thumbnail . '<div class="acquiadam-asset-details"><a href="/acquiadam/asset/' . $acquiadamAsset->id . '" class="use-ajax" data-dialog-type="modal"><img src="/' . $modulePath . '/img/ext-link.png" alt="Folder link" class="acquiadam-asset-browser-icon" /></a><p class="acquiadam-asset-filename">' . $assetName . '</p></div></div>';
+    return $element;
   }
 
   /**
@@ -730,8 +662,7 @@ class Acquiadam extends WidgetBase {
       $media_bundle = $this->entityTypeManager->getStorage('media_type')
         ->load($this->configuration['media_type']);
       // Load the field definitions for this bundle.
-      $field_definitions = $this->entityFieldManager
-        ->getFieldDefinitions('media', $media_bundle->id());
+      $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
       // Load the file settings to validate against.
       $field_map = $media_bundle->getFieldMap();
       if (!isset($field_map['file'])) {
@@ -768,19 +699,107 @@ class Acquiadam extends WidgetBase {
         // Set the error message on the form.
         $form_state->setError($form['widget']['asset-container']['assets'], $message);
       }
-      
+
       // If the asset's file type does not match allowed file types.
-      foreach($dam_assets as $asset) {
+      foreach ($dam_assets as $asset) {
         $filetype = $asset->filetype;
         $type_is_supported = in_array($filetype, $supported_extensions);
 
         if (!$type_is_supported) {
-          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', ['@filetype' => $filetype, '@supported_types' => implode(', ', $supported_extensions)]);
+          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
+            '@filetype' => $filetype,
+            '@supported_types' => implode(', ', $supported_extensions),
+          ]);
           // Set the error message on the form.
           $form_state->setError($form['widget']['asset-container']['assets'], $message);
         }
       }
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * Create a custom pager.
+   */
+  public function getPager(Folder $current_folder, $page, $num_per_page) {
+    // Add container for pager.
+    $form['pager-container'] = [
+      '#type' => 'container',
+      // Store page number in container so it can be retrieved from form state.
+      '#page' => $page,
+      '#attributes' => [
+        'class' => ['acquiadam-asset-browser-pager'],
+      ],
+    ];
+    // If not on the first page.
+    if ($page > 0) {
+      // Add a button to go to the first page.
+      $form['pager-container']['first'] = [
+        '#type' => 'button',
+        '#value' => '<<',
+        '#name' => 'acquiadam_pager',
+        '#acquiadam_page' => 0,
+        '#attributes' => [
+          'class' => ['page-button', 'page-first'],
+        ],
+      ];
+      // Add a button to go to the previous page.
+      $form['pager-container']['previous'] = [
+        '#type' => 'button',
+        '#value' => '<',
+        '#name' => 'acquiadam_pager',
+        '#acquiadam_page' => $page - 1,
+        '#attributes' => [
+          'class' => ['page-button', 'page-previous'],
+        ],
+      ];
+    }
+    // Last available page based on number of assets in folder
+    // divided by number of assets to show per page.
+    $last_page = floor($current_folder->numassets / $num_per_page);
+    // First page to show in the pager.
+    // Try to put the button for the current page in the middle by starting at
+    // the current page number minus 4.
+    $start_page = max(0, $page - 4);
+    // Last page to show in the pager.  Don't go beyond the last available page.
+    $end_page = min($start_page + 9, $last_page);
+    // Create buttons for pages from start to end.
+    for ($i = $start_page; $i <= $end_page; $i++) {
+      $form['pager-container']['page_' . $i] = [
+        '#type' => 'button',
+        '#value' => $i + 1,
+        '#name' => 'acquiadam_pager',
+        '#acquiadam_page' => $i,
+        '#attributes' => [
+          'class' => [($i == $page ? 'page-current' : ''), 'page-button'],
+        ],
+      ];
+    }
+    // If not on the last page.
+    if ($end_page > $page) {
+      // Add a button to go to the next page.
+      $form['pager-container']['next'] = [
+        '#type' => 'button',
+        '#value' => '>',
+        '#name' => 'acquiadam_pager',
+        '#acquiadam_page' => $page + 1,
+        '#attributes' => [
+          'class' => ['page-button', 'page-next'],
+        ],
+      ];
+      // Add a button to go to the last page.
+      $form['pager-container']['last'] = [
+        '#type' => 'button',
+        '#value' => '>>',
+        '#name' => 'acquiadam_pager',
+        '#acquiadam_page' => $last_page,
+        '#attributes' => [
+          'class' => ['page-button', 'page-last'],
+        ],
+      ];
+    }
+    return $form;
   }
 
   /**
@@ -792,74 +811,6 @@ class Acquiadam extends WidgetBase {
       $assets = $this->prepareEntities($form, $form_state);
     }
     $this->selectEntities($assets, $form_state);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function defaultConfiguration() {
-    return [
-      'media_type' => NULL,
-      'submit_text' => $this->t('Select assets'),
-    ] + parent::defaultConfiguration();
-  }
-
-  /**
-   * {@inheritdoc}
-   *
-   * TODO: Add more settings for configuring this widget.
-   */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form = parent::buildConfigurationForm($form, $form_state);
-
-    $media_type_options = [];
-    $media_types = $this
-      ->entityTypeManager
-      ->getStorage('media_type')
-      ->loadByProperties(['source' => 'acquiadam_asset']);
-
-    foreach ($media_types as $media_type) {
-      $media_type_options[$media_type->id()] = $media_type->label();
-    }
-
-    if (empty($media_type_options)) {
-      $url = Url::fromRoute('entity.media_type.add_form')->toString();
-      $form['media_type'] = [
-        '#markup' => $this->t("You don't have media type of the Acquia DAM asset type. You should <a href='!link'>create one</a>", ['!link' => $url]),
-      ];
-    }
-    else {
-      $form['media_type'] = [
-        '#type' => 'select',
-        '#title' => $this->t('Media type'),
-        '#default_value' => $this->configuration['media_type'],
-        '#options' => $media_type_options,
-      ];
-    }
-
-    return $form;
-  }
-
-  /**
-   * Format display of one asset in media browser.
-   *
-   * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
-   *
-   * @return string
-   *   Element HTML markup.
-   */
-  public function layoutMediaEntity(Asset $acquiadamAsset) {
-    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
-
-    $assetName = $acquiadamAsset->name;
-    if (!empty($acquiadamAsset->thumbnailurls)) {
-      $thumbnail = '<div class="acquiadam-asset-thumb"><img src="' . $acquiadamAsset->thumbnailurls[2]->url . '" alt="' . $assetName . '" /></div>';
-    }
-    else {
-      $thumbnail = '<span class="acquiadam-browser-empty">No preview available.</span>';
-    }
-    $element = '<div class="acquiadam-asset-checkbox">' . $thumbnail . '<div class="acquiadam-asset-details"><a href="/acquiadam/asset/' . $acquiadamAsset->id . '" class="use-ajax" data-dialog-type="modal"><img src="/' . $modulePath . '/img/ext-link.png" alt="Folder link" class="acquiadam-asset-browser-icon" /></a><p class="acquiadam-asset-filename">' . $assetName . '</p></div></div>';
-    return $element;
   }
 
 }

@@ -3,9 +3,7 @@
 namespace Drupal\media_acquiadam\Plugin\media\Source;
 
 use cweagans\webdam\Entity\Asset;
-use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
@@ -20,8 +18,15 @@ use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\AssetDataInterface;
+use function drupal_static;
+use Exception;
+use function file_default_scheme;
+use function file_get_contents;
+use function file_save_data;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use const PATHINFO_EXTENSION;
+use const PATHINFO_FILENAME;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 
@@ -69,14 +74,14 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * The asset data service.
    *
-   * @var \Drupal\media_acquiadam\AssetData $asset_data
+   * @var \Drupal\media_acquiadam\AssetData
    */
-  protected $asset_data;
+  protected $assetData;
 
   /**
    * Media: Acquia DAM config.
    *
-   * @var \Drupal\Core\Config\ImmutableConfig $config
+   * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
 
@@ -126,13 +131,22 @@ class AcquiadamAsset extends MediaSourceBase {
     $this->token = $token;
     $this->acquiadam = $acquiadam;
     $this->acquiadamXmpFields = $this->acquiadam->getActiveXmpFields();
-    $this->asset_data = $asset_data;
+    $this->assetData = $asset_data;
     $this->config = $config_factory->get('media_acquiadam.settings');
     $this->fileSystem = $fileSystem;
     $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
     $this->mimeTypeGuesser = $mimeTypeGuesser;
     $this->imageFactory = $imageFactory;
     $this->httpClient = $httpClient;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    // Fieldset with configuration options not needed.
+    hide($form);
+    return $form;
   }
 
   /**
@@ -170,15 +184,6 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    // Fieldset with configuration options not needed.
-    hide($form);
-    return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $submitted_config = array_intersect_key($form_state->getValues(), $this->configuration);
     foreach ($submitted_config as $config_key => $config_value) {
@@ -211,8 +216,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $default_field_name = $this->defaultConfiguration()['source_field'];
 
     // Create the field.
-    return $this->entityTypeManager
-      ->getStorage('field_storage_config')
+    return $this->entityTypeManager->getStorage('field_storage_config')
       ->create([
         'entity_type' => 'media',
         'field_name' => $default_field_name,
@@ -266,7 +270,7 @@ class AcquiadamAsset extends MediaSourceBase {
    * @param \Drupal\media\MediaInterface $media
    *   The media entity to pull the asset ID from.
    *
-   * @return integer|bool
+   * @return int|false
    *   The asset ID or FALSE on failure.
    */
   public function getAssetID(MediaInterface $media) {
@@ -286,17 +290,18 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * Retrieve an asset from Acquia DAM.
    *
-   * @param integer $assetID
+   * @param int $assetID
    *   The ID of the asset to retrieve.
    * @param bool $includeXMP
    *   TRUE to include XMP metadata.
    *
-   * @return bool|\cweagans\webdam\Entity\Asset
+   * @return false|\cweagans\webdam\Entity\Asset
+   *   The asset or FALSE if not found.
    */
   public function getAsset($assetID, $includeXMP = FALSE) {
     // Temporarily cache loaded assets to handle multiple save calls in a
     // single request.
-    $assets = &\drupal_static('AcquiaDAMAsset::getAsset', []);
+    $assets = &drupal_static('AcquiaDAMAsset::getAsset', []);
     try {
       $needs_first_get = !isset($assets[$assetID]);
       // @BUG: XMP-less assets may bypass static caching.
@@ -306,24 +311,26 @@ class AcquiadamAsset extends MediaSourceBase {
       if ($needs_first_get || $needs_xmp_get) {
         $assets[$assetID] = $this->acquiadam->getAsset($assetID, $includeXMP);
       }
-    } catch (ClientException $x) {
+    }
+    catch (ClientException $x) {
       // We want specific handling for 404 errors so we can provide a more
       // relateable error message.
       if (404 == $x->getCode()) {
-        $this->loggerChannel
-          ->warning('Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?', ['@assetID' => $assetID]);
+        $this->loggerChannel->warning('Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?', ['@assetID' => $assetID]);
 
         // In the event of a 404 we assume the asset has been deleted within
         // Acquia DAM and need to save that state for excluding it from cron
         // syncs in the future.
-        $this->asset_data->set($assetID, 'remote_deleted', TRUE);
+        $this->assetData->set($assetID, 'remote_deleted', TRUE);
       }
       else {
         watchdog_exception('media_acquiadam', $x);
       }
-    } catch (\Exception $x) {
+    }
+    catch (Exception $x) {
       watchdog_exception('media_acquiadam', $x);
-    } finally {
+    }
+    finally {
       if (!isset($assets[$assetID])) {
         $assets[$assetID] = FALSE;
       }
@@ -377,9 +384,7 @@ class AcquiadamAsset extends MediaSourceBase {
     if (array_key_exists($name, $this->acquiadamXmpFields)) {
       // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
       $xmp_field = substr($name, 4);
-      return isset($this->asset->xmp_metadata[$xmp_field]['value']) ?
-        $this->asset->xmp_metadata[$xmp_field]['value'] :
-        NULL;
+      return isset($this->asset->xmp_metadata[$xmp_field]['value']) ? $this->asset->xmp_metadata[$xmp_field]['value'] : NULL;
     }
 
     switch ($name) {
@@ -454,9 +459,7 @@ class AcquiadamAsset extends MediaSourceBase {
         ];
         if (array_key_exists($name, $property_name_mapping)) {
           $property_name = $property_name_mapping[$name];
-          return isset($this->asset->{$property_name}) ?
-            $this->asset->{$property_name} :
-            NULL;
+          return isset($this->asset->{$property_name}) ? $this->asset->{$property_name} : NULL;
         }
     }
 
@@ -472,7 +475,7 @@ class AcquiadamAsset extends MediaSourceBase {
       return $this->getFallbackThumbnail();
     }
 
-    $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
+    $fake_name = sprintf('%s://nothing.%s', file_default_scheme(), $asset->filetype);
     $mimetype = $this->mimeTypeGuesser->guess($fake_name);
     list($discrete_type, $subtype) = explode('/', $mimetype, 2);
     $is_image = 'image' == $discrete_type;
@@ -482,13 +485,13 @@ class AcquiadamAsset extends MediaSourceBase {
       return $this->getFallbackThumbnail();
     }
 
-    $thumbnail = $is_image ?
-      $this->getImageThumbnail($file) :
-      $this->getGenericIcon([$discrete_type, $subtype]);
+    $thumbnail = $is_image
+      ? $this->getImageThumbnail($file) : $this->getGenericIcon([
+        $discrete_type,
+        $subtype,
+      ]);
 
-    return !empty($thumbnail) ?
-      $thumbnail :
-      $this->getFallbackThumbnail();
+    return !empty($thumbnail) ? $thumbnail : $this->getFallbackThumbnail();
   }
 
   /**
@@ -555,7 +558,7 @@ class AcquiadamAsset extends MediaSourceBase {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   protected function getAssetFileDestination(MediaInterface $media) {
-    $scheme = \file_default_scheme();
+    $scheme = file_default_scheme();
     $file_directory = 'acquiadam_assets';
 
     // We need to pull the File field settings off of the media bundle and use
@@ -599,16 +602,18 @@ class AcquiadamAsset extends MediaSourceBase {
   }
 
   /**
+   * Gets the existing file ID from the given Media entity.
+   *
    * @param \Drupal\media\MediaInterface $media
    *   The media entity to get the existing file ID from.
    *
-   * @return bool|int
+   * @return int|false
    *   The existing file ID or FALSE if one was not found.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Core\TypedData\Exception\MissingDataException
    */
-  protected function getExistingFileID(MediaInterface $media) {
+  protected function getExistingFileId(MediaInterface $media) {
     $file_field = $this->getMediaFileField($media);
     if ($media->hasField($file_field)) {
       /** @var \Drupal\file\Plugin\Field\FieldType\FileItem $file */
@@ -650,9 +655,9 @@ class AcquiadamAsset extends MediaSourceBase {
 
     // If the module was configured to enforce an image size limit then we need
     // to grab the nearest matching pre-created size.
-    $fake_name = sprintf('%s://nothing.%s', \file_default_scheme(), $asset->filetype);
+    $fake_name = sprintf('%s://nothing.%s', file_default_scheme(), $asset->filetype);
     $mimetype = $this->mimeTypeGuesser->guess($fake_name);
-    list($discrete_type, $subtype) = explode('/', $mimetype, 2);
+    list($discrete_type,) = explode('/', $mimetype, 2);
     $is_image = 'image' == $discrete_type;
 
     $existing = $this->entityTypeManager->getStorage('file')
@@ -662,7 +667,7 @@ class AcquiadamAsset extends MediaSourceBase {
     $size_limit = $this->config->get('size_limit');
     if (!empty($size_limit) && -1 != $size_limit && $is_image) {
       $largest_tn = $this->getThumbnailUrlBySize($asset, $size_limit);
-      $file_contents = \file_get_contents($largest_tn);
+      $file_contents = file_get_contents($largest_tn);
       // The DAM can return a different filetype from the original asset type,
       // so we need to handle that scenario by updating the target filename.
       $destination_path = $this->getNewDestinationByUri($destination_folder, $largest_tn, $asset->name);
@@ -678,7 +683,7 @@ class AcquiadamAsset extends MediaSourceBase {
       $file->save();
     }
     else {
-      $file = \file_save_data($file_contents, $destination_path, $replace);
+      $file = file_save_data($file_contents, $destination_path, $replace);
     }
 
     $is_valid = !empty($file) && $file instanceof FileInterface;
@@ -689,11 +694,11 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * Gets a new filename for an asset based on the URL returned by the DAM.
    *
-   * @param $destination
+   * @param string $destination
    *   The destination folder the asset is being saved to.
-   * @param $uri
+   * @param string $uri
    *   The URI that was returned by the DAM API for the asset.
-   * @param $original_name
+   * @param string $original_name
    *   The original asset filename.
    *
    * @return string
@@ -702,9 +707,9 @@ class AcquiadamAsset extends MediaSourceBase {
   protected function getNewDestinationByUri($destination, $uri, $original_name) {
     $path = parse_url($uri, PHP_URL_PATH);
     $path = basename($path);
-    $ext = pathinfo($path, \PATHINFO_EXTENSION);
+    $ext = pathinfo($path, PATHINFO_EXTENSION);
 
-    $base_file_name = pathinfo($original_name, \PATHINFO_FILENAME);
+    $base_file_name = pathinfo($original_name, PATHINFO_FILENAME);
     return sprintf('%s/%s.%s', $destination, $base_file_name, $ext);
   }
 
@@ -725,25 +730,23 @@ class AcquiadamAsset extends MediaSourceBase {
     // If we're getting an updated version of the asset we need to grab a new
     // version of the file.
     $asset = $this->getAssetFromEntity($media);
-    $current_version = intval($this->asset_data->get($asset->id, 'version'));
+    $current_version = intval($this->assetData->get($asset->id, 'version'));
     $new_version = intval($asset->version);
     $is_updated_version = $new_version > 1 && $new_version != $current_version;
     if ($is_updated_version) {
       // Track the new version for future reference.
-      $this->asset_data->set($asset->id, 'version', $new_version);
+      $this->assetData->set($asset->id, 'version', $new_version);
     }
 
     $file = FALSE;
     // If there is already a file on the media entity then we should use that.
-    $fid = $this->getExistingFileID($media);
+    $fid = $this->getExistingFileId($media);
     if (!empty($fid)) {
       $file = $this->entityTypeManager->getStorage('file')->load($fid);
     }
 
     if (empty($file) || $is_updated_version) {
-      $replace = $is_updated_version ?
-        \FILE_EXISTS_REPLACE :
-        \FILE_EXISTS_RENAME;
+      $replace = $is_updated_version ? FileSystemInterface::EXISTS_REPLACE : FileSystemInterface::EXISTS_RENAME;
       $file = $this->createNewFile($media, $replace);
     }
 
@@ -753,7 +756,7 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * Get a fallback image to use for the thumbnail.
    *
-   * @return string|FALSE
+   * @return string|false
    *   The Drupal image path to use or FALSE.
    */
   protected function getFallbackThumbnail() {
@@ -786,7 +789,7 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * Get the URL to the DAM-provided thumbnail if possible.
    *
-   * @param Asset $asset
+   * @param \cweagans\webdam\Entity\Asset $asset
    *   The asset to get the thumbnail size from.
    * @param int $thumbnailSize
    *   Find the closest thumbnail size without going over when multiple

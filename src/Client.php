@@ -1,22 +1,29 @@
 <?php
 
-/**
- * @file
- * Overridden implementation of the cweagans php-webdam-client to add support
- * for refreshing OAuth sessions.
- */
-
 namespace Drupal\media_acquiadam;
 
 use cweagans\webdam\Client as OriginalClient;
 use cweagans\webdam\Entity\Asset;
 use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal;
+use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 
+/**
+ * Overridden implementation of the cweagans php-webdam-client.
+ *
+ * Adds support for refreshing OAuth sessions.
+ *
+ * @package Drupal\media_acquiadam
+ */
 class Client extends OriginalClient {
 
-  /** @var string Contains the refresh token necessary to renew connections. */
+  /**
+   * Contains the refresh token necessary to renew connections.
+   *
+   * @var string
+   */
   protected $refreshToken;
 
   /**
@@ -27,8 +34,52 @@ class Client extends OriginalClient {
   protected $activeXmpFields;
 
   /**
-   * Authenticates with the DAM service and retrieves an access token, or uses
-   * existing one.
+   * Get a list of metadata.
+   *
+   * @return array
+   *   A list of active xmp metadata fields.
+   */
+  public function getActiveXmpFields() {
+    if (!is_null($this->activeXmpFields)) {
+      return $this->activeXmpFields;
+    }
+
+    try {
+      $this->checkAuth();
+    }
+    catch (Exception $x) {
+      Drupal::logger('media_acquiadam')
+        ->error('Unable to authenticate to retrieve xmp field data.');
+      return [];
+    }
+
+    try {
+      $response = $this->client->request('GET', $this->baseUrl . '/metadataschemas/xmp?full=1', ['headers' => $this->getDefaultHeaders()]);
+    }
+    catch (Exception $x) {
+      Drupal::logger('media_acquiadam')
+        ->error('Unable to get xmp field data.');
+      return [];
+    }
+
+    $response = json_decode((string) $response->getBody());
+
+    $this->activeXmpFields = [];
+    foreach ($response->xmpschema as $field) {
+      if ($field->status == 'active') {
+        $this->activeXmpFields['xmp_' . strtolower($field->field)] = [
+          'name' => $field->name,
+          'label' => $field->label,
+          'type' => $field->type,
+        ];
+      }
+    }
+
+    return $this->activeXmpFields;
+  }
+
+  /**
+   * Authenticates with the DAM service and retrieves or uses an access token.
    *
    * {@inheritdoc}
    *
@@ -42,9 +93,7 @@ class Client extends OriginalClient {
    */
   public function checkAuth() {
 
-    /** @var bool TRUE if the access token expiration time has elapsed. */
     $is_expired_token = empty($this->accessTokenExpiry) || time() >= $this->accessTokenExpiry;
-    /** @var bool $is_expired_session TRUE if the session has expired. */
     $is_expired_session = !empty($this->accessToken) && $is_expired_token;
 
     // Session is still valid.
@@ -75,21 +124,6 @@ class Client extends OriginalClient {
     }
 
     return $this->getAuthState();
-  }
-
-  /**
-   * Set the internal auth token.
-   *
-   * {@inheritdoc}
-   *
-   * @param string $token
-   * @param int $token_expiry
-   * @param string $refresh_token
-   */
-  public function setToken($token, $token_expiry, $refresh_token = NULL) {
-
-    parent::setToken($token, $token_expiry);
-    $this->refreshToken = $refresh_token;
   }
 
   /**
@@ -129,19 +163,15 @@ class Client extends OriginalClient {
       ];
     }
 
-    /**
-     * For error response body details:
-     *
-     * @see \cweagans\webdam\tests\ClientTest::testInvalidClient()
-     * @see \cweagans\webdam\tests\ClientTest::testInvalidGrant()
-     *
-     * For successful auth response body details:
-     * @see \cweagans\webdam\tests\ClientTest::testSuccessfulAuthentication()
-     */
+    // For error response body details:
+    // @see \cweagans\webdam\tests\ClientTest::testInvalidClient().
+    // @see \cweagans\webdam\tests\ClientTest::testInvalidGrant().
+    // For successful auth response body details:
+    // @see \cweagans\webdam\tests\ClientTest::testSuccessfulAuthentication().
     try {
       $response = $this->client->request("POST", $url, ['form_params' => $data]);
 
-      // Body properties: access_token, expires_in, token_type, refresh_token
+      // Body properties: access_token, expires_in, token_type, refresh_token.
       $body = (string) $response->getBody();
       $body = json_decode($body);
 
@@ -150,12 +180,11 @@ class Client extends OriginalClient {
       // We should only get an initial refresh_token and reuse it after the
       // first session. The access_token gets replaced instead of a new
       // refresh_token.
-      $this->refreshToken = !empty($body->refresh_token) ?
-        $body->refresh_token :
-        $this->refreshToken;
-    } catch (ClientException $e) {
-      // Looks like any form of bad auth with Webdam is a 400, but we're wrapping
-      // it here just in case.
+      $this->refreshToken = !empty($body->refresh_token) ? $body->refresh_token : $this->refreshToken;
+    }
+    catch (ClientException $e) {
+      // Looks like any form of bad auth with Webdam is a 400, but we're
+      // wrapping it here just in case.
       if ($e->getResponse()->getStatusCode() == 400) {
         $body = (string) $e->getResponse()->getBody();
         $body = json_decode($body);
@@ -166,58 +195,62 @@ class Client extends OriginalClient {
   }
 
   /**
-   * Get a list of metadata.
+   * Set the internal auth token.
+   *
+   * {@inheritdoc}
+   *
+   * @param string $token
+   *   The token to set.
+   * @param int $token_expiry
+   *   The time when the token expires.
+   * @param string $refresh_token
+   *   The refresh token to set.
+   */
+  public function setToken($token, $token_expiry, $refresh_token = NULL) {
+
+    parent::setToken($token, $token_expiry);
+    $this->refreshToken = $refresh_token;
+  }
+
+  /**
+   * Uploads file to Webdam AWS S3.
+   *
+   * @param mixed $presignedUrl
+   *   The presigned URL we got in previous step from AWS.
+   * @param string $file_uri
+   *   The file URI.
+   * @param string $file_type
+   *   The File Content Type.
    *
    * @return array
-   *   A list of active xmp metadata fields.
+   *   Response Status 100 / 200
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
    */
-  public function getActiveXmpFields() {
-    if (!is_null($this->activeXmpFields)) {
-      return $this->activeXmpFields;
-    }
+  protected function uploadPresigned($presignedUrl, $file_uri, $file_type) {
+    $this->checkAuth();
 
-    try {
-      $this->checkAuth();
-    } catch (\Exception $x) {
-      \Drupal::logger('media_acquiadam')
-        ->error('Unable to authenticate to retrieve xmp field data.');
-      return [];
-    }
+    $file = fopen($file_uri, 'r');
+    $response = $this->client->request("PUT", $presignedUrl,
+      [
+        'headers' => ['Content-Type' => $file_type],
+        'body' => stream_get_contents($file),
+        RequestOptions::TIMEOUT => 0,
+      ]);
 
-    try {
-      $response = $this->client->request(
-        'GET',
-        $this->baseUrl . '/metadataschemas/xmp?full=1',
-        ['headers' => $this->getDefaultHeaders()]
-      );
-    } catch (\Exception $x) {
-      \Drupal::logger('media_acquiadam')
-        ->error('Unable to get xmp field data.');
-      return [];
-    }
+    return [
+      'status' => json_decode($response->getStatusCode(), TRUE),
+    ];
 
-    $response = json_decode((string) $response->getBody());
-
-    $this->activeXmpFields = [];
-    foreach ($response->xmpschema as $field) {
-      if ($field->status == 'active') {
-        $this->activeXmpFields['xmp_' . strtolower($field->field)] = [
-          'name' => $field->name,
-          'label' => $field->label,
-          'type' => $field->type,
-        ];
-      }
-    }
-
-    return $this->activeXmpFields;
   }
 
   /**
    * Queue custom asset conversions for download.
    *
    * This is a 2 step process:
-   *   1. Queue assets
-   *   2. Download From Queue
+   *   1. Queue assets.
+   *   2. Download From Queue.
    *
    * This step will allow users to queue an asset for download by specifying an
    * AssetID and a Preset ID or custom conversion parameters. If a valid
@@ -226,8 +259,7 @@ class Client extends OriginalClient {
    *
    * @param array|int $assetIDs
    *   A single or list of asset IDs.
-   *
-   * @param $options
+   * @param array $options
    *   Asset preset or conversion options.
    *
    * @return array
@@ -236,7 +268,7 @@ class Client extends OriginalClient {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \cweagans\webdam\Exception\InvalidCredentialsException
    */
-  public function queueAssetDownload($assetIDs, $options) {
+  public function queueAssetDownload($assetIDs, array $options) {
     $this->checkAuth();
 
     if (!is_array($assetIDs)) {
@@ -248,14 +280,11 @@ class Client extends OriginalClient {
       $data['items'][] = ['id' => $assetID] + $options;
     }
 
-    $response = $this->client->request(
-      'POST',
-      $this->baseUrl . '/assets/queuedownload',
+    $response = $this->client->request('POST', $this->baseUrl . '/assets/queuedownload',
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]
-    );
+      ]);
     $response = json_decode((string) $response->getBody(), TRUE);
 
     return $response;
@@ -265,8 +294,8 @@ class Client extends OriginalClient {
    * Gets asset download queue information.
    *
    * This is a 2 step process:
-   *   1. Queue assets
-   *   2. Download From Queue
+   *   1. Queue assets.
+   *   2. Download From Queue.
    *
    * This step will allow users to download the queued asset using the download
    * key returned from step1 (Queue asset process). The output of this step will
@@ -285,11 +314,7 @@ class Client extends OriginalClient {
   public function downloadFromQueue($downloadKey) {
     $this->checkAuth();
 
-    $response = $this->client->request(
-      'GET',
-      $this->baseUrl . '/downloadfromqueue/' . $downloadKey,
-      ['headers' => $this->getDefaultHeaders()]
-    );
+    $response = $this->client->request('GET', $this->baseUrl . '/downloadfromqueue/' . $downloadKey, ['headers' => $this->getDefaultHeaders()]);
 
     $response = json_decode((string) $response->getBody(), TRUE);
 
@@ -317,7 +342,7 @@ class Client extends OriginalClient {
    *    thumbnail_ttl  string  Time to live for thumbnails
    *                             Default: Set by the account admin
    *                             Values: '+3 min', '+15 min', '+2 hours',
-   *                             '+1 day', '+2 weeks', 'no-expiration'
+   *                             '+1 day', '+2 weeks', 'no-expiration'.
    *
    * @return \cweagans\webdam\Entity\Asset|bool
    *   An asset object on success, or FALSE on failure.
@@ -328,14 +353,11 @@ class Client extends OriginalClient {
   public function editAsset($assetID, array $data) {
     $this->checkAuth();
 
-    $response = $this->client->request(
-      'PUT',
-      $this->baseUrl . '/assets/' . $assetID,
+    $response = $this->client->request('PUT', $this->baseUrl . '/assets/' . $assetID,
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]
-    );
+      ]);
 
     if (409 == $response->getStatusCode()) {
       return FALSE;
@@ -356,6 +378,7 @@ class Client extends OriginalClient {
    *
    * @return array
    *   The metadata of the asset.
+   *
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \cweagans\webdam\Exception\InvalidCredentialsException
    */
@@ -364,52 +387,15 @@ class Client extends OriginalClient {
 
     $data['type'] = 'assetxmp';
 
-    $response = $this->client->request(
-      'PUT',
-      $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
+    $response = $this->client->request('PUT', $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]
-    );
+      ]);
 
     $response = json_decode((string) $response->getBody(), TRUE);
 
     return $response;
-  }
-
-  /**
-   * Uploads file to Webdam AWS S3.
-   *
-   * @param mixed $presignedUrl
-   *   The presigned URL we got in previous step from AWS.
-   * @param string $file_uri
-   *   The file URI.
-   * @param string $file_type
-   *   The File Content Type.
-   *
-   * @return array
-   *   Response Status 100 / 200
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
-   */
-  protected function uploadPresigned($presignedUrl, $file_uri, $file_type) {
-    $this->checkAuth();
-
-    $file = fopen($file_uri, 'r');
-    $response = $this->client->request(
-      "PUT",
-      $presignedUrl, [
-      'headers' => ['Content-Type' => $file_type],
-      'body' => stream_get_contents($file),
-      RequestOptions::TIMEOUT => 0,
-    ]);
-
-    return [
-      'status' => json_decode($response->getStatusCode(), TRUE),
-    ];
-
   }
 
 }

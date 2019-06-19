@@ -1,13 +1,11 @@
 <?php
-/**
- * @file
- * Acquia DAM Asset Data service interface.
- */
 
 namespace Drupal\media_acquiadam;
 
 /**
  * Defines the asset data service interface.
+ *
+ * @package media_acquiadam
  */
 interface AssetDataInterface {
 
@@ -51,4 +49,5 @@ interface AssetDataInterface {
    *   $assetID.
    */
   public function delete($assetID = NULL, $name = NULL);
+
 }

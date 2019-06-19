@@ -38,10 +38,20 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
    * Gets an Acquia DAM Client Factory object.
    *
    * @return \Drupal\media_acquiadam\ClientFactory
+   *   The Acquia DAM client factory service.
    */
   protected function getClientFactory() {
     $factory = ClientFactory::create(Drupal::getContainer(), [], '', []);
     return $factory;
+  }
+
+  /**
+   * Check to make sure that the 'current' option gives us a client.
+   */
+  public function testFactoryGetCurrent() {
+    $factory = $this->getClientFactory();
+    $client = $factory->get('current');
+    $this->assertInstanceOf(Client::class, $client);
   }
 
   /**
@@ -58,15 +68,6 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
         'size_limit' => 1280,
       ],
     ]);
-  }
-
-  /**
-   * Check to make sure that the 'current' option gives us a client.
-   */
-  public function testFactoryGetCurrent() {
-    $factory = $this->getClientFactory();
-    $client = $factory->get('current');
-    $this->assertInstanceOf(Client::class, $client);
   }
 
   /**

@@ -17,6 +17,32 @@
     "extra": {
         "branch-alias": {
             "dev-8.x-1.x": "1.x-dev"
+        },
+        "phpcodesniffer-search-depth": 4,
+        "hooks": {
+            "pre-commit": "vendor/bin/phpcs",
+            "pre-push": "vendor/bin/phpcs"
         }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "support": {
+        "issues": "https://drupal.org/project/issues/media_acquiadam",
+        "source": "https://cgit.drupalcode.org/media_acquiadam"
+    },
+    "require-dev": {
+        "acquia/coding-standards": "*",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.5",
+        "brainmaestro/composer-git-hooks": "^2.7"
+    },
+    "scripts": {
+        "phpcs": "vendor/bin/phpcs",
+        "cghooks": "vendor/bin/cghooks",
+        "post-install-cmd": "vendor/bin/cghooks add --ignore-lock",
+        "post-update-cmd": "vendor/bin/cghooks update"
     }
 }

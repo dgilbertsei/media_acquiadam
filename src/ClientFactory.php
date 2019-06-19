@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Class ClientFactory.
  *
- * @package Drupal\media_acquiadam
+ * @package media_acquiadam
  */
 class ClientFactory implements ContainerFactoryPluginInterface {
 
@@ -66,13 +66,8 @@ class ClientFactory implements ContainerFactoryPluginInterface {
   /**
    * {@inheritdoc}
    */
-  static public function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('http_client'),
-      $container->get('user.data'),
-      $container->get('current_user')
-    );
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static($container->get('config.factory'), $container->get('http_client'), $container->get('user.data'), $container->get('current_user'));
   }
 
   /**
@@ -86,11 +81,7 @@ class ClientFactory implements ContainerFactoryPluginInterface {
    *   A configured DAM HTTP client object.
    */
   public function get($credentials = 'background') {
-    $client = $this->getWithCredentials(
-      $this->config->get('username'),
-      $this->config->get('password'),
-      $this->config->get('client_id'),
-      $this->config->get('secret'));
+    $client = $this->getWithCredentials($this->config->get('username'), $this->config->get('password'), $this->config->get('client_id'), $this->config->get('secret'));
 
     // Set the user's credentials in the client if necessary.
     if ($credentials == 'current') {

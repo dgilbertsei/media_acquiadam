@@ -4,9 +4,9 @@ namespace Drupal\media_acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\Core\Url;
 use Drupal\media_acquiadam\OauthInterface;
 use Drupal\user\UserDataInterface;
 use Drupal\user\UserInterface;
@@ -21,20 +21,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class OauthController extends ControllerBase {
 
-  protected $webdamApiBase = "https://apiv2.webdamdb.com";
-
   /**
-   * {@inheritdoc}
+   * The base API url.
+   *
+   * @var string
    */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('media_acquiadam.oauth'),
-      $container->get('request_stack'),
-      $container->get('user.data'),
-      $container->get('current_user'),
-      $container->get('date.formatter')
-    );
-  }
+  protected $webdamApiBase = "https://apiv2.webdamdb.com";
 
   /**
    * The media_acquiadam oauth service.
@@ -78,6 +70,13 @@ class OauthController extends ControllerBase {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('media_acquiadam.oauth'), $container->get('request_stack'), $container->get('user.data'), $container->get('current_user'), $container->get('date.formatter'));
+  }
+
+  /**
    * Builds the auth page for a given user.
    *
    * Route: /user/{$user}/acquiadam.
@@ -94,53 +93,54 @@ class OauthController extends ControllerBase {
       throw new NotFoundHttpException();
     }
 
-    $settings_not_set_message = '';
+    $result = [];
 
     /** @var \Drupal\Core\Config\Config $media_acquiadam_settings */
     $media_acquiadam_settings = $this->config('media_acquiadam.settings');
-    if (!$media_acquiadam_settings->get('username') || !$media_acquiadam_settings->get('client_id')) {
-      $settings_not_set_message = $this->getLinkGenerator()->generate($this->t('Please enter credentials for authentication'), Url::fromRoute('media_acquiadam.config', [], [
-        'query' => [
-          'destination' => "/user/{$this->currentUser->id()}/acquiadam",
-        ],
-      ]));
-    }
+    $redirect_url = sprintf('/user/%d/acquiadam', $this->currentUser()->id());
 
     $access_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
     $refresh_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
     $access_token_expiration = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
 
     $is_expired = empty($access_token) || $access_token_expiration <= time();
+    $is_authenticated = !$is_expired || ($is_expired && !empty($refresh_token));
+    $is_no_credentials = !$media_acquiadam_settings->get('secret') || !$media_acquiadam_settings->get('client_id');
 
-    if (!$is_expired || ($is_expired && !empty($refresh_token))) {
-      return [
-        [
-          '#markup' => '<p>' . $this->t('You are authenticated with Acquia DAM.') . '</p>',
-        ],
-        [
-          '#markup' => '<p>' . $this->t('Your authentication expires on @date.', [
-              '@date' => $this->dateFormatter->format($access_token_expiration),
-            ]) . '</p>',
-        ],
-        [
-          '#markup' => $settings_not_set_message ?: $this->getLinkGenerator()->generate('Reauthenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
-        ],
-      ];
+    if ($is_no_credentials) {
+
+      $result[] = ['#markup' => '<p>' . $this->t('The Acquia DAM module is not fully configured.') . '</p>'];
+      if ($this->currentUser()->hasPermission('administer site configuration')) {
+        $config_url = $this->getUrlGenerator()
+          ->generateFromRoute('media_acquiadam.config', [], ['query' => ['destination' => $redirect_url]]);
+        $result[] = ['#markup' => '<p>' . $this->t('Please <a href="@configure">configure</a> the Acquia DAM module to continue.', ['@configure' => $config_url]) . '</p>'];
+      }
+      else {
+        $result[] = ['#markup' => '<p>' . $this->t('Please contact a site administrator to continue.') . '</p>'];
+      }
     }
-    else {
+    elseif ($is_expired) {
       $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
       $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
       $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
+      $link = Link::createFromRoute('Authenticate', 'media_acquiadam.auth_start', ['auth_finish_redirect' => $redirect_url]);
 
-      return [
-        [
-          '#markup' => '<p>' . $this->t('You are not authenticated with Acquia DAM.') . '</p>',
-        ],
-        [
-          '#markup' => $settings_not_set_message ?: $this->getLinkGenerator()->generate('Authenticate', Url::fromRoute('media_acquiadam.auth_start', ['auth_finish_redirect' => "/user/{$this->currentUser->id()}/acquiadam"])),
-        ],
-      ];
+      $result[] = ['#markup' => '<p>' . $this->t('You are <strong>not</strong> authenticated with Acquia DAM.') . '</p>'];
+      $result[] = ['#markup' => '<p>' . $link->toString() . '</p>'];
     }
+    elseif ($is_authenticated) {
+      $link = Link::createFromRoute('Reauthenticate', 'media_acquiadam.auth_start', ['auth_finish_redirect' => $redirect_url]);
+      $result[] = ['#markup' => '<p>' . $this->t('You are authenticated with Acquia DAM.') . '</p>'];
+      $result[] = [
+        '#markup' => '<p>' . $this->t('Your authentication expires on @date.',
+          [
+            '@date' => $this->dateFormatter->format($access_token_expiration),
+          ]) . '</p>',
+      ];
+      $result[] = ['#markup' => '<p>' . $link->toString() . '</p>'];
+    }
+
+    return !empty($result) ? $result : NULL;
   }
 
   /**

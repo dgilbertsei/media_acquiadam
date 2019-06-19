@@ -37,10 +37,17 @@ class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $container->get('media_acquiadam.client_factory'),
-      'background'
-    );
+    return new static($container->get('media_acquiadam.client_factory'), 'background');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __call($name, $arguments) {
+    $method_variable = [$this->client, $name];
+    if (is_callable($method_variable)) {
+      return call_user_func_array($method_variable, $arguments);
+    }
   }
 
   /**
@@ -68,16 +75,6 @@ class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
     }
 
     return $folder_data;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __call($name, $arguments) {
-    $method_variable = [$this->client, $name];
-    if (is_callable($method_variable)) {
-      return call_user_func_array($method_variable, $arguments);
-    }
   }
 
 }

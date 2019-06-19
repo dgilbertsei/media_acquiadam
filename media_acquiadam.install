@@ -9,7 +9,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 
 /**
- * Implements HOOK_schema().
+ * Implements hook_schema().
  */
 function media_acquiadam_schema() {
   $schema = [];
@@ -62,7 +62,7 @@ function media_acquiadam_update_8101(&$sandbox) {
 
   $table_name = 'acquiadam_assets_data';
 
-  $db_schema = \Drupal::database()->schema();
+  $db_schema = Drupal::database()->schema();
   if ($db_schema->tableExists($table_name)) {
     return;
   }
@@ -77,25 +77,23 @@ function media_acquiadam_update_8101(&$sandbox) {
 function media_acquiadam_update_8102(&$sandbox) {
   $default_field_name = 'field_acquiadam_asset_id';
   $destination_table = 'media__' . $default_field_name;
-  $connection = \Drupal::database();
+  $connection = Drupal::database();
   $db_schema = $connection->schema();
-  $entity_type_manager = \Drupal::service('entity_type.manager');
+  $entity_type_manager = Drupal::service('entity_type.manager');
 
   // Create asset id field if it doesn't exist.
   if (!$db_schema->tableExists($destination_table)) {
-    $entity_type_manager->getStorage('field_storage_config')
-      ->create([
-        'entity_type' => 'media',
-        'field_name' => $default_field_name,
-        'type' => 'integer',
-      ])
-      ->save();
+    $entity_type_manager->getStorage('field_storage_config')->create([
+      'entity_type' => 'media',
+      'field_name' => $default_field_name,
+      'type' => 'integer',
+    ])->save();
   }
 
   // Get asset id fields and reduce to those that don't match the default.
   $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
   $fields_to_migrate = array_diff($asset_id_fields, ['field_acquiadam_asset_id']);
-  
+
   // Loop through existing bundles/fields and transfer field table data
   // as well as set the source_field for media types.
   foreach ($fields_to_migrate as $bundle => $field) {
@@ -104,12 +102,11 @@ function media_acquiadam_update_8102(&$sandbox) {
     $origin_query = $connection->select($origin_table, 'o')->fields('o');
 
     // Insert origin fields into destination.
-    $connection->insert($destination_table)
-      ->from($origin_query)
-      ->execute();
+    $connection->insert($destination_table)->from($origin_query)->execute();
 
     // The bundle config.
-    $config = \Drupal::service('config.factory')->getEditable('media.type.' . $bundle);
+    $config = Drupal::service('config.factory')
+      ->getEditable('media.type.' . $bundle);
     // Set the new source_field.
     $config->set('source_configuration', ['source_field' => $default_field_name]);
     // Map the asset id to the old field to avoid potential regressions.
@@ -125,17 +122,18 @@ function media_acquiadam_update_8102(&$sandbox) {
       $field = FieldConfig::create([
         'field_storage' => $field_storage,
         'bundle' => $bundle,
-        'label' => $label
+        'label' => $label,
       ]);
       $field->save();
 
       // Assign widget settings for the 'default' form mode.
       entity_get_form_display('media', $bundle, 'default')
-        ->setComponent($default_field_name, ['type' => 'number',])
+        ->setComponent($default_field_name, ['type' => 'number'])
         ->save();
 
       // Hide the id field in available view modes.
-      $view_modes = \Drupal::service('entity_display.repository')->getViewModes('media');
+      $view_modes = Drupal::service('entity_display.repository')
+        ->getViewModes('media');
       foreach ($view_modes as $view_mode => $view_mode_config) {
         entity_get_display('media', $bundle, $view_mode)
           ->removeComponent($default_field_name)
@@ -149,12 +147,12 @@ function media_acquiadam_update_8102(&$sandbox) {
  * Migrate type mappings to the new type_id property.
  */
 function media_acquiadam_update_8103(&$sandbox) {
-  $media_bundles = \Drupal::entityTypeManager()
+  $media_bundles = Drupal::entityTypeManager()
     ->getStorage('media_type')
     ->loadByProperties(['source' => 'acquiadam_asset']);
 
   /** @var \Drupal\media\Entity\MediaType $bundle */
-  foreach ($media_bundles as $name => $bundle) {
+  foreach ($media_bundles as $bundle) {
     $mapping = $bundle->getFieldMap();
 
     // Only migrate if there is no type_id set already. This should always be
@@ -172,7 +170,7 @@ function media_acquiadam_update_8103(&$sandbox) {
  * Migrate time mappings to the new datetime properties.
  */
 function media_acquiadam_update_8104(&$sandbox) {
-  $media_bundles = \Drupal::entityTypeManager()
+  $media_bundles = Drupal::entityTypeManager()
     ->getStorage('media_type')
     ->loadByProperties(['source' => 'acquiadam_asset']);
 

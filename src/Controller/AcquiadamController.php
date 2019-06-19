@@ -39,9 +39,18 @@ class AcquiadamController extends ControllerBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('media_acquiadam.acquiadam')
-    );
+    return new static($container->get('media_acquiadam.acquiadam'));
+  }
+
+  /**
+   * Sets the asset details page title.
+   *
+   * @param int $assetId
+   *   The asset ID for the asset to render title for.
+   */
+  public function assetDetailsPageTitle($assetId) {
+    $asset = $this->getAsset($assetId);
+    return $this->t("Asset details: %filename", ['%filename' => $asset->filename]);
   }
 
   /**
@@ -56,17 +65,6 @@ class AcquiadamController extends ControllerBase {
     }
 
     return $this->asset;
-  }
-
-  /**
-   * Sets the asset details page title.
-   *
-   * @param int $assetId
-   *   The asset ID for the asset to render title for.
-   */
-  public function assetDetailsPageTitle($assetId) {
-    $asset = $this->getAsset($assetId);
-    return $this->t("Asset details: %filename", ['%filename' => $asset->filename]);
   }
 
   /**
@@ -114,8 +112,8 @@ class AcquiadamController extends ControllerBase {
     // Get an asset preview.
     $asset_preview = $asset->thumbnailurls[3]->url;
 
-    // Get subscription details so that we can generate the correct URL to send the user
-    // to the DAM UI.
+    // Get subscription details so that we can generate the correct URL to send
+    // the user to the DAM UI.
     $subscription_details = $this->acquiadam->getAccountSubscriptionDetails();
     $dam_url = $subscription_details->url;
 

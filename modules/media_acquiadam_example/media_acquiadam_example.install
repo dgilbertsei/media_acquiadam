@@ -1,11 +1,11 @@
 <?php
 
-use Drupal\entity_browser\Entity\EntityBrowser;
-
 /**
  * @file
  * Drupal install and update hooks.
  */
+
+use Drupal\entity_browser\Entity\EntityBrowser;
 
 /**
  * Implements hook_install().

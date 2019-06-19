@@ -1,15 +1,11 @@
 <?php
-/**
- * @file
- * Acquia DAM Asset Data service implementation.
- */
 
 namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Database\Connection;
 
 /**
- * Defines the asset data service.
+ * Acquia DAM Asset Data service implementation.
  */
 class AssetData implements AssetDataInterface {
 
@@ -28,6 +24,21 @@ class AssetData implements AssetDataInterface {
    */
   public function __construct(Connection $connection) {
     $this->connection = $connection;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function delete($assetID = NULL, $name = NULL) {
+    $query = $this->connection->delete('acquiadam_assets_data');
+    // Cast scalars to array so we can consistently use an IN condition.
+    if (isset($assetID)) {
+      $query->condition('asset_id', (array) $assetID, 'IN');
+    }
+    if (isset($name)) {
+      $query->condition('name', (array) $name, 'IN');
+    }
+    $query->execute();
   }
 
   /**
@@ -86,31 +97,14 @@ class AssetData implements AssetDataInterface {
     if ($serialized) {
       $value = serialize($value);
     }
-    $this->connection->merge('acquiadam_assets_data')
-      ->keys([
+    $this->connection->merge('acquiadam_assets_data')->keys(
+      [
         'asset_id' => $assetID,
         'name' => $name,
-      ])
-      ->fields([
+      ])->fields([
         'value' => $value,
         'serialized' => $serialized,
-      ])
-      ->execute();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function delete($assetID = NULL, $name = NULL) {
-    $query = $this->connection->delete('acquiadam_assets_data');
-    // Cast scalars to array so we can consistently use an IN condition.
-    if (isset($assetID)) {
-      $query->condition('asset_id', (array) $assetID, 'IN');
-    }
-    if (isset($name)) {
-      $query->condition('name', (array) $name, 'IN');
-    }
-    $query->execute();
+      ])->execute();
   }
 
 }

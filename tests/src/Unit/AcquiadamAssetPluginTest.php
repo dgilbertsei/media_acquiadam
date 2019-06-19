@@ -36,6 +36,9 @@ class AcquiadamAssetPluginTest extends UnitTestCase {
    */
   protected $container;
 
+  /**
+   * Validate we fetch the correct thumbnail size when given varying sizes.
+   */
   public function testGetThumbnailUrlBySize() {
     $media_source = $this->getAcquiadamMediaSource();
     $asset = $this->getAssetData();

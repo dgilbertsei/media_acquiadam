@@ -2,7 +2,7 @@
 {% set source_url = acquiadam_asset_url ~ asset_id %}
 
 {% if row.remotely_deleted %}
-    {{ 'Missing:'|t }} {{ asset_id }}
+  {{ 'Missing:'|t }} {{ asset_id }}
 {% else %}
-    {{ link(asset_id, source_url) }}
+  {{ link(asset_id, source_url) }}
 {% endif %}

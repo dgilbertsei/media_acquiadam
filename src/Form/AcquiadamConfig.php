@@ -36,32 +36,6 @@ class AcquiadamConfig extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('media_acquiadam.client_factory')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId() {
-    return 'acquiadam_config';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getEditableConfigNames() {
-    return [
-      'media_acquiadam.settings',
-    ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('media_acquiadam.settings');
 
@@ -151,14 +125,37 @@ class AcquiadamConfig extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('config.factory'), $container->get('media_acquiadam.client_factory'));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
+    return 'acquiadam_config';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return [
+      'media_acquiadam.settings',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-      // We set the client data array with the values from form_state.
-      $username = $form_state->getValue('username');
-      $password = $this->getFieldValue($form_state, 'password');
-      $form_state->setValue('password', $password);
-      $client_id = $form_state->getValue('client_id');
-      $client_secret = $this->getFieldValue($form_state, 'secret');
-      $form_state->setValue('secret', $client_secret);
+    // We set the client data array with the values from form_state.
+    $username = $form_state->getValue('username');
+    $password = $this->getFieldValue($form_state, 'password');
+    $form_state->setValue('password', $password);
+    $client_id = $form_state->getValue('client_id');
+    $client_secret = $this->getFieldValue($form_state, 'secret');
+    $form_state->setValue('secret', $client_secret);
 
     try {
       $acquiadam_client = $this->acquiaDamClientFactory->getWithCredentials($username, $password, $client_id, $client_secret);

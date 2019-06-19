@@ -4,10 +4,9 @@ namespace Drupal\media_acquiadam_report\EventSubscriber;
 
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\entity_usage\Events\Events;
 use Drupal\entity_usage\Events\EntityUsageEvent;
+use Drupal\entity_usage\Events\Events;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Subscribe to EntityUsage events.
@@ -24,7 +23,7 @@ class AcquiadamUsageSubscriber implements EventSubscriberInterface {
   /**
    * Constructs a AcquiadamUsageSubscriber object.
    *
-   * @param EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager) {
@@ -34,17 +33,18 @@ class AcquiadamUsageSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  static function getSubscribedEvents() {
+  public static function getSubscribedEvents() {
     // Respond when entity usage records are added/updated.
     return [
-      Events::USAGE_REGISTER => ['mediaUsageChange']
+      Events::USAGE_REGISTER => ['mediaUsageChange'],
     ];
   }
 
   /**
    * This method is called whenever an EntityUsage event is dispatched.
    *
-   * @param EntityUsageEvent $event
+   * @param \Drupal\entity_usage\Events\EntityUsageEvent $event
+   *   The event being triggered.
    */
   public function mediaUsageChange(EntityUsageEvent $event) {
     if ($event->getTargetEntityType() == 'media') {
@@ -54,9 +54,10 @@ class AcquiadamUsageSubscriber implements EventSubscriberInterface {
       $media_bundle = $media->bundle();
 
       // Clear cache tag on asset listing so entity usage count is up to date.
-      if (array_key_exists($media_bundle, $asset_id_fields)){
+      if (array_key_exists($media_bundle, $asset_id_fields)) {
         Cache::invalidateTags(['config:views.view.acquia_dam_reporting']);
       }
     }
   }
+
 }

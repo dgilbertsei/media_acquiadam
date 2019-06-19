@@ -2,16 +2,16 @@
 
 namespace Drupal\media_acquiadam;
 
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
-use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
 use GuzzleHttp\ClientInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * OAuth Class.
@@ -92,25 +92,7 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('csrf_token'),
-      $container->get('url_generator.non_bubbling'),
-      $container->get('http_client'),
-      $container->get('logger.factory'),
-      $container->get('current_user')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getAuthLink() {
-    $client_id = $this->config->get('client_id');
-    $token = $this->csrfTokenGenerator->get('media_acquiadam.oauth');
-    $redirect_uri = $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]);
-
-    return "{$this->damApiBase}/oauth2/authorize?response_type=code&state={$token}&redirect_uri={$redirect_uri}&client_id={$client_id}";
+    return new static($container->get('config.factory'), $container->get('csrf_token'), $container->get('url_generator.non_bubbling'), $container->get('http_client'), $container->get('logger.factory'), $container->get('current_user'));
   }
 
   /**
@@ -124,8 +106,8 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function getAccessToken($auth_code) {
-    $this->loggerChannel
-      ->debug('Getting new access token for @username.', [
+    $this->loggerChannel->debug('Getting new access token for @username.',
+      [
         '@username' => $this->currentUser->getAccountName(),
       ]);
 
@@ -153,10 +135,21 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
   /**
    * {@inheritdoc}
    */
+  public function getAuthLink() {
+    $client_id = $this->config->get('client_id');
+    $token = $this->csrfTokenGenerator->get('media_acquiadam.oauth');
+    $redirect_uri = $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]);
+
+    return "{$this->damApiBase}/oauth2/authorize?response_type=code&state={$token}&redirect_uri={$redirect_uri}&client_id={$client_id}";
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function refreshAccess($refresh_token) {
 
-    $this->loggerChannel
-      ->debug('Refreshing access token for @username.', [
+    $this->loggerChannel->debug('Refreshing access token for @username.',
+      [
         '@username' => $this->currentUser->getAccountName(),
       ]);
 
@@ -182,6 +175,21 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
   }
 
   /**
+   * Gets the auth_finish_redirect url.
+   *
+   * @return mixed
+   *   Url string if is set, null if not set.
+   */
+  public function getAuthFinishRedirect() {
+    if (isset($this->authFinishRedirect)) {
+      return $this->authFinishRedirect;
+    }
+    else {
+      return NULL;
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function setAuthFinishRedirect($authFinishRedirect) {
@@ -201,21 +209,6 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
       'query' => UrlHelper::filterQueryParameters($parsed_url['query'], $filterable_keys),
       'fragment' => $parsed_url['fragment'],
     ])->toString();
-  }
-
-  /**
-   * Gets the auth_finish_redirect url.
-   *
-   * @return mixed
-   *   Url string if is set, null if not set.
-   */
-  public function getAuthFinishRedirect() {
-    if (isset($this->authFinishRedirect)) {
-      return $this->authFinishRedirect;
-    }
-    else {
-      return NULL;
-    }
   }
 
 }

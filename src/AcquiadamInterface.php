@@ -31,6 +31,6 @@ interface AcquiadamInterface {
    * @return mixed
    *   Returns whatever the dam client returns.
    */
-  public function __call($name, $arguments);
+  public function __call($name, array $arguments);
 
 }
