@@ -8,6 +8,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\media_acquiadam\AssetDataInterface;
+use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -37,28 +38,43 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   protected $entityTypeManager;
 
   /**
-   * Acquia DAM Asset Data service.
+   * Media: Acquia DAM Asset Data service.
    *
    * @var \Drupal\media_acquiadam\AssetDataInterface
    */
   protected $assetData;
 
   /**
+   * Media: Acquia DAM Asset Media Factory service.
+   *
+   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
+   */
+  protected $assetMediaFactory;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AssetMediaFactory $assetMediaFactory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->loggerChannel = $loggerChannel;
     $this->entityTypeManager = $entityTypeManager;
     $this->assetData = $assetData;
+    $this->assetMediaFactory = $assetMediaFactory;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('logger.factory')
-      ->get('media_acquiadam'), $container->get('entity_type.manager'), $container->get('media_acquiadam.asset_data'));
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('logger.factory')->get('media_acquiadam'),
+      $container->get('entity_type.manager'),
+      $container->get('media_acquiadam.asset_data'),
+      $container->get('media_acquiadam.asset_media.factory')
+    );
   }
 
   /**
@@ -71,34 +87,44 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
     }
 
     /** @var \Drupal\media\Entity\Media $entity */
-    $entity = $this->entityTypeManager->getStorage('media')
-      ->load($data['media_id']);
+    $entity = $this->entityTypeManager->getStorage('media')->load(
+      $data['media_id']
+    );
     if (empty($entity)) {
-      $this->loggerChannel->error('Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?', ['@media_id' => $data['media_id']]);
+      $this->loggerChannel->error(
+        'Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?',
+        ['@media_id' => $data['media_id']]
+      );
       return;
     }
 
     try {
-      /** @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source */
-      $source = $entity->getSource();
-      $assetID = $source->getAssetID($entity);
+      $assetID = $this->assetMediaFactory->get($entity)->getAssetId();
       if (empty($assetID)) {
-        $this->loggerChannel->error('Unable to load asset ID from media entity @media_id. This might mean that the DAM and Drupal relationship has been broken. Please check the media entity.', ['@media_id' => $data['media_id']]);
+        $this->loggerChannel->error(
+          'Unable to load asset ID from media entity @media_id. This might mean that the DAM and Drupal relationship has been broken. Please check the media entity.',
+          ['@media_id' => $data['media_id']]
+        );
         return;
       }
-      $asset = $source->getAsset($assetID);
+      $asset = $this->assetMediaFactory->get($entity)->getAsset();
     }
     catch (Exception $x) {
-      $this->loggerChannel->error('Error trying to check asset from media entity @media_id', ['@media_id' => $data['media_id']]);
+      $this->loggerChannel->error(
+        'Error trying to check asset from media entity @media_id',
+        ['@media_id' => $data['media_id']]
+      );
       return;
     }
 
     if (empty($asset)) {
-      $this->loggerChannel->warning('Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.',
+      $this->loggerChannel->warning(
+        'Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.',
         [
           '@media_id' => $data['media_id'],
           '@assetID' => $assetID,
-        ]);
+        ]
+      );
 
       $is_dam_deleted = $this->assetData->get($assetID, 'remote_deleted');
       // We want to trigger the entity save in the event that the asset has been

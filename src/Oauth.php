@@ -5,8 +5,8 @@ namespace Drupal\media_acquiadam;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Url;
@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * OAuth Class.
  */
-class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
+class Oauth implements OauthInterface, ContainerInjectionInterface {
 
   /**
    * The base URL to use for the DAM API.
@@ -49,7 +49,7 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
   /**
    * An HTTP client.
    *
-   * @var \Guzzle\Http\ClientInterface
+   * @var \GuzzleHttp\Client
    */
   protected $httpClient;
 
@@ -91,8 +91,15 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($container->get('config.factory'), $container->get('csrf_token'), $container->get('url_generator.non_bubbling'), $container->get('http_client'), $container->get('logger.factory'), $container->get('current_user'));
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('csrf_token'),
+      $container->get('url_generator.non_bubbling'),
+      $container->get('http_client'),
+      $container->get('logger.factory'),
+      $container->get('current_user')
+    );
   }
 
   /**
@@ -106,21 +113,30 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function getAccessToken($auth_code) {
-    $this->loggerChannel->debug('Getting new access token for @username.',
+    $this->loggerChannel->debug(
+      'Getting new access token for @username.',
       [
         '@username' => $this->currentUser->getAccountName(),
-      ]);
+      ]
+    );
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
-    $response = $this->httpClient->post("{$this->damApiBase}/oauth2/token", [
-      'form_params' => [
-        'grant_type' => 'authorization_code',
-        'code' => $auth_code,
-        'redirect_uri' => $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]),
-        'client_id' => $this->config->get('client_id'),
-        'client_secret' => $this->config->get('secret'),
-      ],
-    ]);
+    $response = $this->httpClient->post(
+      "{$this->damApiBase}/oauth2/token",
+      [
+        'form_params' => [
+          'grant_type' => 'authorization_code',
+          'code' => $auth_code,
+          'redirect_uri' => $this->urlGenerator->generateFromRoute(
+            'media_acquiadam.auth_finish',
+            ['auth_finish_redirect' => $this->authFinishRedirect],
+            ['absolute' => TRUE]
+          ),
+          'client_id' => $this->config->get('client_id'),
+          'client_secret' => $this->config->get('secret'),
+        ],
+      ]
+    );
 
     $body = (string) $response->getBody();
     $body = json_decode($body);
@@ -138,7 +154,11 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
   public function getAuthLink() {
     $client_id = $this->config->get('client_id');
     $token = $this->csrfTokenGenerator->get('media_acquiadam.oauth');
-    $redirect_uri = $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]);
+    $redirect_uri = $this->urlGenerator->generateFromRoute(
+      'media_acquiadam.auth_finish',
+      ['auth_finish_redirect' => $this->authFinishRedirect],
+      ['absolute' => TRUE]
+    );
 
     return "{$this->damApiBase}/oauth2/authorize?response_type=code&state={$token}&redirect_uri={$redirect_uri}&client_id={$client_id}";
   }
@@ -148,21 +168,30 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
    */
   public function refreshAccess($refresh_token) {
 
-    $this->loggerChannel->debug('Refreshing access token for @username.',
+    $this->loggerChannel->debug(
+      'Refreshing access token for @username.',
       [
         '@username' => $this->currentUser->getAccountName(),
-      ]);
+      ]
+    );
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
-    $response = $this->httpClient->post("{$this->damApiBase}/oauth2/token", [
-      'form_params' => [
-        'grant_type' => 'refresh_token',
-        'refresh_token' => $refresh_token,
-        'client_id' => $this->config->get('client_id'),
-        'client_secret' => $this->config->get('secret'),
-        'redirect_uri' => $this->urlGenerator->generateFromRoute('media_acquiadam.auth_finish', ['auth_finish_redirect' => $this->authFinishRedirect], ['absolute' => TRUE]),
-      ],
-    ]);
+    $response = $this->httpClient->post(
+      "{$this->damApiBase}/oauth2/token",
+      [
+        'form_params' => [
+          'grant_type' => 'refresh_token',
+          'refresh_token' => $refresh_token,
+          'client_id' => $this->config->get('client_id'),
+          'client_secret' => $this->config->get('secret'),
+          'redirect_uri' => $this->urlGenerator->generateFromRoute(
+            'media_acquiadam.auth_finish',
+            ['auth_finish_redirect' => $this->authFinishRedirect],
+            ['absolute' => TRUE]
+          ),
+        ],
+      ]
+    );
 
     $body = (string) $response->getBody();
     $body = json_decode($body);
@@ -205,10 +234,16 @@ class Oauth implements OauthInterface, ContainerFactoryPluginInterface {
       ];
     }
 
-    $this->authFinishRedirect = Url::fromUri('base:' . $parsed_url['path'], [
-      'query' => UrlHelper::filterQueryParameters($parsed_url['query'], $filterable_keys),
-      'fragment' => $parsed_url['fragment'],
-    ])->toString();
+    $this->authFinishRedirect = Url::fromUri(
+      'base:' . $parsed_url['path'],
+      [
+        'query' => UrlHelper::filterQueryParameters(
+          $parsed_url['query'],
+          $filterable_keys
+        ),
+        'fragment' => $parsed_url['fragment'],
+      ]
+    )->toString();
   }
 
 }

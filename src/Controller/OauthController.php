@@ -31,7 +31,7 @@ class OauthController extends ControllerBase {
   /**
    * The media_acquiadam oauth service.
    *
-   * @var \Drupal\media_acquiadam\OauthInterface
+   * @var \Drupal\media_acquiadam\Oauth
    */
   protected $oauth;
 

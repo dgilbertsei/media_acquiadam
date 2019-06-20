@@ -14,7 +14,7 @@ class AcquiadamController extends ControllerBase {
   /**
    * A configured API object.
    *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiadam;
 
@@ -47,10 +47,16 @@ class AcquiadamController extends ControllerBase {
    *
    * @param int $assetId
    *   The asset ID for the asset to render title for.
+   *
+   * @return string
+   *   The asset details page title.
    */
   public function assetDetailsPageTitle($assetId) {
     $asset = $this->getAsset($assetId);
-    return $this->t("Asset details: %filename", ['%filename' => $asset->filename]);
+    return $this->t(
+      "Asset details: %filename",
+      ['%filename' => $asset->filename]
+    );
   }
 
   /**
@@ -58,6 +64,9 @@ class AcquiadamController extends ControllerBase {
    *
    * @param int $assetId
    *   The asset ID for the asset to render details for.
+   *
+   * @return \cweagans\webdam\Entity\Asset|false
+   *   The asset or FALSE on failure.
    */
   protected function getAsset($assetId) {
     if (!isset($this->asset)) {
@@ -72,6 +81,9 @@ class AcquiadamController extends ControllerBase {
    *
    * @param int $assetId
    *   The asset ID to retrieve data for.
+   *
+   * @return array
+   *   A render array.
    */
   public function assetDetailsPage($assetId) {
 

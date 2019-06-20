@@ -48,17 +48,21 @@ class Client extends OriginalClient {
       $this->checkAuth();
     }
     catch (Exception $x) {
-      Drupal::logger('media_acquiadam')
-        ->error('Unable to authenticate to retrieve xmp field data.');
+      Drupal::logger('media_acquiadam')->error(
+          'Unable to authenticate to retrieve xmp field data.'
+        );
       return [];
     }
 
     try {
-      $response = $this->client->request('GET', $this->baseUrl . '/metadataschemas/xmp?full=1', ['headers' => $this->getDefaultHeaders()]);
+      $response = $this->client->request(
+        'GET',
+        $this->baseUrl . '/metadataschemas/xmp?full=1',
+        ['headers' => $this->getDefaultHeaders()]
+      );
     }
     catch (Exception $x) {
-      Drupal::logger('media_acquiadam')
-        ->error('Unable to get xmp field data.');
+      Drupal::logger('media_acquiadam')->error('Unable to get xmp field data.');
       return [];
     }
 
@@ -93,7 +97,8 @@ class Client extends OriginalClient {
    */
   public function checkAuth() {
 
-    $is_expired_token = empty($this->accessTokenExpiry) || time() >= $this->accessTokenExpiry;
+    $is_expired_token = empty($this->accessTokenExpiry) || time(
+      ) >= $this->accessTokenExpiry;
     $is_expired_session = !empty($this->accessToken) && $is_expired_token;
 
     // Session is still valid.
@@ -116,7 +121,9 @@ class Client extends OriginalClient {
     // fall back to the global account.
     elseif ($this->manualToken) {
       // @TODO: Why can't we authenticate after a manual set?
-      throw new InvalidCredentialsException('Cannot reauthenticate a manually set token.');
+      throw new InvalidCredentialsException(
+        'Cannot reauthenticate a manually set token.'
+      );
     }
     // Expired or new session.
     else {
@@ -169,7 +176,11 @@ class Client extends OriginalClient {
     // For successful auth response body details:
     // @see \cweagans\webdam\tests\ClientTest::testSuccessfulAuthentication().
     try {
-      $response = $this->client->request("POST", $url, ['form_params' => $data]);
+      $response = $this->client->request(
+        "POST",
+        $url,
+        ['form_params' => $data]
+      );
 
       // Body properties: access_token, expires_in, token_type, refresh_token.
       $body = (string) $response->getBody();
@@ -180,7 +191,8 @@ class Client extends OriginalClient {
       // We should only get an initial refresh_token and reuse it after the
       // first session. The access_token gets replaced instead of a new
       // refresh_token.
-      $this->refreshToken = !empty($body->refresh_token) ? $body->refresh_token : $this->refreshToken;
+      $this->refreshToken = !empty($body->refresh_token) ?
+        $body->refresh_token : $this->refreshToken;
     }
     catch (ClientException $e) {
       // Looks like any form of bad auth with Webdam is a 400, but we're
@@ -189,7 +201,9 @@ class Client extends OriginalClient {
         $body = (string) $e->getResponse()->getBody();
         $body = json_decode($body);
 
-        throw new InvalidCredentialsException($body->error_description . ' (' . $body->error . ').');
+        throw new InvalidCredentialsException(
+          $body->error_description . ' (' . $body->error . ').'
+        );
       }
     }
   }
@@ -232,12 +246,15 @@ class Client extends OriginalClient {
     $this->checkAuth();
 
     $file = fopen($file_uri, 'r');
-    $response = $this->client->request("PUT", $presignedUrl,
+    $response = $this->client->request(
+      "PUT",
+      $presignedUrl,
       [
         'headers' => ['Content-Type' => $file_type],
         'body' => stream_get_contents($file),
         RequestOptions::TIMEOUT => 0,
-      ]);
+      ]
+    );
 
     return [
       'status' => json_decode($response->getStatusCode(), TRUE),
@@ -280,11 +297,14 @@ class Client extends OriginalClient {
       $data['items'][] = ['id' => $assetID] + $options;
     }
 
-    $response = $this->client->request('POST', $this->baseUrl . '/assets/queuedownload',
+    $response = $this->client->request(
+      'POST',
+      $this->baseUrl . '/assets/queuedownload',
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]);
+      ]
+    );
     $response = json_decode((string) $response->getBody(), TRUE);
 
     return $response;
@@ -314,7 +334,11 @@ class Client extends OriginalClient {
   public function downloadFromQueue($downloadKey) {
     $this->checkAuth();
 
-    $response = $this->client->request('GET', $this->baseUrl . '/downloadfromqueue/' . $downloadKey, ['headers' => $this->getDefaultHeaders()]);
+    $response = $this->client->request(
+      'GET',
+      $this->baseUrl . '/downloadfromqueue/' . $downloadKey,
+      ['headers' => $this->getDefaultHeaders()]
+    );
 
     $response = json_decode((string) $response->getBody(), TRUE);
 
@@ -353,11 +377,14 @@ class Client extends OriginalClient {
   public function editAsset($assetID, array $data) {
     $this->checkAuth();
 
-    $response = $this->client->request('PUT', $this->baseUrl . '/assets/' . $assetID,
+    $response = $this->client->request(
+      'PUT',
+      $this->baseUrl . '/assets/' . $assetID,
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]);
+      ]
+    );
 
     if (409 == $response->getStatusCode()) {
       return FALSE;
@@ -387,11 +414,14 @@ class Client extends OriginalClient {
 
     $data['type'] = 'assetxmp';
 
-    $response = $this->client->request('PUT', $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
+    $response = $this->client->request(
+      'PUT',
+      $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
       [
         'headers' => $this->getDefaultHeaders(),
         RequestOptions::JSON => $data,
-      ]);
+      ]
+    );
 
     $response = json_decode((string) $response->getBody(), TRUE);
 

@@ -2,7 +2,10 @@
 
 namespace Drupal\media_acquiadam;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Exception;
+use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -12,14 +15,35 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @package Drupal\media_acquiadam
  */
-class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
+class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
 
   /**
-   * A dam client.
+   * Temporary asset data storage.
    *
-   * @var \cweagans\webdam\Client
+   * @var array
    */
-  protected $client;
+  protected static $cachedAssets = [];
+
+  /**
+   * The Acquia DAM client service.
+   *
+   * @var \Drupal\media_acquiadam\Client
+   */
+  protected $acquiaDamClient;
+
+  /**
+   * Media: Acquia DAM logging service.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $loggerChannel;
+
+  /**
+   * Media: Acquia DAM asset data service.
+   *
+   * @var \Drupal\media_acquiadam\AssetDataInterface
+   */
+  protected $assetData;
 
   /**
    * Acquiadam constructor.
@@ -28,26 +52,36 @@ class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
    *   An instance of ClientFactory that we can get a webdam client from.
    * @param string $credential_type
    *   The type of credentials to use.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
+   *   The Drupal LoggerChannelFactory service.
+   * @param \Drupal\media_acquiadam\AssetDataInterface $assetData
+   *   Media: Acquia DAM asset data service.
    */
-  public function __construct(ClientFactory $client_factory, $credential_type) {
-    $this->client = $client_factory->get($credential_type);
+  public function __construct(ClientFactory $client_factory, $credential_type, LoggerChannelFactoryInterface $loggerChannelFactory, AssetDataInterface $assetData) {
+    $this->acquiaDamClient = $client_factory->get($credential_type);
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->assetData = $assetData;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($container->get('media_acquiadam.client_factory'), 'background');
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('media_acquiadam.client_factory'),
+      'background',
+      $container->get('logger.factory'),
+      $container->get('media_acquiadam.asset_data')
+    );
   }
 
   /**
    * {@inheritdoc}
    */
   public function __call($name, $arguments) {
-    $method_variable = [$this->client, $name];
-    if (is_callable($method_variable)) {
-      return call_user_func_array($method_variable, $arguments);
-    }
+    $method_variable = [$this->acquiaDamClient, $name];
+    return is_callable($method_variable) ?
+      call_user_func_array($method_variable, $arguments) : NULL;
   }
 
   /**
@@ -57,10 +91,10 @@ class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
     $folder_data = [];
 
     if (is_null($folder_id)) {
-      $folders = $this->client->getTopLevelFolders();
+      $folders = $this->acquiaDamClient->getTopLevelFolders();
     }
     else {
-      $folder = $this->client->getFolder($folder_id);
+      $folder = $this->acquiaDamClient->getFolder($folder_id);
       $folders = !empty($folder->folders) ? $folder->folders : [];
     }
 
@@ -75,6 +109,78 @@ class Acquiadam implements AcquiadamInterface, ContainerFactoryPluginInterface {
     }
 
     return $folder_data;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAsset($assetId, $include_xmp = FALSE) {
+
+    $asset = $this->staticAssetCache('get', $assetId);
+
+    // @BUG: XMP-less assets may bypass static caching.
+    // Technically if the asset doesn't have xmp_metadata (and always returns
+    // an empty value) this will bypass the cache version each call.
+    $needs_xmp_get = $include_xmp && empty($asset->xmp_metadata);
+
+    try {
+      if (is_null($asset) || $needs_xmp_get) {
+        $this->staticAssetCache(
+          'set',
+          $assetId,
+          $this->acquiaDamClient->getAsset($assetId, $include_xmp) ?? FALSE
+        );
+      }
+    }
+    catch (ClientException $x) {
+      // We want specific handling for 404 errors so we can provide a more
+      // relateable error message.
+      if (404 != $x->getCode()) {
+        throw $x;
+      }
+
+      // In the event of a 404 we assume the asset has been deleted within
+      // Acquia DAM and need to save that state for excluding it from cron
+      // syncs in the future.
+      $this->assetData->set($assetId, 'remote_deleted', TRUE);
+
+      $this->loggerChannel->warning(
+        'Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?',
+        ['@assetID' => $assetId]
+      );
+    }
+    catch (Exception $x) {
+      $this->staticAssetCache('set', $assetId, FALSE);
+      $this->loggerChannel->debug($x->getMessage());
+    }
+
+    return $this->staticAssetCache('get', $assetId);
+  }
+
+  /**
+   * Static asset cache helper.
+   *
+   * This is a public standalone method to enable unit testing the behavior.
+   *
+   * @param string $op
+   *   The operation to perform. One of get, set, or clear.
+   * @param int $assetId
+   *   The asset ID when using get or set.
+   * @param \cweagans\webdam\Entity\Asset|false|null $asset
+   *   The data to store under the given asset ID.
+   *
+   * @return mixed|null
+   *   The static cache or NULL if unset.
+   */
+  public function staticAssetCache($op, $assetId = NULL, $asset = NULL) {
+    if ('set' == $op) {
+      return static::$cachedAssets[$assetId] = $asset;
+    }
+    elseif ('clear' == $op) {
+      static::$cachedAssets = [];
+    }
+
+    return static::$cachedAssets[$assetId] ?? NULL;
   }
 
 }

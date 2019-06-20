@@ -5,9 +5,9 @@
  * Integrates Drupal with Acquia DAM.
  */
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\media\MediaInterface;
 
 /**
  * Implements hook_theme().
@@ -88,13 +88,11 @@ function media_acquiadam_preprocess_checkboxes__acquiadam_assets(&$variables) {
 /**
  * Implements hook_ENTITY_TYPE_presave().
  *
- * @var \Drupal\media\Entity\Media $entity
- *
- * Override the preSave function from \Drupal\media\Entity\Media
- * because it ignores empty values (e.g. status = 0) and doesn't set date values
- * for created/changed because the are already set by Drupal core
+ * Override the preSave function from \Drupal\media\Entity\Media because it
+ * ignores empty values (e.g. status = 0) and doesn't set date values for
+ * created/changed because the are already set by Drupal core.
  */
-function media_acquiadam_media_presave($entity) {
+function media_acquiadam_media_presave(MediaInterface $entity) {
 
   // Only go for a resync when updating existing entities.
   if ($entity->isNew()) {
@@ -107,12 +105,16 @@ function media_acquiadam_media_presave($entity) {
     return;
   }
 
-  $assetID = $source->getAssetID($entity);
+  /** @var \Drupal\media_acquiadam\Service\AssetMediaFactory $asset_media_factory */
+  $asset_media_factory = Drupal::service('media_acquiadam.asset_media.factory');
+  $media_helper = $asset_media_factory->get($entity);
+
+  $assetID = $media_helper->getAssetId();
   if (empty($assetID)) {
     return;
   }
 
-  $asset = $source->getAsset($assetID);
+  $asset = $media_helper->getAsset();
   if (empty($asset)) {
     $is_dam_deleted = Drupal::service('media_acquiadam.asset_data')
       ->get($assetID, 'remote_deleted');
@@ -139,23 +141,23 @@ function media_acquiadam_media_presave($entity) {
     }
   }
 
+  /** @var \Drupal\media\Entity\Media $entity */
   $entity->updateQueuedThumbnail();
 }
 
 /**
  * Implements hook_ENTITY_TYPE_delete().
  */
-function media_acquiadam_media_delete(EntityInterface $entity) {
-  /** @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source */
-  $source = $entity->getSource();
-  if ('acquiadam_asset' !== $source->getPluginId()) {
+function media_acquiadam_media_delete(MediaInterface $entity) {
+  if ('acquiadam_asset' !== $entity->getSource()->getPluginId()) {
     return;
   }
 
-  /** @var \Drupal\media\Entity\Media $entity */
-  $asset_id = $source->getAssetID($entity);
+  /** @var \Drupal\media_acquiadam\Service\AssetMediaFactory $asset_media_factory */
+  $asset_media_factory = Drupal::service('media_acquiadam.asset_media.factory');
+  $asset_id = $asset_media_factory->get($entity)->getAssetId();
   if (!empty($asset_id)) {
-    $usages = media_acquiadam_get_cross_bundle_usage($asset_id);
+    $usages = $asset_media_factory->getAssetUsage($asset_id);
     // If usages is empty then that means no media entities are referencing the
     // asset ID and it should be safe to delete the stored data.
     if (empty($usages)) {
@@ -335,47 +337,7 @@ function media_acquiadam_purge_expired_tokens() {
  *   An array of media bundles and associated asset ID fields
  */
 function media_acquiadam_get_bundle_asset_id_fields() {
-  $asset_id_fields = &drupal_static(__FUNCTION__, []);
-  try {
-    $media_bundles = Drupal::entityTypeManager()
-      ->getStorage('media_type')
-      ->loadByProperties(['source' => 'acquiadam_asset']);
-    /** @var \Drupal\media\Entity\MediaType $bundle */
-    foreach ($media_bundles as $name => $bundle) {
-      $asset_id_fields[$name] = $bundle->getSource()
-        ->getConfiguration()['source_field'];
-    }
-  }
-  catch (Exception $x) {
-    watchdog_exception('media_acquiadam', $x);
-  }
-
-  return $asset_id_fields;
-}
-
-/**
- * Get a collection of media entities using the given asset ID.
- *
- * @param int $assetID
- *   The asset ID to check usages of.
- *
- * @return array
- *   An array of media IDs using the given asset ID, keyed by their bundle.
- */
-function media_acquiadam_get_cross_bundle_usage($assetID) {
-  $usages = [];
-  $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
-  foreach ($asset_id_fields as $bundle => $field) {
-    $media_ids = Drupal::entityQuery('media')
-      ->condition('bundle', $bundle)
-      ->condition($field, $assetID)
-      ->execute();
-    if (!empty($media_ids)) {
-      $usages[$bundle] = array_keys($media_ids);
-    }
-  }
-
-  return $usages;
+  return Drupal::service('media_acquiadam.asset_media.factory')->getAssetIdFields();
 }
 
 /**

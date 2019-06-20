@@ -7,6 +7,7 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\media_acquiadam\Client;
 use Drupal\media_acquiadam\ClientFactory;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
@@ -18,6 +19,8 @@ use GuzzleHttp\ClientInterface;
  */
 class AcquiadamClientFactoryTest extends UnitTestCase {
 
+  use AcquiadamConfigTrait;
+
   /**
    * Container builder helper.
    *
@@ -26,56 +29,36 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
   protected $container;
 
   /**
+   * Media: Acquia DAM client factory.
+   *
+   * @var \Drupal\media_acquiadam\ClientFactory
+   */
+  protected $clientFactory;
+
+  /**
    * Check to make sure that the 'background' option gives us a client.
    */
   public function testFactoryGetBackground() {
-    $factory = $this->getClientFactory();
-    $client = $factory->get('background');
+    $client = $this->clientFactory->get('background');
     $this->assertInstanceOf(Client::class, $client);
-  }
-
-  /**
-   * Gets an Acquia DAM Client Factory object.
-   *
-   * @return \Drupal\media_acquiadam\ClientFactory
-   *   The Acquia DAM client factory service.
-   */
-  protected function getClientFactory() {
-    $factory = ClientFactory::create(Drupal::getContainer(), [], '', []);
-    return $factory;
   }
 
   /**
    * Check to make sure that the 'current' option gives us a client.
    */
   public function testFactoryGetCurrent() {
-    $factory = $this->getClientFactory();
-    $client = $factory->get('current');
+    $client = $this->clientFactory->get('current');
     $this->assertInstanceOf(Client::class, $client);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfigFactoryStub(array $configs = []) {
-    return parent::getConfigFactoryStub([
-      'media_acquiadam.settings' => [
-        'username' => 'WDusername',
-        'password' => 'WDpassword',
-        'client_id' => 'WDclient-id',
-        'secret' => 'WDsecret',
-        'sync_interval' => '14400',
-        'size_limit' => 1280,
-      ],
-    ]);
   }
 
   /**
    * Check to make sure that we can get a client directly.
    */
   public function testFactoryGetWithCredentials() {
-    $factory = $this->getClientFactory();
-    $client = $factory->getWithCredentials('nothing', 'nothing', 'nothing', 'nothing');
+    $client = $this->clientFactory->getWithCredentials('nothing',
+      'nothing',
+      'nothing',
+      'nothing');
     $this->assertInstanceOf(Client::class, $client);
   }
 
@@ -98,12 +81,15 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
       ->getMock();
 
     $this->container = new ContainerBuilder();
-    $this->container->set('string_translation', $this->getStringTranslationStub());
+    $this->container->set('string_translation',
+      $this->getStringTranslationStub());
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     $this->container->set('http_client', $http_client);
     $this->container->set('user.data', $user_data);
     $this->container->set('current_user', $current_user);
     Drupal::setContainer($this->container);
+
+    $this->clientFactory = ClientFactory::create($this->container);
   }
 
 }

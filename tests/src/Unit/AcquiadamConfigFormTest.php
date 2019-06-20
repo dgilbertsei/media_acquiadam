@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormState;
 use Drupal\media_acquiadam\Client;
 use Drupal\media_acquiadam\ClientFactory;
 use Drupal\media_acquiadam\Form\AcquiadamConfig;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -17,6 +18,8 @@ use Drupal\Tests\UnitTestCase;
  */
 class AcquiadamConfigFormTest extends UnitTestCase {
 
+  use AcquiadamConfigTrait;
+
   /**
    * Container builder helper.
    *
@@ -25,19 +28,25 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   protected $container;
 
   /**
+   * Media: Acquia DAM config form.
+   *
+   * @var \Drupal\media_acquiadam\Form\AcquiadamConfig
+   */
+  protected $acquiaDamConfig;
+
+  /**
    * {@inheritdoc}
    */
   public function testGetFormId() {
-    $adconfig = AcquiadamConfig::create(Drupal::getContainer());
-    $this->assertEquals('acquiadam_config', $adconfig->getFormId());
+    $this->assertEquals('acquiadam_config',
+      $this->acquiaDamConfig->getFormId());
   }
 
   /**
    * {@inheritdoc}
    */
   public function testBuildForm() {
-    $adconfig = AcquiadamConfig::create(Drupal::getContainer());
-    $form = $adconfig->buildForm([], new FormState());
+    $form = $this->acquiaDamConfig->buildForm([], new FormState());
 
     $this->assertArrayHasKey('authentication', $form);
     $this->assertArrayHasKey('username', $form['authentication']);
@@ -45,32 +54,21 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->assertArrayHasKey('client_id', $form['authentication']);
     $this->assertArrayHasKey('secret', $form['authentication']);
 
-    $this->assertEquals('WDusername', $form['authentication']['username']['#default_value']);
-    $this->assertEquals('WDpassword', $form['authentication']['password']['#default_value']);
-    $this->assertEquals('WDclient-id', $form['authentication']['client_id']['#default_value']);
-    $this->assertEquals('WDsecret', $form['authentication']['secret']['#default_value']);
+    $this->assertEquals('WDusername',
+      $form['authentication']['username']['#default_value']);
+    $this->assertEquals('WDpassword',
+      $form['authentication']['password']['#default_value']);
+    $this->assertEquals('WDclient-id',
+      $form['authentication']['client_id']['#default_value']);
+    $this->assertEquals('WDsecret',
+      $form['authentication']['secret']['#default_value']);
 
     $this->assertArrayHasKey('cron', $form);
-    $this->assertEquals('14400', $form['cron']['sync_interval']['#default_value']);
+    $this->assertEquals('14400',
+      $form['cron']['sync_interval']['#default_value']);
 
     $this->assertArrayHasKey('image', $form);
     $this->assertEquals(1280, $form['image']['size_limit']['#default_value']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfigFactoryStub(array $configs = []) {
-    return parent::getConfigFactoryStub([
-      'media_acquiadam.settings' => [
-        'username' => 'WDusername',
-        'password' => 'WDpassword',
-        'client_id' => 'WDclient-id',
-        'secret' => 'WDsecret',
-        'sync_interval' => '14400',
-        'size_limit' => 1280,
-      ],
-    ]);
   }
 
   /**
@@ -99,11 +97,14 @@ class AcquiadamConfigFormTest extends UnitTestCase {
       ->willReturn($dam_client);
 
     $this->container = new ContainerBuilder();
-
-    $this->container->set('string_translation', $this->getStringTranslationStub());
-    $this->container->set('media_acquiadam.client_factory', $acquiadam_client_factory);
+    $this->container->set('string_translation',
+      $this->getStringTranslationStub());
+    $this->container->set('media_acquiadam.client_factory',
+      $acquiadam_client_factory);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     Drupal::setContainer($this->container);
+
+    $this->acquiaDamConfig = AcquiadamConfig::create($this->container);
   }
 
 }

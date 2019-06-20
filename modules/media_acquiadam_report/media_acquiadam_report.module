@@ -13,12 +13,18 @@ use Drupal\views\ViewExecutable;
  * Adds query condition to DAM listing to filter media bundles.
  */
 function media_acquiadam_report_views_query_alter($view, $query) {
-  if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay()->display['id'] == 'asset_report') {
+  if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay(
+    )->display['id'] == 'asset_report') {
     // Limit the view to 'acquiadam_asset' media bundles.
     $acquiadam_bundles = media_acquiadam_get_bundle_asset_id_fields();
     $acquiadam_bundles = array_keys($acquiadam_bundles);
     // Add media bundle query condition.
-    $query->addWhere('conditions', 'media_field_data.bundle', $acquiadam_bundles, 'in');
+    $query->addWhere(
+      'conditions',
+      'media_field_data.bundle',
+      $acquiadam_bundles,
+      'in'
+    );
   }
 }
 
@@ -32,7 +38,9 @@ function media_acquiadam_report_views_data_alter(array &$data) {
     'title' => t('Acquia DAM source id'),
     'field' => [
       'title' => t('Acquia DAM source id'),
-      'help' => t('The source id from the field configured in the asset mapping.'),
+      'help' => t(
+        'The source id from the field configured in the asset mapping.'
+      ),
       'id' => 'acquiadam_source_id',
     ],
   ];
@@ -64,14 +72,18 @@ function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
   $theme_registry[$template] = $theme_registry['views_view_field'];
   $theme_registry[$template]['template'] = $template_hyphen;
   $theme_registry[$template]['variables']['acquiadam_asset_url'] = $dam_asset_url;
-  $theme_registry[$template]['path'] = drupal_get_path('module', 'media_acquiadam_report') . '/templates';
+  $theme_registry[$template]['path'] = drupal_get_path(
+      'module',
+      'media_acquiadam_report'
+    ) . '/templates';
 }
 
 /**
  * Implements hook_views_post_execute().
  */
 function media_acquiadam_report_views_post_execute(ViewExecutable $view) {
-  if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay()->display['id'] == 'asset_report') {
+  if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay(
+    )->display['id'] == 'asset_report') {
 
     /** @var \Drupal\media_acquiadam\AssetDataInterface $asset_data */
     $asset_data = Drupal::service('media_acquiadam.asset_data');
@@ -81,9 +93,8 @@ function media_acquiadam_report_views_post_execute(ViewExecutable $view) {
       /** @var \Drupal\media\Entity\Media $media */
       $media = $row->_entity;
       try {
-        $assetID = $media->get('field_acquiadam_asset_id')
-          ->first()
-          ->getValue()['value'];
+        $assetID = $media->get('field_acquiadam_asset_id')->first()->getValue(
+          )['value'];
         $remotely_deleted = (bool) $asset_data->get($assetID, 'remote_deleted');
       }
       catch (Exception $x) {

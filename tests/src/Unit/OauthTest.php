@@ -4,12 +4,12 @@ namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal;
 use Drupal\Core\Access\CsrfTokenGenerator;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
 use Drupal\media_acquiadam\Oauth;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\ResponseInterface;
@@ -22,12 +22,27 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 class OauthTest extends UnitTestCase {
 
+  use AcquiadamConfigTrait, AcquiadamLoggerFactoryTrait;
+
+  /**
+   * Container builder helper.
+   *
+   * @var \Drupal\Core\DependencyInjection\ContainerBuilder
+   */
+  protected $container;
+
+  /**
+   * Media: Acquia DAM oAuth client.
+   *
+   * @var \Drupal\media_acquiadam\Oauth
+   */
+  protected $oAuthClient;
+
   /**
    * Validates the auth link that gets created.
    */
   public function testGetAuthLink() {
-    $oauth = Oauth::create(Drupal::getContainer(), [], '', []);
-    $authUrl = $oauth->getAuthLink();
+    $authUrl = $this->oAuthClient->getAuthLink();
 
     $this->assertContains('some/url/test', $authUrl);
     $this->assertContains('testToken112233', $authUrl);
@@ -39,42 +54,22 @@ class OauthTest extends UnitTestCase {
    * Validates that the redirect URL gets generated correctly.
    */
   public function testGetSetAuthFinishRedirect() {
-    $oauth = Oauth::create(Drupal::getContainer(), [], '', []);
-    $redirect = $oauth->getAuthFinishRedirect();
-    $this->assertNull($redirect);
+    $this->assertNull($this->oAuthClient->getAuthFinishRedirect());
 
-    $oauth->setAuthFinishRedirect('https://example.com/sub/path?original_path=should-be-dropped&extra=1');
-    $redirect = $oauth->getAuthFinishRedirect();
-    $this->assertSame('https://example.com/sub/path?extra=1', $redirect);
+    $this->oAuthClient->setAuthFinishRedirect('https://example.com/sub/path?original_path=should-be-dropped&extra=1');
+    $this->assertSame('https://example.com/sub/path?extra=1',
+      $this->oAuthClient->getAuthFinishRedirect());
   }
 
   /**
    * Validates that the access token response has the necessary keys.
    */
   public function testGetAccessToken() {
-
-    $oauth = Oauth::create(Drupal::getContainer(), [], '', []);
-    $token = $oauth->getAccessToken('somedummycode123');
+    $token = $this->oAuthClient->getAccessToken('somedummycode123');
 
     $this->assertArrayHasKey('expire_time', $token);
     $this->assertArrayHasKey('access_token', $token);
     $this->assertNotEmpty($token['access_token']);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfigFactoryStub(array $configs = []) {
-    return parent::getConfigFactoryStub([
-      'media_acquiadam.settings' => [
-        'username' => 'WDusername',
-        'password' => 'WDpassword',
-        'client_id' => 'WDclient-id',
-        'secret' => 'WDsecret',
-        'sync_interval' => '14400',
-        'size_limit' => 1280,
-      ],
-    ]);
   }
 
   /**
@@ -131,29 +126,20 @@ class OauthTest extends UnitTestCase {
     $current_user = $this->getMockBuilder(AccountProxyInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $logger_channel = $this->getMockBuilder(LoggerChannelInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $logger_factory = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $logger_factory->expects($this->any())
-      ->method('get')
-      ->with('media_acquiadam')
-      ->willReturn($logger_channel);
 
-    $container = new ContainerBuilder();
+    $this->container = new ContainerBuilder();
+    $this->container->set('string_translation',
+      $this->getStringTranslationStub());
+    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('csrf_token', $csrf_token);
+    $this->container->set('unrouted_url_assembler', $unrouted_url_assembler);
+    $this->container->set('url_generator.non_bubbling', $url_generator);
+    $this->container->set('http_client', $http_client);
+    $this->container->set('logger.factory', $this->getLoggerFactoryStub());
+    $this->container->set('current_user', $current_user);
+    Drupal::setContainer($this->container);
 
-    $container->set('string_translation', $this->getStringTranslationStub());
-    $container->set('config.factory', $this->getConfigFactoryStub());
-    $container->set('csrf_token', $csrf_token);
-    $container->set('unrouted_url_assembler', $unrouted_url_assembler);
-    $container->set('url_generator.non_bubbling', $url_generator);
-    $container->set('http_client', $http_client);
-    $container->set('logger.factory', $logger_factory);
-    $container->set('current_user', $current_user);
-
-    Drupal::setContainer($container);
+    $this->oAuthClient = Oauth::create($this->container);
   }
 
 }

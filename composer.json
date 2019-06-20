@@ -12,7 +12,8 @@
     ],
     "require": {
         "cweagans/php-webdam-client": "dev-master",
-        "drupal/fallback_formatter": "^1.0"
+        "drupal/fallback_formatter": "^1.0",
+        "ext-json": "^1.7"
     },
     "extra": {
         "branch-alias": {

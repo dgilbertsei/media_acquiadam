@@ -2,11 +2,16 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
+use cweagans\webdam\Entity\Asset;
 use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\AssetDataInterface;
 use Drupal\media_acquiadam\Client;
 use Drupal\media_acquiadam\ClientFactory;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -16,6 +21,8 @@ use Drupal\Tests\UnitTestCase;
  */
 class AcquiadamServiceTest extends UnitTestCase {
 
+  use AcquiadamConfigTrait, AcquiadamLoggerFactoryTrait, AcquiadamAssetDataTrait;
+
   /**
    * Container builder helper.
    *
@@ -24,37 +31,104 @@ class AcquiadamServiceTest extends UnitTestCase {
   protected $container;
 
   /**
+   * Media: Acquia DAM client.
+   *
+   * @var \Drupal\media_acquiadam\Acquiadam
+   */
+  protected $acquiaDamClient;
+
+  /**
+   * Validate the static cache helper works as expected.
+   */
+  public function testStaticAssetCache() {
+    $asset = $this->getAssetData();
+
+    $this->assertNull($this->acquiaDamClient->staticAssetCache('get',
+      $asset->id));
+
+    $this->acquiaDamClient->staticAssetCache('set', $asset->id, FALSE);
+    $this->assertFalse($this->acquiaDamClient->staticAssetCache('get',
+      $asset->id));
+
+    $this->acquiaDamClient->staticAssetCache('set', $asset->id, $asset);
+    $this->assertInstanceOf(Asset::class,
+      $this->acquiaDamClient->staticAssetCache('get', $asset->id));
+
+    $this->acquiaDamClient->staticAssetCache('clear');
+    $this->assertNull($this->acquiaDamClient->staticAssetCache('get',
+      $asset->id));
+  }
+
+  /**
+   * Validates we can fetch an asset.
+   */
+  public function testGetAsset() {
+    $asset = $this->getAssetData();
+
+    // No assets should be primed.
+    $this->assertNull($this->acquiaDamClient->staticAssetCache('get',
+      $asset->id));
+
+    // Asset should be primed.
+    $this->assertInstanceOf(Asset::class,
+      $this->acquiaDamClient->getAsset($asset->id));
+    $this->assertInstanceOf(Asset::class,
+      $this->acquiaDamClient->staticAssetCache('get', $asset->id));
+
+    // Simulate a cached failed fetch.
+    $this->acquiaDamClient->staticAssetCache('set', $asset->id, FALSE);
+    $this->assertFalse($this->acquiaDamClient->getAsset($asset->id));
+
+    $this->assertFalse($this->acquiaDamClient->getAsset(1234567890));
+  }
+
+  /**
    * Tests that flattened folder output matches what is expected.
    */
   public function testGetFlattenedFolderList() {
-    // Client type does not matter; We're not using it.
-    $acquiadam = new Acquiadam($this->container->get('media_acquiadam.client_factory'), 'background');
-
     // Test that the top level flattening works as expected.
-    $folders = $acquiadam->getFlattenedFolderList();
-    $this->assertArrayEquals($this->getFlattenedTopLevelFoldersData(), $folders);
+    $folders = $this->acquiaDamClient->getFlattenedFolderList();
+    $this->assertArrayEquals($this->getFlattenedTopLevelFoldersData(),
+      $folders);
 
     // Test that a parent item gets its proper child items.
-    $folders = $acquiadam->getFlattenedFolderList(90672);
+    $folders = $this->acquiaDamClient->getFlattenedFolderList(90672);
     $this->assertArrayEquals([
       90673 => 'Slideshows',
       90674 => 'Ad Ideas',
-    ], $folders);
+    ],
+      $folders);
 
     // Test that a parent item gets its proper child items.
-    $folders = $acquiadam->getFlattenedFolderList(90786);
+    $folders = $this->acquiaDamClient->getFlattenedFolderList(90786);
     $this->assertArrayEquals([
       90787 => 'Spreadsheets',
       90788 => 'Logos',
-    ], $folders);
+    ],
+      $folders);
 
     // Test that items with no children reflect that.
-    $folders = $acquiadam->getFlattenedFolderList(90832);
+    $folders = $this->acquiaDamClient->getFlattenedFolderList(90832);
     $this->assertArrayEquals([], $folders);
 
     // Test that child items with no subchildren reflect that.
-    $folders = $acquiadam->getFlattenedFolderList(90673);
+    $folders = $this->acquiaDamClient->getFlattenedFolderList(90673);
     $this->assertArrayEquals([], $folders);
+  }
+
+  /**
+   * Validate our helper method for testing folder data works as expected.
+   */
+  public function testSelfGetFolderData() {
+    // Test that we can get parent folders.
+    $folder = $this->getFolderData(90786);
+    $this->assertObjectHasAttribute('id', $folder);
+    $this->assertEquals(90786, $folder->id);
+
+    // Test that we can get child folders.
+    $folder = $this->getFolderData(90788);
+    $this->assertObjectHasAttribute('id', $folder);
+    $this->assertEquals(90788, $folder->id);
   }
 
   /**
@@ -73,21 +147,6 @@ class AcquiadamServiceTest extends UnitTestCase {
       90788 => 'Logos',
       90832 => 'Support',
     ];
-  }
-
-  /**
-   * Validate our helper method for testing folder data works as expected.
-   */
-  public function testSelfGetFolderData() {
-    // Test that we can get parent folders.
-    $folder = $this->getFolderData(90786);
-    $this->assertObjectHasAttribute('id', $folder);
-    $this->assertEquals(90786, $folder->id);
-
-    // Test that we can get child folders.
-    $folder = $this->getFolderData(90788);
-    $this->assertObjectHasAttribute('id', $folder);
-    $this->assertEquals(90788, $folder->id);
   }
 
   /**
@@ -180,6 +239,10 @@ class AcquiadamServiceTest extends UnitTestCase {
     $dam_client->expects($this->any())
       ->method('getTopLevelFolders')
       ->willReturn($this->getTopLevelFoldersData());
+    $dam_client->method('getAsset')->willReturnMap([
+      [$this->getAssetData()->id, TRUE, $this->getAssetData()],
+      [$this->getAssetData()->id, FALSE, $this->getAssetData()],
+    ]);
 
     // We need to make sure we get our mocked class instead of the original.
     $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
@@ -189,28 +252,29 @@ class AcquiadamServiceTest extends UnitTestCase {
       ->method('get')
       ->willReturn($dam_client);
 
-    $this->container = new ContainerBuilder();
-    $this->container->set('string_translation', $this->getStringTranslationStub());
-    $this->container->set('config.factory', $this->getConfigFactoryStub());
-    $this->container->set('media_acquiadam.client_factory', $acquiadam_client_factory);
+    $acquiadam_asset_data = $this->getMockBuilder(AssetDataInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
 
+    $this->container = new ContainerBuilder();
+    $this->container->set('string_translation',
+      $this->getStringTranslationStub());
+    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('logger.factory', $this->getLoggerFactoryStub());
+    $this->container->set('media_acquiadam.client_factory',
+      $acquiadam_client_factory);
+    $this->container->set('media_acquiadam.asset_data', $acquiadam_asset_data);
     Drupal::setContainer($this->container);
+
+    $this->acquiaDamClient = Acquiadam::create($this->container);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getConfigFactoryStub(array $configs = []) {
-    return parent::getConfigFactoryStub([
-      'media_acquiadam.settings' => [
-        'username' => 'WDusername',
-        'password' => 'WDpassword',
-        'client_id' => 'WDclient-id',
-        'secret' => 'WDsecret',
-        'sync_interval' => '14400',
-        'size_limit' => 1280,
-      ],
-    ]);
+  public function tearDown() {
+    // Reset the static cache because it will persist between tests.
+    $this->acquiaDamClient->staticAssetCache('clear');
   }
 
 }

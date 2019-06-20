@@ -3,7 +3,7 @@
 namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @package media_acquiadam
  */
-class ClientFactory implements ContainerFactoryPluginInterface {
+class ClientFactory implements ContainerInjectionInterface {
 
   /**
    * A config object to retrieve Acquia DAM auth information from.
@@ -66,8 +66,13 @@ class ClientFactory implements ContainerFactoryPluginInterface {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($container->get('config.factory'), $container->get('http_client'), $container->get('user.data'), $container->get('current_user'));
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('http_client'),
+      $container->get('user.data'),
+      $container->get('current_user')
+    );
   }
 
   /**
@@ -81,14 +86,35 @@ class ClientFactory implements ContainerFactoryPluginInterface {
    *   A configured DAM HTTP client object.
    */
   public function get($credentials = 'background') {
-    $client = $this->getWithCredentials($this->config->get('username'), $this->config->get('password'), $this->config->get('client_id'), $this->config->get('secret'));
+    $client = $this->getWithCredentials(
+      $this->config->get('username'),
+      $this->config->get('password'),
+      $this->config->get('client_id'),
+      $this->config->get('secret')
+    );
 
     // Set the user's credentials in the client if necessary.
     if ($credentials == 'current') {
-      $access_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
-      $access_token_expiration = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
-      $refresh_token = $this->userData->get('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
-      $client->setToken($access_token, $access_token_expiration, $refresh_token);
+      $access_token = $this->userData->get(
+        'media_acquiadam',
+        $this->currentUser->id(),
+        'acquiadam_access_token'
+      );
+      $access_token_expiration = $this->userData->get(
+        'media_acquiadam',
+        $this->currentUser->id(),
+        'acquiadam_access_token_expiration'
+      );
+      $refresh_token = $this->userData->get(
+        'media_acquiadam',
+        $this->currentUser->id(),
+        'acquiadam_refresh_token'
+      );
+      $client->setToken(
+        $access_token,
+        $access_token_expiration,
+        $refresh_token
+      );
     }
 
     return $client;
@@ -110,7 +136,13 @@ class ClientFactory implements ContainerFactoryPluginInterface {
    *   The Acquia DAM client.
    */
   public function getWithCredentials($username, $password, $client_id, $secret) {
-    return new Client($this->guzzleClient, $username, $password, $client_id, $secret);
+    return new Client(
+      $this->guzzleClient,
+      $username,
+      $password,
+      $client_id,
+      $secret
+    );
   }
 
 }
