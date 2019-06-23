@@ -9,7 +9,7 @@ use Drupal\views\ViewExecutable;
 
 /**
  * Implements hook_views_query_alter().
- * 
+ *
  * Adds query condition to DAM listing to filter media bundles.
  */
 function media_acquiadam_report_views_query_alter($view, $query) {
@@ -24,7 +24,7 @@ function media_acquiadam_report_views_query_alter($view, $query) {
 
 /**
  * Implements hook_views_data_alter().
- * 
+ *
  * Adds a DAM source id field for use in the DAM listing.
  */
 function media_acquiadam_report_views_data_alter(array &$data) {
@@ -43,8 +43,15 @@ function media_acquiadam_report_views_data_alter(array &$data) {
  */
 function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
   // DAM asset URL path.
-  $dam_url = \Drupal::service('media_acquiadam.acquiadam')
-    ->getAccountSubscriptionDetails()->url;
+  try {
+    $dam_url = \Drupal::service('media_acquiadam.acquiadam')
+      ->getAccountSubscriptionDetails()->url;
+  }
+  catch (Exception $x) {
+    watchdog_exception('media_acquiadam_report', $x);
+    return;
+  }
+
   $dam_asset_url = 'https://' . $dam_url . '/cloud/#asset/';
 
   // Views field display template to override. 
