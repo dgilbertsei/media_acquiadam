@@ -170,7 +170,7 @@ function media_acquiadam_media_delete(EntityInterface $entity) {
  */
 function media_acquiadam_cron() {
   $cron_config = \Drupal::configFactory()
-    ->getEditable('media_acquiadam.settings');
+    ->get('media_acquiadam.settings');
 
   $interval = $cron_config->get('sync_interval');
   // 3600 seconds = 1 hour
