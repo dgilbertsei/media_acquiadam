@@ -9,3 +9,4 @@ dependencies:
   - drupal:image
   - media:media
   - fallback_formatter:fallback_formatter
+  - drupal:path
