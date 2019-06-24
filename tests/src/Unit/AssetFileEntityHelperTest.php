@@ -8,11 +8,12 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
-use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileSystem;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\FileSystemBridge;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
@@ -168,13 +169,14 @@ class AssetFileEntityHelperTest extends UnitTestCase {
         return ('assets/[token]' == $string) ? 'assets/replaced' : $string;
       });
 
-    $file_system = $this->getMockBuilder(FileSystemInterface::class)
+    $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->getMock();
+      ->setMethods(['prepareDirectory'])
+      ->getMockForAbstractClass();
     $file_system->method('prepareDirectory')->willReturnMap([
       [
         'private://assets/replaced',
-        FileSystemInterface::CREATE_DIRECTORY,
+        FileSystemBridge::CREATE_DIRECTORY,
         TRUE,
       ],
     ]);

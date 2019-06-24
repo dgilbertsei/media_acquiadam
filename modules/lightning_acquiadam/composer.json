@@ -1,7 +1,7 @@
 {
     "name": "drupal/lightning_acquiadam",
-    "description": "Integrates the Acquia DAM module with Lightning.",
     "type": "drupal-module",
+    "description": "Integrates the Acquia DAM module with Lightning.",
     "license": "GPL-2.0-or-later",
     "require": {
         "drupal/fallback_formatter": "^1.0"

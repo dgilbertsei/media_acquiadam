@@ -4,7 +4,7 @@ namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileSystem;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
@@ -190,9 +190,10 @@ class AssetImageHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $file_system = $this->getMockBuilder(FileSystemInterface::class)
+    $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->getMock();
+      ->setMethods(['copy'])
+      ->getMockForAbstractClass();
     $file_system->method('copy')
       ->willReturnCallback(function ($source, $target) {
         return is_string($target) ? $target . '_copy' : $target . '_blah';

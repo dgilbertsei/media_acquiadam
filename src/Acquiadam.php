@@ -78,7 +78,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * {@inheritdoc}
    */
-  public function __call($name, $arguments) {
+  public function __call($name, array $arguments) {
     $method_variable = [$this->acquiaDamClient, $name];
     return is_callable($method_variable) ?
       call_user_func_array($method_variable, $arguments) : NULL;

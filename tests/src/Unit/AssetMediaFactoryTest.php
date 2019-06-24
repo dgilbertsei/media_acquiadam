@@ -3,7 +3,6 @@
 namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal;
-use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -196,16 +195,10 @@ class AssetMediaFactoryTest extends UnitTestCase {
 
     $this->mediaEntity = $this->getMockedMediaEntity($asset->id);
 
-    $bundle_config = $this->getMockBuilder(ConfigurableInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $bundle_config->method('getConfiguration')
-      ->willReturn(['source_field' => 'phpunit_asset_id_field']);
-
     $media_bundle = $this->getMockBuilder(MediaTypeInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $media_bundle->method('getSource')->willReturn($bundle_config);
+    $media_bundle->method('getSource')->willReturn($this->mediaEntity->getSource());
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
 

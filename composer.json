@@ -12,18 +12,22 @@
     ],
     "require": {
         "cweagans/php-webdam-client": "dev-master",
-        "drupal/fallback_formatter": "^1.0",
-        "ext-json": "^1.7"
+        "drupal/fallback_formatter": "^1.0"
+    },
+    "require-dev": {
+        "acquia/coding-standards": "*",
+        "brainmaestro/composer-git-hooks": "^2.7",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.5"
     },
     "extra": {
         "branch-alias": {
             "dev-8.x-1.x": "1.x-dev"
         },
-        "phpcodesniffer-search-depth": 4,
         "hooks": {
             "pre-commit": "vendor/bin/phpcs",
             "pre-push": "vendor/bin/phpcs"
-        }
+        },
+        "phpcodesniffer-search-depth": 4
     },
     "repositories": [
         {
@@ -31,19 +35,14 @@
             "url": "https://packages.drupal.org/8"
         }
     ],
+    "scripts": {
+        "post-install-cmd": "vendor/bin/cghooks add --ignore-lock",
+        "post-update-cmd": "vendor/bin/cghooks update",
+        "cghooks": "vendor/bin/cghooks",
+        "phpcs": "vendor/bin/phpcs"
+    },
     "support": {
         "issues": "https://drupal.org/project/issues/media_acquiadam",
         "source": "https://cgit.drupalcode.org/media_acquiadam"
-    },
-    "require-dev": {
-        "acquia/coding-standards": "*",
-        "dealerdirect/phpcodesniffer-composer-installer": "^0.5",
-        "brainmaestro/composer-git-hooks": "^2.7"
-    },
-    "scripts": {
-        "phpcs": "vendor/bin/phpcs",
-        "cghooks": "vendor/bin/cghooks",
-        "post-install-cmd": "vendor/bin/cghooks add --ignore-lock",
-        "post-update-cmd": "vendor/bin/cghooks update"
     }
 }
