@@ -22,6 +22,11 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
+/**
+ * Tests to validate that our file entity helper works as expected.
+ *
+ * @group media_acquiadam
+ */
 class AssetFileEntityHelperTest extends UnitTestCase {
 
   use AcquiadamAssetDataTrait, AcquiadamConfigTrait, AcquiadamAssetImageHelperTrait, AcquiadamMockedMediaEntityTrait;

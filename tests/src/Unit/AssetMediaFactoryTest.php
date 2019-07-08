@@ -26,7 +26,7 @@ use Drupal\Tests\UnitTestCase;
  * Test our factory service to validate its ability to get media information
  * based on asset ID.
  *
- * @package media_acquiadam
+ * @group media_acquiadam
  */
 class AssetMediaFactoryTest extends UnitTestCase {
 

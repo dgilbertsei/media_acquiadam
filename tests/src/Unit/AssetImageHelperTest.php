@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 /**
  * Tests integration of the AssetImageHelper service.
  *
- * @gruop media_acquiadam
+ * @group media_acquiadam
  */
 class AssetImageHelperTest extends UnitTestCase {
 

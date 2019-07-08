@@ -9,6 +9,11 @@ use Drupal\media_acquiadam\AssetData;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
 
+/**
+ * Tests to validate that the asset data service works as expected.
+ *
+ * @group media_acquiadam
+ */
 class AssetDataTest extends UnitTestCase {
 
   use AcquiadamAssetDataTrait;

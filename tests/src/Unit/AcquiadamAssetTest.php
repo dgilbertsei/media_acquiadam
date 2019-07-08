@@ -18,6 +18,11 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
+/**
+ * Tests to validate that the Media source plugin works as expected.
+ *
+ * @group media_acquiadam
+ */
 class AcquiadamAssetTest extends UnitTestCase {
 
   use AcquiadamAssetDataTrait, AcquiadamConfigTrait, AcquiadamMockedMediaEntityTrait;

@@ -20,9 +20,9 @@ use Drupal\Tests\UnitTestCase;
 use stdClass;
 
 /**
- * Class MediaEntityHelperTest.
+ * Testing of the Media Entity helper class.
  *
- * @package media_acquiadam
+ * @group media_acquiadam
  */
 class MediaEntityHelperTest extends UnitTestCase {
 

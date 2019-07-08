@@ -14,7 +14,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests integration of the AssetMetadataHelper service.
  *
- * @gruop media_acquiadam
+ * @group media_acquiadam
  */
 class AssetMetadataHelperTest extends UnitTestCase {
 
