@@ -1,7 +1,7 @@
 ---
 language: php
 
-php: "7.1"
+php: "7.2"
 
 addons:
   chrome: stable
@@ -10,15 +10,14 @@ cache:
   directories:
     - "$HOME/.composer/cache"
     - "$HOME/.drush/cache"
-    - "$TMPDIR/phpstan/cache"
+    - "${TMPDIR:-/tmp}/phpstan/cache"
 
 env:
   global:
     - ORCA_SUT_NAME=drupal/media_acquiadam
     - ORCA_SUT_BRANCH=8.x-1.x
-    - ORCA_VERSION=v1.0.0-alpha21
-    # @todo Remove once media_acquiadam is enabled in ORCA.
-    - ORCA_PACKAGES_CONFIG_ALTER=../media_acquiadam/tests/packages_alter.yml
+    - ORCA_VERSION=v1.0.0-alpha22
+    - ORCA_TELEMETRY_ENABLE=TRUE
 
 matrix:
   fast_finish: true
