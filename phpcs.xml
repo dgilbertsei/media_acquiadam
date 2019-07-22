@@ -20,12 +20,6 @@
 
   <exclude-pattern>vendor/*</exclude-pattern>
 
-  <!-- Include existing standards. -->
-  <rule ref="Drupal"/>
-  <rule ref="DrupalPractice">
-    <!-- Ignore specific sniffs. -->
-    <exclude name="DrupalPractice.InfoFiles.NamespacedDependency"/>
-  </rule>
-  <rule ref="AcquiaDrupal"/>
+  <rule ref="AcquiaDrupalStrict" />
 
 </ruleset>
