@@ -204,6 +204,15 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
   $mappings = &$form['source_dependent']['field_map'];
   if (!empty($mappings)) {
     foreach (Element::children($mappings) as $key) {
+      // Sort fields with assigned mappings to the top to make it easier to
+      // identify what is and is not mapped at a glance.
+      // We need to set different weights based on if we're dealing with an
+      // XMP field or not.
+      $mappings[$key]['#weight'] = strpos($key, 'xmp_') === FALSE ? 0 : 100;
+      if (!empty($mappings[$key]['#default_value']) && $mappings[$key]['#default_value'] !== '_none') {
+        $mappings[$key]['#weight'] -= 10;
+      }
+
       $options = &$mappings[$key]['#options'];
       if (!isset($options['status'])) {
         $options['status'] = t('Publishing status');
