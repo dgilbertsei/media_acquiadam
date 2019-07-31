@@ -3,15 +3,15 @@ status: true
 dependencies:
   config:
     - field.storage.media.field_acquiadam_asset_descrip
-    - media.type.acquia_dam_asset
-id: media.acquia_dam_asset.field_acquiadam_asset_descrip
+    - media.type.acquia_dam_video
+id: media.acquia_dam_video.field_acquiadam_asset_descrip
 field_name: field_acquiadam_asset_descrip
 entity_type: media
-bundle: acquia_dam_asset
+bundle: acquia_dam_video
 label: Description
 description: 'The asset description from Acquia DAM.'
 required: false
-translatable: false
+translatable: true
 default_value: {  }
 default_value_callback: ''
 settings: {  }

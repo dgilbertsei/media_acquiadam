@@ -18,17 +18,42 @@ function media_acquiadam_example_install() {
     /** @var \Drupal\entity_browser\EntityBrowserInterface $browser */
     $browser = EntityBrowser::load('media_browser');
     if (!empty($browser)) {
-      $browser->addWidget(
-        [
-          'id' => 'acquiadam',
-          'label' => t('Acquia DAM'),
-          'weight' => 10,
-          'settings' => [
-            'media_type' => 'acquia_dam_asset',
-            'submit_text' => t('Select assets'),
-          ],
+      $widgets = [
+        'acquia_dam_asset' => [
+          'label' => t('Acquia DAM Asset'),
+          'submit_text' => t('Select assets'),
+        ],
+        'acquia_dam_audio' => [
+          'label' => t('Acquia DAM Audio'),
+          'submit_text' => t('Select audio'),
+        ],
+        'acquia_dam_document' => [
+          'label' => t('Acquia DAM Documents'),
+          'submit_text' => t('Select documents'),
+        ],
+        'acquia_dam_image' => [
+          'label' => t('Acquia DAM Images'),
+          'submit_text' => t('Select images'),
+        ],
+        'acquia_dam_video' => [
+          'label' => t('Acquia DAM Video'),
+          'submit_text' => t('Select video'),
         ]
-      );
+      ];
+
+      $weight = 10;
+      foreach ($widgets as $type => $text) {
+        $browser->addWidget([
+            'id' => 'acquiadam',
+            'label' => $text['label'],
+            'weight' => $weight++,
+            'settings' => [
+              'media_type' => $type,
+              'submit_text' => $text['submit_text'],
+            ],
+          ]);
+      }
+
       $browser->save();
     }
   }

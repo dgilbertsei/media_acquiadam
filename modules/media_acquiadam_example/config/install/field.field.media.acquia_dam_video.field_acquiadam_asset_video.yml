@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.media.field_acquiadam_asset_video
+    - media.type.acquia_dam_video
+  module:
+    - file
+id: media.acquia_dam_video.field_acquiadam_asset_video
+field_name: field_acquiadam_asset_video
+entity_type: media
+bundle: acquia_dam_video
+label: 'Video file'
+description: 'This field will hold the original image data that was uploaded to Acquia DAM.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'acquiadam/[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'mov mp4'
+  max_filesize: ''
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

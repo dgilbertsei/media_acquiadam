@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.media.field_acquiadam_asset_id
+    - media.type.acquia_dam_image
+id: media.acquia_dam_image.field_acquiadam_asset_id
+field_name: field_acquiadam_asset_id
+entity_type: media
+bundle: acquia_dam_image
+label: 'Asset ID'
+description: 'The numeric asset ID provided by Acquia DAM.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

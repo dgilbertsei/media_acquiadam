@@ -1,0 +1,36 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_id
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_video
+    - media.type.acquia_dam_video
+  module:
+    - file
+id: media.acquia_dam_video.default
+targetEntityType: media
+bundle: acquia_dam_video
+mode: default
+content:
+  field_acquiadam_asset_video:
+    weight: 0
+    label: visually_hidden
+    settings:
+      controls: true
+      multiple_file_display_type: tags
+      width: 640
+      height: 480
+      autoplay: false
+      loop: false
+      muted: false
+    third_party_settings: {  }
+    type: file_video
+    region: content
+hidden:
+  created: true
+  field_acquiadam_asset_descrip: true
+  field_acquiadam_asset_id: true
+  name: true
+  thumbnail: true
+  uid: true

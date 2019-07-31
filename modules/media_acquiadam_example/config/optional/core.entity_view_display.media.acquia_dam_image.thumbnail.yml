@@ -3,16 +3,16 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.media.thumbnail
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
+    - field.field.media.acquia_dam_image.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_image.field_acquiadam_asset_id
+    - field.field.media.acquia_dam_image.field_acquiadam_asset_image
     - image.style.medium
-    - media.type.acquia_dam_asset
+    - media.type.acquia_dam_image
   module:
     - image
-id: media.acquia_dam_asset.thumbnail
+id: media.acquia_dam_image.thumbnail
 targetEntityType: media
-bundle: acquia_dam_asset
+bundle: acquia_dam_image
 mode: thumbnail
 content:
   thumbnail:
@@ -27,7 +27,7 @@ content:
 hidden:
   created: true
   field_acquiadam_asset_descrip: true
-  field_acquiadam_asset_file: true
   field_acquiadam_asset_id: true
+  field_acquiadam_asset_image: true
   name: true
   uid: true

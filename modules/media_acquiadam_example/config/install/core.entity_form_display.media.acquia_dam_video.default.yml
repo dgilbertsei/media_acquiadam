@@ -2,15 +2,15 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
-    - media.type.acquia_dam_asset
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_id
+    - field.field.media.acquia_dam_video.field_acquiadam_asset_video
+    - media.type.acquia_dam_video
   module:
     - path
-id: media.acquia_dam_asset.default
+id: media.acquia_dam_video.default
 targetEntityType: media
-bundle: acquia_dam_asset
+bundle: acquia_dam_video
 mode: default
 content:
   field_acquiadam_asset_id:
@@ -29,7 +29,7 @@ content:
 hidden:
   created: true
   field_acquiadam_asset_descrip: true
-  field_acquiadam_asset_file: true
+  field_acquiadam_asset_video: true
   name: true
   status: true
   uid: true

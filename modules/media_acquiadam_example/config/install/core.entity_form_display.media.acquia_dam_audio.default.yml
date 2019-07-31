@@ -2,24 +2,24 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
-    - media.type.acquia_dam_asset
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_audio
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_id
+    - media.type.acquia_dam_audio
   module:
     - path
-id: media.acquia_dam_asset.default
+id: media.acquia_dam_audio.default
 targetEntityType: media
-bundle: acquia_dam_asset
+bundle: acquia_dam_audio
 mode: default
 content:
   field_acquiadam_asset_id:
+    type: number
     weight: 0
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   path:
     type: path
     weight: 1
@@ -28,8 +28,8 @@ content:
     third_party_settings: {  }
 hidden:
   created: true
+  field_acquiadam_asset_audio: true
   field_acquiadam_asset_descrip: true
-  field_acquiadam_asset_file: true
   name: true
   status: true
   uid: true

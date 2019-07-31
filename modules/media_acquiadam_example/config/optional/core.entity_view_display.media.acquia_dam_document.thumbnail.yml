@@ -3,31 +3,31 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.media.thumbnail
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
-    - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
+    - field.field.media.acquia_dam_document.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_document.field_acquiadam_asset_doc
+    - field.field.media.acquia_dam_document.field_acquiadam_asset_id
     - image.style.medium
-    - media.type.acquia_dam_asset
+    - media.type.acquia_dam_document
   module:
     - image
-id: media.acquia_dam_asset.thumbnail
+id: media.acquia_dam_document.thumbnail
 targetEntityType: media
-bundle: acquia_dam_asset
+bundle: acquia_dam_document
 mode: thumbnail
 content:
   thumbnail:
     type: image
     weight: 0
-    region: content
-    label: visually_hidden
+    label: hidden
     settings:
       image_style: medium
       image_link: ''
+    region: content
     third_party_settings: {  }
 hidden:
   created: true
   field_acquiadam_asset_descrip: true
-  field_acquiadam_asset_file: true
+  field_acquiadam_asset_doc: true
   field_acquiadam_asset_id: true
   name: true
   uid: true

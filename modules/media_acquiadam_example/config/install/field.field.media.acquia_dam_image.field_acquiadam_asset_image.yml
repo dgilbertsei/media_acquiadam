@@ -1,0 +1,37 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.media.field_acquiadam_asset_image
+    - media.type.acquia_dam_image
+  module:
+    - image
+id: media.acquia_dam_image.field_acquiadam_asset_image
+field_name: field_acquiadam_asset_image
+entity_type: media
+bundle: acquia_dam_image
+label: Image
+description: 'This field will hold the original image data that was uploaded to Acquia DAM.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'acquiadam/[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'png gif jpg jpeg tiff'
+  max_filesize: ''
+  max_resolution: ''
+  min_resolution: ''
+  alt_field: true
+  alt_field_required: false
+  title_field: false
+  title_field_required: false
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: image

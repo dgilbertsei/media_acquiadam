@@ -1,0 +1,33 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_audio
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_audio.field_acquiadam_asset_id
+    - media.type.acquia_dam_audio
+  module:
+    - file
+id: media.acquia_dam_audio.default
+targetEntityType: media
+bundle: acquia_dam_audio
+mode: default
+content:
+  field_acquiadam_asset_audio:
+    weight: 0
+    label: visually_hidden
+    settings:
+      controls: true
+      autoplay: false
+      loop: false
+      multiple_file_display_type: tags
+    third_party_settings: {  }
+    type: file_audio
+    region: content
+hidden:
+  created: true
+  field_acquiadam_asset_descrip: true
+  field_acquiadam_asset_id: true
+  name: true
+  thumbnail: true
+  uid: true
