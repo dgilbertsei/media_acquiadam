@@ -11,8 +11,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class ClientFactory.
- *
- * @package media_acquiadam
  */
 class ClientFactory implements ContainerInjectionInterface {
 

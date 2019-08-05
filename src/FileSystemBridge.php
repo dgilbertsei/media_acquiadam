@@ -6,8 +6,6 @@ use Drupal;
 
 /**
  * Bridge class for the transition of unmanaged file operations to a class.
- *
- * @package media_acquiadam
  */
 class FileSystemBridge {
 

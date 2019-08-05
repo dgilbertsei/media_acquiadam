@@ -5,6 +5,9 @@ namespace Drupal\Tests\media_acquiadam\Traits;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 
+/**
+ * A shared mock logger channel.
+ */
 trait AcquiadamLoggerFactoryTrait {
 
   /**

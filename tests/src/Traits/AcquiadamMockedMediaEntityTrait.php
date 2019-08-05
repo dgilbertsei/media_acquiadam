@@ -7,6 +7,9 @@ use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceInterface;
 use stdClass;
 
+/**
+ * Shared complex mocked media and related entities.
+ */
 trait AcquiadamMockedMediaEntityTrait {
 
   /**

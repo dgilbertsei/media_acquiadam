@@ -14,8 +14,6 @@ use Exception;
  * Functionality related to working with the Media entity that assets are tied
  * to. The intent is to make it easier to test and rework the behavior without
  * having everything in a singular class.
- *
- * @package media_acquiadam
  */
 class MediaEntityHelper {
 

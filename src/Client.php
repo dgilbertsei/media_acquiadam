@@ -14,8 +14,6 @@ use GuzzleHttp\RequestOptions;
  * Overridden implementation of the cweagans php-webdam-client.
  *
  * Adds support for refreshing OAuth sessions.
- *
- * @package Drupal\media_acquiadam
  */
 class Client extends OriginalClient {
 

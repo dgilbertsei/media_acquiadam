@@ -12,8 +12,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Class AssetMetadataHelper.
  *
  * Deals with reading and manipulating metadata for assets.
- *
- * @package media_acquiadam
  */
 class AssetMetadataHelper implements ContainerInjectionInterface {
 

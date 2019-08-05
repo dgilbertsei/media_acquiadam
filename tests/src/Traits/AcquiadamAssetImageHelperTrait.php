@@ -4,6 +4,9 @@ namespace Drupal\Tests\media_acquiadam\Traits;
 
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 
+/**
+ * Shared methods for dealing with a mocked AssetImageHelper.
+ */
 trait AcquiadamAssetImageHelperTrait {
 
   /**

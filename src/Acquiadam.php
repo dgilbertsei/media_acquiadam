@@ -12,8 +12,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Class Acquiadam.
  *
  * Abstracts away details of the REST API.
- *
- * @package Drupal\media_acquiadam
  */
 class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
 

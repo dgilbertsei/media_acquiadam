@@ -2,6 +2,11 @@
 
 namespace Drupal\Tests\media_acquiadam\Traits;
 
+/**
+ * A shared mock config factory service.
+ *
+ * Provides configuration used by the different tests.
+ */
 trait AcquiadamConfigTrait {
 
   /**

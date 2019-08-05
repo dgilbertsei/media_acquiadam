@@ -30,6 +30,8 @@ class AssetImageHelperTest extends UnitTestCase {
   protected $container;
 
   /**
+   * A mocked version of the AssetImageHelper service.
+   *
    * @var \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $assetImageHelper;
@@ -91,6 +93,9 @@ class AssetImageHelperTest extends UnitTestCase {
       'Existing file should be used');
   }
 
+  /**
+   * Validate we get a generic media icon when no image can be loaded.
+   */
   public function testGetGenericMediaIcon() {
 
     $mimetype = [

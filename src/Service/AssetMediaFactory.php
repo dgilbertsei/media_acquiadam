@@ -15,8 +15,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * Factory service to get wrapped Media entities that provide additional asset
  * functionality.
- *
- * @package media_acquiadam
  */
 class AssetMediaFactory implements ContainerInjectionInterface {
 

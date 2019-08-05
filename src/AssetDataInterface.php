@@ -4,8 +4,6 @@ namespace Drupal\media_acquiadam;
 
 /**
  * Defines the asset data service interface.
- *
- * @package media_acquiadam
  */
 interface AssetDataInterface {
 

@@ -38,20 +38,20 @@ function media_acquiadam_example_install() {
         'acquia_dam_video' => [
           'label' => t('Acquia DAM Video'),
           'submit_text' => t('Select video'),
-        ]
+        ],
       ];
 
       $weight = 10;
       foreach ($widgets as $type => $text) {
         $browser->addWidget([
-            'id' => 'acquiadam',
-            'label' => $text['label'],
-            'weight' => $weight++,
-            'settings' => [
-              'media_type' => $type,
-              'submit_text' => $text['submit_text'],
-            ],
-          ]);
+          'id' => 'acquiadam',
+          'label' => $text['label'],
+          'weight' => $weight++,
+          'settings' => [
+            'media_type' => $type,
+            'submit_text' => $text['submit_text'],
+          ],
+        ]);
       }
 
       $browser->save();

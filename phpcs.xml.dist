@@ -11,6 +11,8 @@
   <!-- @see https://www.drupal.org/node/2867601#comment-12075633 -->
   <arg name="ignore" value="*.css,*.md,*.txt,*.png,*.gif,*.jpeg,*.jpg,*.svg"/>
 
+  <arg name="extensions" value="inc,install,module,php,profile,test,theme,yml"/>
+
   <arg name="colors"/>
   <arg name="cache" value=".phpcs-cache"/>
   <arg name="parallel" value="10"/>
@@ -20,6 +22,10 @@
 
   <exclude-pattern>vendor/*</exclude-pattern>
 
+  <!-- Temporary workaround for bug in Acquia coding standards -->
+  <!-- https://github.com/acquia/coding-standards-php/issues/1 -->
+  <rule ref="Drupal" />
+  <rule ref="DrupalPractice" />
   <rule ref="AcquiaDrupalStrict" />
 
 </ruleset>

@@ -19,8 +19,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Class AssetFileEntityHelper.
  *
  * Abstracts out primarily file entity and system file related functionality.
- *
- * @package media_acquiadam
  */
 class AssetFileEntityHelper implements ContainerInjectionInterface {
 

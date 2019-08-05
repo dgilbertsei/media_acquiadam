@@ -19,8 +19,6 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
  *
  * Abstracts out several pieces of functionality that deal with generating or
  * retrieving thumbnails for assets.
- *
- * @package media_acquiadam
  */
 class AssetImageHelper implements ContainerInjectionInterface {
 

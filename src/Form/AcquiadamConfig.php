@@ -11,8 +11,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class AcquiadamConfig.
- *
- * @package Drupal\media_acquiadam\Form
  */
 class AcquiadamConfig extends ConfigFormBase {
 

@@ -4,6 +4,9 @@ namespace Drupal\Tests\media_acquiadam\Traits;
 
 use cweagans\webdam\Entity\Asset;
 
+/**
+ * Shared asset data.
+ */
 trait AcquiadamAssetDataTrait {
 
   /**
