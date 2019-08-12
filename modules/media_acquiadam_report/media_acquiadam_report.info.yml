@@ -8,4 +8,4 @@ dependencies:
   - drupal:file
   - drupal:image
   - entity_usage:entity_usage
-  - views:views
+  - drupal:views
