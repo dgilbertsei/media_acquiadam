@@ -186,12 +186,50 @@ function media_acquiadam_cron() {
 
   // -1 interval means run on every cron.
   $process_queues = ($interval == -1 || $request_time >= $next_execution);
-  if ($process_queues) {
-    Drupal::state()
-      ->set('media_acquiadam.next_sync', $request_time + $interval);
-    media_acquiadam_refresh_asset_sync_queue();
-    media_acquiadam_purge_expired_tokens();
+  if (!$process_queues) {
+    return;
   }
+
+  media_acquiadam_purge_expired_tokens();
+
+  if ($cron_config->get('notifications_sync')) {
+    media_acquiadam_refresh_asset_sync_notifications_queue();
+  }
+  else {
+    media_acquiadam_refresh_asset_sync_queue();
+  }
+
+  $total_queue_items = Drupal::queue('media_acquiadam_asset_refresh')->numberOfItems();
+
+  /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
+  $logger = \Drupal::service('logger.factory')->get('media_acquiadam');
+  $logger->info('Total items in the queue: @items.', ['@items' => $total_queue_items]);
+
+  Drupal::state()->set('media_acquiadam.next_sync', $request_time + $interval);
+}
+
+/**
+ * Adds media items to the asset sync queue for later processing.
+ *
+ * Uses the Notifications API to get affected asset ids. Determines which assets
+ * where changed within the given period of time, and adds them to the queue.
+ */
+function media_acquiadam_refresh_asset_sync_notifications_queue() {
+  $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
+  if (empty($asset_id_fields)) {
+    return;
+  }
+
+  $queue = Drupal::queue('media_acquiadam_asset_refresh');
+  // We only want to re-queue everything when the queue is totally empty. This
+  // should help minimize the number of duplicate syncs we perform on assets.
+  if ($queue->numberOfItems() > 0) {
+    return;
+  }
+
+  /** @var \Drupal\media_acquiadam\Service\AssetRefreshManagerInterface $asset_refresh_manager */
+  $asset_refresh_manager = \Drupal::service('media_acquiadam.asset_refresh.manager');
+  $asset_refresh_manager->updateQueue($asset_id_fields);
 }
 
 /**
@@ -242,6 +280,8 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
 /**
  * Adds media items to the asset sync queue for later processing.
  *
+ * Adds all existing active media entities to the queue.
+ *
  * @return int
  *   The number of items currently in the queue.
  */
@@ -249,43 +289,51 @@ function media_acquiadam_refresh_asset_sync_queue() {
   $queue = Drupal::queue('media_acquiadam_asset_refresh');
   // We only want to re-queue everything when the queue is totally empty. This
   // should help minimize the number of duplicate syncs we perform on assets.
-  if ($queue->numberOfItems() <= 0) {
-    // We need a mapping of bundles to fields so we can filter out remotely
-    // deleted assets.
-    $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
-    // Re-queue all available media entities for syncing.
-    if (!empty($asset_id_fields)) {
-      // Assets with the 'remote_deleted' flag have been deleted within
-      // Acquia DAM so we should not attempt to sync them down again.
-      $deleted_from_dam = Drupal::database()
-        ->select('acquiadam_assets_data', 'ad')
-        ->fields('ad', ['asset_id'])
-        ->condition('ad.name', 'remote_deleted')
-        ->condition('ad.value', TRUE)
-        ->execute()
-        ->fetchCol();
+  if ($queue->numberOfItems() > 0) {
+    return $queue->numberOfItems();
+  }
 
-      foreach ($asset_id_fields as $bundle => $field) {
-        // It would be nice to additionally filter by last created/changed, but
-        // that information is not reliable as it may have been overridden by an
-        // asset sync.
-        $media_id_query = Drupal::entityQuery('media')
-          ->condition('bundle', $bundle);
-        if (!empty($deleted_from_dam)) {
-          $media_id_query->condition($field, $deleted_from_dam, 'NOT IN');
-        }
-
-        $media_ids = $media_id_query->execute();
-        if (!empty($media_ids)) {
-          foreach ($media_ids as $media_id) {
-            $queue->createItem(['media_id' => $media_id]);
-          }
-        }
-      }
-    }
+  foreach (media_acquiadam_get_active_media_ids() as $media_id) {
+    $queue->createItem(['media_id' => $media_id]);
   }
 
   return $queue->numberOfItems();
+}
+
+/**
+ * Returns the list of all active media entity ids.
+ *
+ * @return array
+ *   The list of media entity ids.
+ */
+function media_acquiadam_get_active_media_ids(): array {
+  $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
+  if (empty($asset_id_fields)) {
+    return [];
+  }
+
+  // Assets with the 'remote_deleted' flag have been deleted within
+  // Acquia DAM so they are not considered active.
+  $deleted_from_dam = Drupal::database()
+    ->select('acquiadam_assets_data', 'ad')
+    ->fields('ad', ['asset_id'])
+    ->condition('ad.name', 'remote_deleted')
+    ->condition('ad.value', TRUE)
+    ->execute()
+    ->fetchCol();
+
+  $media_ids = [];
+  foreach ($asset_id_fields as $bundle => $field) {
+    $media_id_query = Drupal::entityQuery('media')
+      ->condition('bundle', $bundle);
+    if (!empty($deleted_from_dam)) {
+      $media_id_query->condition($field, $deleted_from_dam, 'NOT IN');
+    }
+
+    $media_ids = array_merge($media_ids, $media_id_query->execute());
+  }
+
+  return $media_ids;
 }
 
 /**

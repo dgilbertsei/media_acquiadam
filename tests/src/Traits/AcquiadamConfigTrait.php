@@ -21,6 +21,7 @@ trait AcquiadamConfigTrait {
         'secret' => 'WDsecret',
         'sync_interval' => '14400',
         'size_limit' => 1280,
+        'notifications_sync' => 1,
       ],
       'system.file' => ['default_scheme' => 'public'],
       'media.settings' => ['icon_base_uri' => 'public://media-icons'],

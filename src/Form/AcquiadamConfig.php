@@ -3,16 +3,23 @@
 namespace Drupal\media_acquiadam\Form;
 
 use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Queue\QueueWorkerManagerInterface;
+use Drupal\Core\State\State;
 use Drupal\media_acquiadam\ClientFactory;
+use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class AcquiadamConfig.
  */
 class AcquiadamConfig extends ConfigFormBase {
+
+  const BATCH_SIZE = 5;
 
   /**
    * Acquia DAM client factory.
@@ -22,13 +29,45 @@ class AcquiadamConfig extends ConfigFormBase {
   protected $acquiaDamClientFactory;
 
   /**
+   * The Batch Builder.
+   *
+   * @var \Drupal\Core\Batch\BatchBuilder
+   */
+  protected $batchBuilder;
+
+  /**
+   * The Drupal DateTime Service.
+   *
+   * @var \Drupal\Component\Datetime\Time
+   */
+  protected $time;
+
+  /**
+   * The Queue Worker Manager Service.
+   *
+   * @var \Drupal\Core\Queue\QueueWorkerManagerInterface
+   */
+  protected $queueWorkerManager;
+
+  /**
+   * The Drupal State Service.
+   *
+   * @var \Drupal\Core\State\State
+   */
+  protected $state;
+
+  /**
    * AcquiadamConfig constructor.
    *
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientFactory $acquiaDamClientFactory) {
+  public function __construct(ConfigFactoryInterface $config_factory, ClientFactory $acquiaDamClientFactory, BatchBuilder $batch_builder, TimeInterface $time, QueueWorkerManagerInterface $queue_worker_manager, State $state) {
     parent::__construct($config_factory);
     $this->acquiaDamClientFactory = $acquiaDamClientFactory;
+    $this->batchBuilder = $batch_builder;
+    $this->time = $time;
+    $this->queueWorkerManager = $queue_worker_manager;
+    $this->state = $state;
   }
 
   /**
@@ -95,6 +134,12 @@ class AcquiadamConfig extends ConfigFormBase {
       '#description' => $this->t('How often should Acquia DAM assets saved in this site be synced with Acquia DAM (this includes asset metadata as well as the asset itself)?'),
       '#required' => TRUE,
     ];
+    $form['cron']['notifications_sync'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable notification-based synchronization'),
+      '#description' => $this->t('Faster synchronization method based on Notifications from the API.'),
+      '#default_value' => $config->get('notifications_sync'),
+    ];
 
     $form['image'] = [
       '#type' => 'fieldset',
@@ -117,14 +162,164 @@ class AcquiadamConfig extends ConfigFormBase {
       '#default_value' => empty($config->get('size_limit')) ? -1 : $config->get('size_limit'),
     ];
 
+    $form['manual_sync'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Manual asset synchronization.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    ];
+    $form['manual_sync']['perform_manual_sync'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Synchronize all media assets'),
+      '#name' => 'perform_manual_sync',
+      '#submit' => [[$this, 'performManualSync']],
+    ];
+
     return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * Submit handler for "Synchronize all media assets" button.
+   *
+   * @param array $form
+   *   A Drupal form render array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The FormState object.
+   *
+   * @return array|bool
+   *   An array of Media IDs that were set for a batch job, or FALSE on no
+   *   media items found.
+   */
+  public function performManualSync(array &$form, FormStateInterface $form_state) {
+    $media_ids = $this->getActiveMediaIds();
+    if (!$media_ids) {
+      // No assets to synchronize.
+      $this->messenger()
+        ->addWarning($this->t('The synchronization is canceled because no Assets were found.'));
+      return FALSE;
+    }
+
+    $this->batchBuilder
+      ->setTitle($this->t('Synchronizing media assets.'))
+      ->setInitMessage($this->t('Starting synchronization...'))
+      ->setProgressMessage($this->t('@elapsed elapsed. Approximately @estimate left.'))
+      ->setErrorMessage($this->t('An error has occurred.'))
+      ->setFinishCallback([$this, 'finishBatchOperation'])
+      ->addOperation([$this, 'processBatchItems'], [$media_ids]);
+
+    $this->batchSet($this->batchBuilder->toArray());
+
+    return $media_ids;
+  }
+
+  /**
+   * Wrapper for media_acquiadam_get_active_media_ids().
+   *
+   * This method exists so the functionality can be overridden in unit tests.
+   */
+  protected function getActiveMediaIds() {
+    return media_acquiadam_get_active_media_ids();
+  }
+
+  /**
+   * Wrapper for batch_set().
+   *
+   * This method exists so the functionality can be overridden in unit tests.
+   *
+   * @param array $batch_builder
+   *   The array representation of the BatchBuilder object.
+   */
+  protected function batchSet(array $batch_builder) {
+    batch_set($batch_builder);
+  }
+
+  /**
+   * Processes batch items.
+   *
+   * @param array $media_ids
+   *   Items to process.
+   * @param array $context
+   *   Context.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   */
+  public function processBatchItems(array $media_ids, array &$context) {
+    /** @var \Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh $asset_refresh_queue_worker */
+    $asset_refresh_queue_worker = $this->queueWorkerManager
+      ->createInstance('media_acquiadam_asset_refresh');
+
+    if (empty($context['sandbox']['progress'])) {
+      $context['sandbox']['progress'] = $context['results']['processed'] = 0;
+      $context['sandbox']['max'] = count($media_ids);
+      $context['sandbox']['items'] = $media_ids;
+      $context['results']['total'] = $context['sandbox']['max'];
+      $context['results']['start_time'] = $this->time->getRequestTime();
+    }
+
+    $media_ids = array_splice($context['sandbox']['items'], 0, self::BATCH_SIZE);
+    foreach ($media_ids as $media_id) {
+      try {
+        if ($asset_refresh_queue_worker->processItem(['media_id' => $media_id])) {
+          $context['results']['processed']++;
+        }
+      }
+      catch (Exception $e) {
+        $this->logger('media_acquiadam')->error(
+          'Failed to update media entity id = :id. Message: :message',
+          [
+            ':id' => $media_id,
+            ':message' => $e->getMessage(),
+          ]);
+      }
+
+      $context['sandbox']['progress']++;
+      $context['message'] = $this->t('Processed :progress media assets out of :count.', [
+        ':progress' => $context['sandbox']['progress'],
+        ':count' => $context['sandbox']['max'],
+      ]);
+    }
+
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+
+  /**
+   * Finish callback for the batch operation.
+   *
+   * @param bool $success
+   *   The Success flag.
+   * @param array $results
+   *   Results.
+   * @param array $operations
+   *   Operations.
+   */
+  public function finishBatchOperation($success, array $results, array $operations) {
+    $message = $this->getStringTranslation()->formatPlural(
+      $results['processed'],
+      '1 asset (out of @total) has been synchronized.',
+      '@count assets (out of @total) have been synchronized.',
+       ['@total' => $results['total']]);
+    $this->messenger()->addStatus($message);
+
+    if ($results['processed'] === $results['total']) {
+      // Reset all Drupal States related to the automatic asset synchronization.
+      $this->state->set('media_acquiadam.notifications_starttime', $results['start_time']);
+      $this->state->set('media_acquiadam.notifications_endtime', NULL);
+      $this->state->set('media_acquiadam.notifications_next_page', NULL);
+    }
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static($container->get('config.factory'), $container->get('media_acquiadam.client_factory'));
+    return new static(
+      $container->get('config.factory'),
+      $container->get('media_acquiadam.client_factory'),
+       new BatchBuilder(),
+      $container->get('datetime.time'),
+      $container->get('plugin.manager.queue_worker'),
+      $container->get('state')
+    );
   }
 
   /**
@@ -177,6 +372,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('secret', $form_state->getValue('secret'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('size_limit', $form_state->getValue('size_limit'))
+      ->set('notifications_sync', $form_state->getValue('notifications_sync'))
       ->save();
 
     parent::submitForm($form, $form_state);

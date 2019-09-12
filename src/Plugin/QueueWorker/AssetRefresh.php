@@ -79,11 +79,14 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
 
   /**
    * {@inheritdoc}
+   *
+   * @return bool
+   *   TRUE if a media entity was updated successfully, FALSE - otherwise.
    */
   public function processItem($data) {
 
     if (empty($data['media_id'])) {
-      return;
+      return FALSE;
     }
 
     /** @var \Drupal\media\Entity\Media $entity */
@@ -95,7 +98,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
         'Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?',
         ['@media_id' => $data['media_id']]
       );
-      return;
+      return FALSE;
     }
 
     try {
@@ -105,7 +108,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
           'Unable to load asset ID from media entity @media_id. This might mean that the DAM and Drupal relationship has been broken. Please check the media entity.',
           ['@media_id' => $data['media_id']]
         );
-        return;
+        return FALSE;
       }
       $asset = $this->assetMediaFactory->get($entity)->getAsset();
     }
@@ -114,7 +117,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
         'Error trying to check asset from media entity @media_id',
         ['@media_id' => $data['media_id']]
       );
-      return;
+      return FALSE;
     }
 
     if (empty($asset)) {
@@ -131,7 +134,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       // deleted so that the entity gets unpublished. In all other scenarios we
       // want to prevent the save call.
       if (!$is_dam_deleted) {
-        return;
+        return FALSE;
       }
     }
 
@@ -146,6 +149,8 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       // processing.
       throw new SuspendQueueException($x->getMessage());
     }
+
+    return TRUE;
   }
 
 }

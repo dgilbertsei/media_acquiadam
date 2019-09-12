@@ -28,3 +28,6 @@ services:
   media_acquiadam.asset_media.factory:
     class: Drupal\media_acquiadam\Service\AssetMediaFactory
     arguments: ['@entity_type.manager']
+  media_acquiadam.asset_refresh.manager:
+    class: Drupal\media_acquiadam\Service\AssetRefreshManager
+    arguments: ['@media_acquiadam.acquiadam', '@state', '@logger.factory', '@queue', '@entity_type.manager', '@datetime.time']
