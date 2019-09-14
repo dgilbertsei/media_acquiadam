@@ -65,10 +65,10 @@ function media_acquiadam_menu_local_tasks_alter(&$data, $route_name) {
   if ($route_name == 'entity.user.canonical') {
     foreach ($data['tabs'][0] as $key => $link) {
       $url = $link['#link']['url'];
-      $is_auth_route = $url->getRouteName() == 'entity.user.acquiadam_auth';
-      $is_current_user = $url->getRouteParameters()['user'] != Drupal::currentUser()->id();
-      if ($is_auth_route && $is_current_user) {
-        unset($data['tabs'][0][$key]);
+      if ($url->getRouteName() == 'entity.user.acquiadam_auth') {
+        if ($url->getRouteParameters()['user'] != Drupal::currentUser()->id()) {
+          unset($data['tabs'][0][$key]);
+        }
       }
     }
   }
