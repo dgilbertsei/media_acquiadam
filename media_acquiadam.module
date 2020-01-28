@@ -116,22 +116,10 @@ function media_acquiadam_media_presave(MediaInterface $entity) {
 
   $asset = $media_helper->getAsset();
   if (empty($asset)) {
-    $is_dam_deleted = Drupal::service('media_acquiadam.asset_data')
-      ->get($assetID, 'remote_deleted');
-    if ($is_dam_deleted && $entity->isPublished()) {
-      Drupal::logger('media_acquiadam')
-        ->warning('Unable to retrieve asset @assetID. Setting media entity @mediaID to unpublished.', [
-          '@assetID' => $assetID,
-          '@mediaID' => $entity->id(),
-        ]);
-      $entity->setUnpublished();
-    }
-    else {
-      Drupal::logger('media_acquiadam')
-        ->warning('Unable to retrieve asset @assetID.', [
-          '@assetID' => $assetID,
-        ]);
-    }
+    Drupal::logger('media_acquiadam')
+      ->warning('Unable to retrieve asset @assetID.', [
+        '@assetID' => $assetID,
+      ]);
     return;
   }
 
@@ -312,24 +300,10 @@ function media_acquiadam_get_active_media_ids(): array {
     return [];
   }
 
-  // Assets with the 'remote_deleted' flag have been deleted within
-  // Acquia DAM so they are not considered active.
-  $deleted_from_dam = Drupal::database()
-    ->select('acquiadam_assets_data', 'ad')
-    ->fields('ad', ['asset_id'])
-    ->condition('ad.name', 'remote_deleted')
-    ->condition('ad.value', TRUE)
-    ->execute()
-    ->fetchCol();
-
   $media_ids = [];
   foreach ($asset_id_fields as $bundle => $field) {
     $media_id_query = Drupal::entityQuery('media')
       ->condition('bundle', $bundle);
-    if (!empty($deleted_from_dam)) {
-      $media_id_query->condition($field, $deleted_from_dam, 'NOT IN');
-    }
-
     $media_ids = array_merge($media_ids, $media_id_query->execute());
   }
 

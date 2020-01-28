@@ -5,8 +5,6 @@
  * Provide views data for media_acquiadam_report.module.
  */
 
-use Drupal\views\ViewExecutable;
-
 /**
  * Implements hook_views_query_alter().
  *
@@ -76,34 +74,4 @@ function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
       'module',
       'media_acquiadam_report'
     ) . '/templates';
-}
-
-/**
- * Implements hook_views_post_execute().
- */
-function media_acquiadam_report_views_post_execute(ViewExecutable $view) {
-  if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay(
-    )->display['id'] == 'asset_report') {
-
-    /** @var \Drupal\media_acquiadam\AssetDataInterface $asset_data */
-    $asset_data = Drupal::service('media_acquiadam.asset_data');
-
-    /** @var \Drupal\views\ResultRow $row */
-    foreach ($view->result as $index => $row) {
-      /** @var \Drupal\media\Entity\Media $media */
-      $media = $row->_entity;
-      try {
-        $assetID = $media->get('field_acquiadam_asset_id')->first()->getValue(
-          )['value'];
-        $remotely_deleted = (bool) $asset_data->get($assetID, 'remote_deleted');
-      }
-      catch (Exception $x) {
-        $remotely_deleted = FALSE;
-      }
-
-      // Add a flag for if the asset has been remotely deleted so we can render
-      // the result differently in our template.
-      $view->result[$index]->remotely_deleted = $remotely_deleted;
-    }
-  }
 }

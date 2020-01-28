@@ -37,13 +37,6 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   protected $loggerChannel;
 
   /**
-   * Media: Acquia DAM asset data service.
-   *
-   * @var \Drupal\media_acquiadam\AssetDataInterface
-   */
-  protected $assetData;
-
-  /**
    * Acquiadam constructor.
    *
    * @param \Drupal\media_acquiadam\ClientFactory $client_factory
@@ -52,13 +45,10 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    *   The type of credentials to use.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
-   * @param \Drupal\media_acquiadam\AssetDataInterface $assetData
-   *   Media: Acquia DAM asset data service.
    */
-  public function __construct(ClientFactory $client_factory, $credential_type, LoggerChannelFactoryInterface $loggerChannelFactory, AssetDataInterface $assetData) {
+  public function __construct(ClientFactory $client_factory, $credential_type, LoggerChannelFactoryInterface $loggerChannelFactory) {
     $this->acquiaDamClient = $client_factory->get($credential_type);
     $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
-    $this->assetData = $assetData;
   }
 
   /**
@@ -68,8 +58,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
     return new static(
       $container->get('media_acquiadam.client_factory'),
       'background',
-      $container->get('logger.factory'),
-      $container->get('media_acquiadam.asset_data')
+      $container->get('logger.factory')
     );
   }
 
@@ -136,11 +125,6 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
       if (404 != $x->getCode()) {
         throw $x;
       }
-
-      // In the event of a 404 we assume the asset has been deleted within
-      // Acquia DAM and need to save that state for excluding it from cron
-      // syncs in the future.
-      $this->assetData->set($assetId, 'remote_deleted', TRUE);
 
       $this->loggerChannel->warning(
         'Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?',

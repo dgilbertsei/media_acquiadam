@@ -7,7 +7,6 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Queue\SuspendQueueException;
-use Drupal\media_acquiadam\AssetDataInterface;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -38,13 +37,6 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   protected $entityTypeManager;
 
   /**
-   * Media: Acquia DAM Asset Data service.
-   *
-   * @var \Drupal\media_acquiadam\AssetDataInterface
-   */
-  protected $assetData;
-
-  /**
    * Media: Acquia DAM Asset Media Factory service.
    *
    * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
@@ -54,11 +46,10 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AssetMediaFactory $assetMediaFactory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetMediaFactory $assetMediaFactory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->loggerChannel = $loggerChannel;
     $this->entityTypeManager = $entityTypeManager;
-    $this->assetData = $assetData;
     $this->assetMediaFactory = $assetMediaFactory;
   }
 
@@ -72,7 +63,6 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       $plugin_definition,
       $container->get('logger.factory')->get('media_acquiadam'),
       $container->get('entity_type.manager'),
-      $container->get('media_acquiadam.asset_data'),
       $container->get('media_acquiadam.asset_media.factory')
     );
   }
@@ -128,14 +118,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
           '@assetID' => $assetID,
         ]
       );
-
-      $is_dam_deleted = $this->assetData->get($assetID, 'remote_deleted');
-      // We want to trigger the entity save in the event that the asset has been
-      // deleted so that the entity gets unpublished. In all other scenarios we
-      // want to prevent the save call.
-      if (!$is_dam_deleted) {
-        return FALSE;
-      }
+      return FALSE;
     }
 
     try {
