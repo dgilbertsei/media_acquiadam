@@ -56,3 +56,11 @@ after_success: ../orca/bin/travis/after_success.sh
 after_failure: ../orca/bin/travis/after_failure.sh
 
 after_script: ../orca/bin/travis/after_script.sh
+
+notifications:
+  slack:
+    rooms:
+      - secure: mmOkXrX1bhdb/7Zai3aVKadrxDatw8DXjvBXXJFDbv5fXYerie2hHibIpaUEtXKygrOMQUA5ZlNVkLYTnwe0iUsD90rrSYM/C7/8mZIOXMIXGARsJL5pspsb7nzPisuokEIEBMqk/Y1pkK66qpNWGesBx4vtZ76SOgUYK/ZkjdhUlLdQ/F4X8XrTod8JcEuqUoW9zLXeasdum7VGdY7/SRpUJBIHLpLw6HjfuumHfQlKZCUX29jtre/o70wY03cBKPFXFh6AJ3a0w/rOu1MwSjBTSKaAiNYGvrJlqJYZIguV+pSKplGWh6aQe+1JCZ35QqKC3ODOa5FyuMsJE0yBMRdXJlAi8czAMbf91x+/zRjmXY6MtABm3JEUMaTfoSCUDKPm1ThS07QRfCJ/oh01IZU272lSSlTneXGPcHH8koBF8/0JprJz3XcejPKqsYnZpW5x93YK8TNYlWnhDVfssyGQznhJ1UIlwVTQTFnuf31QzKoldCQmx2FX5iPyP9Pz7Bx/W8+vW1sTrLhNeP/uDv2iAhZ7a9f6Fz9zKcRVAZ7VdHFMVPxNyZ2+cNAeK/SYPscTd4v+qkzxUp/iQ98piIUCL8TPNFtEAUROdEiyh55WgQymEmkvPpy9budV4bUFQxIEMdMWqM/Fcl5s7ae7HJtHm0kHxBTz71umr2TLihg=
+    on_success: change
+    on_failure: change
+    if: branch = env(ORCA_SUT_BRANCH)
