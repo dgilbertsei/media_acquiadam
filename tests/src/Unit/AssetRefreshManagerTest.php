@@ -152,6 +152,10 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->setupApiResponseStub($request_query_options, $response);
 
     $this->entityQuery->expects($this->any())
+      ->method('orConditionGroup')
+      ->will($this->returnSelf());
+
+    $this->entityQuery->expects($this->any())
       ->method('condition')
       ->withConsecutive(
         [$this->equalTo('bundle'), $this->equalTo('test_bundle')],
@@ -522,6 +526,10 @@ class AssetRefreshManagerTest extends UnitTestCase {
    */
   protected function setupMediaEntityExpectations(array $expected_asset_ids, int $expected_total) {
     $this->entityQuery->expects($this->any())
+      ->method('orConditionGroup')
+      ->will($this->returnSelf());
+
+    $this->entityQuery->expects($this->any())
       ->method('condition')
       ->withConsecutive(
         [$this->equalTo('bundle'), $this->equalTo('test_bundle')],
@@ -578,7 +586,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ->willReturn($this->queue);
 
     $this->entityQuery = $this->getMockBuilder(Query::class)
-      ->setMethods(['condition', 'execute', 'get'])
+      ->setMethods(['orConditionGroup', 'condition', 'execute', 'get'])
       ->disableOriginalConstructor()
       ->getMock();
 

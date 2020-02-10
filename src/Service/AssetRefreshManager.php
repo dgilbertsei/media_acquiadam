@@ -54,11 +54,11 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   protected $queue;
 
   /**
-   * The media entity query.
+   * The media storage.
    *
-   * @var \Drupal\Core\Entity\Query\QueryInterface
+   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $mediaEntityQuery;
+  protected $mediaStorage;
 
   /**
    * The Drupal DateTime Service.
@@ -135,8 +135,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
     $this->state = $state;
     $this->logger = $logger_factory->get('media_acquiadam');
     $this->queue = $queue_factory->get($this->getQueueName());
-    $this->mediaEntityQuery = $entity_type_manager->getStorage('media')
-      ->getQuery();
+    $this->mediaStorage = $entity_type_manager->getStorage('media');
     $this->time = $time;
   }
 
@@ -180,19 +179,19 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
 
     // Add media entity ids to the queue.
     $total = 0;
+    $media_query = $this->mediaStorage->getQuery();
     foreach ($asset_id_fields as $bundle => $field) {
-      $media_id_query = $this->mediaEntityQuery
-        ->condition('bundle', $bundle)
-        ->condition($field, $asset_ids, 'IN');
-      $media_ids = $media_id_query->execute();
-      if (empty($media_ids)) {
-        continue;
-      }
+      $media_query->condition(
+        $media_query->orConditionGroup()
+          ->condition('bundle', $bundle)
+          ->condition($field, $asset_ids, 'IN')
+      );
+    }
+    $media_ids = $media_query->execute();
 
-      foreach ($media_ids as $media_id) {
-        $this->queue->createItem(['media_id' => $media_id]);
-        $total++;
-      }
+    foreach ($media_ids as $media_id) {
+      $this->queue->createItem(['media_id' => $media_id]);
+      $total++;
     }
 
     return $total;
