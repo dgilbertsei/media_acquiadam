@@ -221,6 +221,24 @@ function media_acquiadam_refresh_asset_sync_notifications_queue() {
 }
 
 /**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function media_acquiadam_form_media_form_alter(&$form, FormStateInterface &$form_state) {
+
+  /** @var \Drupal\media\Entity\Media $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+
+  /** @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source */
+  $source = $entity->getSource();
+  if ($entity->isNew() || 'acquiadam_asset' !== $source->getPluginId()) {
+    return;
+  }
+
+  // Disables Asset ID field on edit.
+  $form[$source->getConfiguration()['source_field']]['#disabled'] = TRUE;
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$form_state) {
