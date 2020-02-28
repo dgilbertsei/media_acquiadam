@@ -62,10 +62,10 @@ function media_acquiadam_entity_type_alter(array &$entity_types) {
  * their own profile.
  */
 function media_acquiadam_menu_local_tasks_alter(&$data, $route_name) {
-  if ($route_name == 'entity.user.canonical') {
+  if ($route_name === 'entity.user.canonical') {
     foreach ($data['tabs'][0] as $key => $link) {
       $url = $link['#link']['url'];
-      if ($url->getRouteName() == 'entity.user.acquiadam_auth') {
+      if ($url->getRouteName() === 'entity.user.acquiadam_auth') {
         if ($url->getRouteParameters()['user'] != Drupal::currentUser()->id()) {
           unset($data['tabs'][0][$key]);
         }
@@ -101,7 +101,7 @@ function media_acquiadam_media_presave(MediaInterface $entity) {
 
   /** @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source */
   $source = $entity->getSource();
-  if ('acquiadam_asset' !== $source->getPluginId()) {
+  if ($source->getPluginId() !== 'acquiadam_asset') {
     return;
   }
 
@@ -137,7 +137,7 @@ function media_acquiadam_media_presave(MediaInterface $entity) {
  * Implements hook_ENTITY_TYPE_delete().
  */
 function media_acquiadam_media_delete(MediaInterface $entity) {
-  if ('acquiadam_asset' !== $entity->getSource()->getPluginId()) {
+  if ($entity->getSource()->getPluginId() !== 'acquiadam_asset') {
     return;
   }
 
@@ -218,6 +218,24 @@ function media_acquiadam_refresh_asset_sync_notifications_queue() {
   /** @var \Drupal\media_acquiadam\Service\AssetRefreshManagerInterface $asset_refresh_manager */
   $asset_refresh_manager = \Drupal::service('media_acquiadam.asset_refresh.manager');
   $asset_refresh_manager->updateQueue($asset_id_fields);
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function media_acquiadam_form_media_form_alter(&$form, FormStateInterface &$form_state) {
+
+  /** @var \Drupal\media\Entity\Media $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+
+  /** @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source */
+  $source = $entity->getSource();
+  if ($entity->isNew() || $source->getPluginId() !== 'acquiadam_asset') {
+    return;
+  }
+
+  // Disables Asset ID field on edit.
+  $form[$source->getConfiguration()['source_field']]['#disabled'] = TRUE;
 }
 
 /**
