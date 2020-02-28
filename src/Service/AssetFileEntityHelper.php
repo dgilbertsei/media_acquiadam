@@ -12,7 +12,6 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
-use Drupal\media_acquiadam\FileSystemBridge;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -182,9 +181,9 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    * @return bool|\Drupal\file\FileInterface
    *   The created file or FALSE on failure.
    */
-  public function createNewFile(Asset $asset, $destinationFolder, $replace = FileSystemBridge::EXISTS_RENAME) {
+  public function createNewFile(Asset $asset, $destinationFolder, $replace = FileSystemInterface::EXISTS_RENAME) {
     // Ensure we can write to our destination directory.
-    if (!FileSystemBridge::prepareDirectory($destinationFolder, FileSystemBridge::CREATE_DIRECTORY)) {
+    if (!$this->fileSystem->prepareDirectory($destinationFolder, FileSystemInterface::CREATE_DIRECTORY)) {
       return FALSE;
     }
 
@@ -192,7 +191,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $file_contents = $this->fetchRemoteAssetData($asset, $destinationFolder, $destination_path);
 
     $existing = $this->assetMediaFactory->getFileEntity($asset->id);
-    $is_replace = !empty($existing) && FileSystemBridge::EXISTS_REPLACE === $replace;
+    $is_replace = !empty($existing) && FileSystemInterface::EXISTS_REPLACE === $replace;
 
     $file = $is_replace ?
       $this->replaceExistingFile($existing, $file_contents, $destination_path) :
@@ -303,7 +302,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   The file entity that was updated.
    */
   protected function replaceExistingFile(FileInterface $file, $data, $destination) {
-    $uri = FileSystemBridge::saveData($data, $destination, FileSystemBridge::EXISTS_REPLACE);
+    $uri = $this->fileSystem->saveData($data, $destination, FileSystemInterface::EXISTS_REPLACE);
     $file->setFileUri($uri);
     $file->save();
 
@@ -335,7 +334,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    * @return \Drupal\file\FileInterface|false
    *   A file entity, or FALSE on error.
    */
-  protected function drupalFileSaveData($data, $destination = NULL, $replace = FileSystemBridge::EXISTS_RENAME) {
+  protected function drupalFileSaveData($data, $destination = NULL, $replace = FileSystemInterface::EXISTS_RENAME) {
     return file_save_data($data, $destination, $replace);
   }
 

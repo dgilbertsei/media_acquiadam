@@ -350,7 +350,7 @@ function media_acquiadam_purge_expired_tokens() {
       ->fields('ud_expired', ['uid'])
       ->condition('ud_expired.module', 'media_acquiadam')
       ->condition('ud_expired.name', 'acquiadam_access_token_expiration')
-      ->condition('ud_expired.value', REQUEST_TIME - $lifetime, '<=');
+      ->condition('ud_expired.value', \Drupal::time()->getRequestTime() - $lifetime, '<=');
 
     // Select our UID list into a temporary table so we can delete without
     // involving PHP. queryTemporary requires a string-based query at this time.

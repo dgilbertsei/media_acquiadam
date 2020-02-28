@@ -6,6 +6,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Routing\TrustedRedirectResponse;
+use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\media_acquiadam\OauthInterface;
 use Drupal\user\UserDataInterface;
@@ -57,23 +58,38 @@ class OauthController extends ControllerBase {
   protected $dateFormatter;
 
   /**
+   * Drupal Url Generator service.
+   *
+   * @var \Drupal\Core\Routing\UrlGeneratorInterface
+   */
+  protected $urlGenerator;
+
+  /**
    * AcquiadamController constructor.
    *
    * {@inheritdoc}
    */
-  public function __construct(OauthInterface $oauth, RequestStack $request_stack, UserDataInterface $user_data, AccountProxyInterface $currentUser, DateFormatterInterface $dateFormatter) {
+  public function __construct(OauthInterface $oauth, RequestStack $request_stack, UserDataInterface $user_data, AccountProxyInterface $currentUser, DateFormatterInterface $dateFormatter, UrlGeneratorInterface $urlGenerator) {
     $this->oauth = $oauth;
     $this->request = $request_stack->getCurrentRequest();
     $this->userData = $user_data;
     $this->currentUser = $currentUser;
     $this->dateFormatter = $dateFormatter;
+    $this->urlGenerator = $urlGenerator;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static($container->get('media_acquiadam.oauth'), $container->get('request_stack'), $container->get('user.data'), $container->get('current_user'), $container->get('date.formatter'));
+    return new static(
+      $container->get('media_acquiadam.oauth'),
+      $container->get('request_stack'),
+      $container->get('user.data'),
+      $container->get('current_user'),
+      $container->get('date.formatter'),
+      $container->get('url_generator')
+    );
   }
 
   /**
@@ -111,7 +127,7 @@ class OauthController extends ControllerBase {
 
       $result[] = ['#markup' => '<p>' . $this->t('The Acquia DAM module is not fully configured.') . '</p>'];
       if ($this->currentUser()->hasPermission('administer site configuration')) {
-        $config_url = $this->getUrlGenerator()
+        $config_url = $this->urlGenerator
           ->generateFromRoute('media_acquiadam.config', [], ['query' => ['destination' => $redirect_url]]);
         $result[] = ['#markup' => '<p>' . $this->t('Please <a href="@configure">configure</a> the Acquia DAM module to continue.', ['@configure' => $config_url]) . '</p>'];
       }

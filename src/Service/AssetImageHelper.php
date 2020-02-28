@@ -9,7 +9,6 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
-use Drupal\media_acquiadam\FileSystemBridge;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
@@ -259,7 +258,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
     // so we need to copy our placeholder to the files directory first.
     $source = $this->getAcquiaDamModulePath() . '/img/webdam.png';
     if (!$this->phpFileExists($uri)) {
-      $uri = FileSystemBridge::copy($source, $uri);
+      $uri = $this->fileSystem->copy($source, $uri);
       if (!empty($uri)) {
         $this->saveFallbackThumbnail($uri);
       }

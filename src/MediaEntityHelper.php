@@ -3,6 +3,7 @@
 namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
@@ -104,7 +105,7 @@ class MediaEntityHelper {
     }
     $is_updated_version = $this->assetData->isUpdatedAsset($asset);
     if (!empty($asset) && (empty($file) || $is_updated_version)) {
-      $replace = $is_updated_version ? FileSystemBridge::EXISTS_REPLACE : FileSystemBridge::EXISTS_RENAME;
+      $replace = $is_updated_version ? FileSystemInterface::EXISTS_REPLACE : FileSystemInterface::EXISTS_RENAME;
       $destination_folder = $this->getAssetFileDestination();
       $file = $this->assetFileHelper->createNewFile($asset,
         $destination_folder,

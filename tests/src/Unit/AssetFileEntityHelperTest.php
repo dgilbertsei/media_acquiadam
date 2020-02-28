@@ -9,11 +9,11 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\Acquiadam;
-use Drupal\media_acquiadam\FileSystemBridge;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
@@ -181,7 +181,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
     $file_system->method('prepareDirectory')->willReturnMap([
       [
         'private://assets/replaced',
-        FileSystemBridge::CREATE_DIRECTORY,
+        FileSystemInterface::CREATE_DIRECTORY,
         TRUE,
       ],
     ]);
