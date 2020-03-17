@@ -36,6 +36,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
   protected const REQUEST_TIME = 1560000000;
 
   /**
+   * DI container.
+   *
    * @var \Drupal\Core\DependencyInjection\ContainerBuilder
    */
   protected $container;
