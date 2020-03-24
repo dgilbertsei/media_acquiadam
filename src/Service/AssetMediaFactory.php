@@ -161,7 +161,7 @@ class AssetMediaFactory implements ContainerInjectionInterface {
 
       $media_ids = $this->getMediaBundleFields($key, $field, $assetId);
       if (!empty($media_ids)) {
-        $usages[$key] = array_keys($media_ids);
+        $usages[$key] = array_values($media_ids);
       }
     }
 

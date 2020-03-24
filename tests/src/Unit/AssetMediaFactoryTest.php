@@ -259,13 +259,13 @@ class AssetMediaFactoryTest extends UnitTestCase {
         'acquiadam_asset',
         'phpunit_asset_id_field',
         $asset->id,
-        [$this->mediaEntity->id() => $this->mediaEntity],
+        [$this->mediaEntity->getRevisionId() => $this->mediaEntity->id()],
       ],
       [
         'acquiadam_image',
         'phpunit_asset_id_field',
         $asset->id,
-        [$this->mediaEntity->id() => $this->mediaEntity],
+        [$this->mediaEntity->getRevisionId() => $this->mediaEntity->id()],
       ],
     ]);
   }
