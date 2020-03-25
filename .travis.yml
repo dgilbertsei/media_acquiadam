@@ -1,6 +1,15 @@
 ---
 language: php
 
+os: linux
+
+# Activate build config validation.
+# @see https://docs.travis-ci.com/user/build-config-validation
+version: ~> 1.0
+
+# The lowest version of PHP supported by all of Drupal, Acquia, and ORCA itself.
+# @see https://www.drupal.org/docs/8/system-requirements/php-requirements
+# @see https://docs.acquia.com/acquia-cloud/arch/tech-platform/
 php: "7.2"
 
 addons:
@@ -10,6 +19,7 @@ cache:
   directories:
     - "$HOME/.composer/cache"
     - "$HOME/.drush/cache"
+    - "$HOME/.rvm"
     - "${TMPDIR:-/tmp}/phpstan/cache"
 
 env:
@@ -35,7 +45,6 @@ matrix:
     - env: ORCA_JOB=ISOLATED_DEV
     - env: ORCA_JOB=INTEGRATED_DEV
     - env: ORCA_JOB=CORE_NEXT
-    - { php: "7.3", env: ORCA_JOB=D9_READINESS }
 
 before_install:
   - composer create-project --no-dev acquia/orca ../orca "$ORCA_VERSION"

@@ -1,6 +1,7 @@
 name: "Lightning: Acquia DAM"
 description: "DEPRECATED: Integrates the Acquia DAM module with Lightning."
 core: 8.x
+core_version_requirement: '^8 || ^9'
 type: module
 package: Media
 dependencies:
