@@ -12,11 +12,14 @@ trait AcquiadamAssetDataTrait {
   /**
    * Returns an Asset object for testing against.
    *
+   * @param array $values
+   *   Extra values for the asset.
+   *
    * @return \cweagans\webdam\Entity\Asset
    *   A hard-coded Asset item.
    */
-  protected function getAssetData() {
-    $asset_info = [
+  protected function getAssetData(array $values = []) {
+    $asset_info = $values + [
       'type' => 'asset',
       'id' => 3455969,
       'filename' => 'XAAAZZZZZ.jpg',
@@ -88,6 +91,24 @@ trait AcquiadamAssetDataTrait {
         'value' => 'XMP Byline',
       ],
     ];
+
+    return $asset;
+  }
+
+  /**
+   * Create a new version of a given asset.
+   *
+   * @param \cweagans\webdam\Entity\Asset $asset
+   *   The asset to be updated.
+   *
+   * @return \cweagans\webdam\Entity\Asset
+   *   The updated asset.
+   */
+  protected function generateNewVersion(Asset $asset) {
+    $asset->version++;
+
+    $filename_parts = explode('.', $asset->filename);
+    $asset->filename = $filename_parts[0] . '_version_' . $asset->version . '.' . $filename_parts[1];
 
     return $asset;
   }

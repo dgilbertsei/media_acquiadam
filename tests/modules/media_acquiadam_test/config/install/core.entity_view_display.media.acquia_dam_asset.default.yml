@@ -1,0 +1,69 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.media.acquia_dam_asset.field_acquiadam_asset_descrip
+    - field.field.media.acquia_dam_asset.field_acquiadam_asset_file
+    - field.field.media.acquia_dam_asset.field_acquiadam_asset_id
+    - media.type.acquia_dam_asset
+  module:
+    - fallback_formatter
+id: media.acquia_dam_asset.default
+targetEntityType: media
+bundle: acquia_dam_asset
+mode: default
+content:
+  field_acquiadam_asset_file:
+    type: fallback
+    weight: 0
+    region: content
+    label: hidden
+    settings:
+      formatters:
+        file_default:
+          status: true
+          weight: -48
+          settings:
+            use_description_as_link_text: false
+          formatter: file_default
+        file_rss_enclosure:
+          status: false
+          weight: -47
+          formatter: file_rss_enclosure
+        file_url_plain:
+          status: false
+          weight: -46
+          formatter: file_url_plain
+        file_video:
+          status: false
+          weight: -49
+          settings:
+            controls: true
+            autoplay: false
+            loop: false
+            multiple_file_display_type: tags
+            muted: false
+            width: 640
+            height: 480
+          formatter: file_video
+        file_table:
+          status: false
+          weight: -45
+          settings:
+            use_description_as_link_text: true
+          formatter: file_table
+        image:
+          status: true
+          weight: -50
+          settings:
+            image_style: ''
+            image_link: ''
+          formatter: image
+    third_party_settings: {  }
+hidden:
+  created: true
+  field_acquiadam_asset_descrip: true
+  field_acquiadam_asset_id: true
+  name: true
+  thumbnail: true
+  uid: true

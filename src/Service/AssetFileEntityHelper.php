@@ -304,6 +304,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   protected function replaceExistingFile(FileInterface $file, $data, $destination) {
     $uri = $this->fileSystem->saveData($data, $destination, FileSystemInterface::EXISTS_REPLACE);
     $file->setFileUri($uri);
+    $file->setFilename($this->fileSystem->basename($destination));
     $file->save();
 
     return $file;
