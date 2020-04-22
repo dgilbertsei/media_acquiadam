@@ -598,7 +598,7 @@ class Acquiadam extends WidgetBase {
       }
     }
     // Fetch the assets.
-    $assets = !empty($asset_ids) ? $this->acquiadam->getAssetMultiple($asset_ids) : [];
+    $assets = $this->acquiadam->getAssetMultiple($asset_ids);
     // Loop through the returned assets.
     foreach ($assets as $asset) {
       // Initialize entity values.

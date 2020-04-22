@@ -12,6 +12,7 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
+use PHPUnit\Framework\Constraint\StringContains;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -44,10 +45,10 @@ class OauthTest extends UnitTestCase {
   public function testGetAuthLink() {
     $authUrl = $this->oAuthClient->getAuthLink();
 
-    $this->assertContains('some/url/test', $authUrl);
-    $this->assertContains('testToken112233', $authUrl);
-    $this->assertContains('WDclient-id', $authUrl);
-    $this->assertContains('/oauth2/authorize', $authUrl);
+    $this->assertStringContainsString('some/url/test', $authUrl);
+    $this->assertStringContainsString('testToken112233', $authUrl);
+    $this->assertStringContainsString('WDclient-id', $authUrl);
+    $this->assertStringContainsString('/oauth2/authorize', $authUrl);
   }
 
   /**
@@ -140,6 +141,24 @@ class OauthTest extends UnitTestCase {
     Drupal::setContainer($this->container);
 
     $this->oAuthClient = Oauth::create($this->container);
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * Added to make these tests compatible with both PHPUnit 6 and 8
+   * until Drupal 8.7 EOL.
+   */
+  public static function assertStringContainsString($needle, $haystack, string $message = '', bool $ignoreCase = FALSE, bool $checkForObjectIdentity = TRUE, bool $checkForNonObjectIdentity = FALSE): void {
+
+    // If using a version of PHPUnit that has this method already, call it.
+    if (is_callable('parent::assertStringContainsString')) {
+      parent::assertStringContainsString($needle, $haystack);
+      return;
+    }
+
+    $constraint = new StringContains($needle, $ignoreCase);
+    static::assertThat($haystack, $constraint, $message);
   }
 
 }

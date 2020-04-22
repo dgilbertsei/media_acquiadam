@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "cweagans/php-webdam-client": "^1",
+        "cweagans/php-webdam-client": "^1.0.1",
         "drupal/core": "^8.7 || ^9",
         "drupal/fallback_formatter": "1.x-dev"
     },
