@@ -317,6 +317,10 @@ class Acquiadam extends WidgetBase {
       $folders = $current_folder->folders;
       // Fetch a list of assets for the folder.
       $folder_assets = $this->acquiadam->getFolderAssets($current_folder->id, $params);
+
+      // We need to override this because getFolder only counts active assets.
+      $current_folder->numassets = $folder_assets->total_count;
+
       // If there is a filter applied for the file type.
       if (!empty($params['types'])) {
         // Override number of assets on current folder to make number of search
@@ -397,12 +401,12 @@ class Acquiadam extends WidgetBase {
     // Assets are rendered as #options for a checkboxes element.
     // Start with an empty array.
     $assets = [];
+    $assets_status = [];
     // Add to the assets array.
     if (isset($items)) {
       foreach ($items as $folder_item) {
-        if ($folder_item->status === 'active') {
-          $assets[$folder_item->id] = $this->layoutMediaEntity($folder_item);
-        }
+        $assets_status[$folder_item->id]['#disabled'] = $folder_item->status !== 'active';
+        $assets[$folder_item->id] = $this->layoutMediaEntity($folder_item);
       }
     }
     // Add assets to form.
@@ -419,7 +423,7 @@ class Acquiadam extends WidgetBase {
           'media_acquiadam/asset_browser',
         ],
       ],
-    ];
+    ] + $assets_status;
     // If the number of assets in the current folder is greater than
     // the number of assets to show per page.
     if ($current_folder->numassets > $num_per_page) {
@@ -641,7 +645,9 @@ class Acquiadam extends WidgetBase {
   public function layoutMediaEntity(Asset $acquiadamAsset) {
     $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
 
-    $assetName = $acquiadamAsset->name;
+    $assetName = $acquiadamAsset->status !== 'active' ?
+      "$acquiadamAsset->name ($acquiadamAsset->status)" :
+      $acquiadamAsset->name;
     if (!empty($acquiadamAsset->thumbnailurls)) {
       $thumbnail = '<div class="acquiadam-asset-thumb"><img src="' . $acquiadamAsset->thumbnailurls[2]->url . '" alt="' . $assetName . '" /></div>';
     }
@@ -757,7 +763,7 @@ class Acquiadam extends WidgetBase {
     }
     // Last available page based on number of assets in folder
     // divided by number of assets to show per page.
-    $last_page = floor($current_folder->numassets / $num_per_page);
+    $last_page = floor(($current_folder->numassets - 1) / $num_per_page);
     // First page to show in the pager.
     // Try to put the button for the current page in the middle by starting at
     // the current page number minus 4.
