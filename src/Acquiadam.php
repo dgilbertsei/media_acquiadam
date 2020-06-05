@@ -127,8 +127,12 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
       }
 
       $this->loggerChannel->warning(
-        'Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM?',
-        ['@assetID' => $assetId]
+        'Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM? DAM API client returned a @code exception code with the following message: %message',
+        [
+          '@assetID' => $assetId,
+          '@code' => $x->getCode(),
+          '@message' => $x->getMessage(),
+        ]
       );
     }
     catch (Exception $x) {
