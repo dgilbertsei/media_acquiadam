@@ -21,7 +21,7 @@ services:
     arguments: ['@config.factory', '@file_system', '@http_client', '@file.mime_type.guesser', '@image.factory']
   media_acquiadam.asset_metadata.helper:
     class: Drupal\media_acquiadam\Service\AssetMetadataHelper
-    arguments: ['@date.formatter']
+    arguments: ['@date.formatter', '@media_acquiadam.acquiadam']
   media_acquiadam.asset_file.helper:
     class: Drupal\media_acquiadam\Service\AssetFileEntityHelper
     arguments: ['@entity_type.manager', '@entity_field.manager','@config.factory', '@file_system', '@token', '@media_acquiadam.asset_image.helper', '@media_acquiadam.acquiadam', '@media_acquiadam.asset_media.factory']

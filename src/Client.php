@@ -49,7 +49,8 @@ class Client extends OriginalClient {
       Drupal::logger('media_acquiadam')->error(
           'Unable to authenticate to retrieve xmp field data.'
         );
-      return [];
+      $this->activeXmpFields = [];
+      return $this->activeXmpFields;
     }
 
     try {
@@ -61,7 +62,8 @@ class Client extends OriginalClient {
     }
     catch (Exception $x) {
       Drupal::logger('media_acquiadam')->error('Unable to get xmp field data.');
-      return [];
+      $this->activeXmpFields = [];
+      return $this->activeXmpFields;
     }
 
     $response = json_decode((string) $response->getBody());

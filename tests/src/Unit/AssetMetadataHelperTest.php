@@ -7,6 +7,7 @@ use DateTimeZone;
 use Drupal;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Service\AssetMetadataHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
@@ -183,10 +184,17 @@ class AssetMetadataHelperTest extends UnitTestCase {
         return FALSE;
       });
 
+    $acquiadam_client = $this->getMockBuilder(Acquiadam::class)
+      ->disableOriginalConstructor()
+      ->setMethods(['getActiveXmpFields'])
+      ->getMock();
+    $acquiadam_client->method('getActiveXmpFields')->willReturn([]);
+
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
     $this->container->set('date.formatter', $date_formatter);
+    $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
     Drupal::setContainer($this->container);
 
     $this->assetMetadataHelper = AssetMetadataHelper::create($this->container);

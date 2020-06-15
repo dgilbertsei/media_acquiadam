@@ -7,7 +7,6 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\MediaEntityHelper;
 use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
@@ -71,12 +70,6 @@ class AcquiadamAssetTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $acquiadam_client = $this->getMockBuilder(Acquiadam::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['getActiveXmpFields'])
-      ->getMock();
-    $acquiadam_client->method('getActiveXmpFields')->willReturn([]);
-
     $asset_image_helper = $this->getMockBuilder(AssetImageHelper::class)
       ->disableOriginalConstructor()
       ->getMock();
@@ -104,7 +97,6 @@ class AcquiadamAssetTest extends UnitTestCase {
       $field_type_plugin_manager);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
 
-    $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
     $this->container->set('media_acquiadam.asset_image.helper',
       $asset_image_helper);
     $this->container->set('media_acquiadam.asset_metadata.helper',

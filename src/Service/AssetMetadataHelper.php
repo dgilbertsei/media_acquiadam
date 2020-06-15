@@ -6,6 +6,7 @@ use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\media_acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,20 +26,31 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   protected $dateFormatter;
 
   /**
+   * A configured API object.
+   *
+   * @var \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client
+   *   $acquiadam
+   */
+  protected $acquiadam;
+
+  /**
    * Array of DAM XMP fields keyed by field (prefixed with "xmp_").
    *
    * @var array
    */
-  protected $xmpMetadataFields = [];
+  protected $xmpMetadataFields = NULL;
 
   /**
    * AssetImageHelper constructor.
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   A Drupal date formatter service.
+   * @param \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client $acquiadam
+   *   A configured API object.
    */
-  public function __construct(DateFormatterInterface $dateFormatter) {
+  public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam) {
     $this->dateFormatter = $dateFormatter;
+    $this->acquiadam = $acquiadam;
   }
 
   /**
@@ -46,7 +58,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('date.formatter')
+      $container->get('date.formatter'),
+      $container->get('media_acquiadam.acquiadam')
     );
   }
 
@@ -73,6 +86,23 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    */
   public function setMetadataXmpFields(array $fields = []) {
     $this->xmpMetadataFields = $fields;
+  }
+
+  /**
+   * Get the available XMP metadata fields.
+   *
+   * Also check if the xmpMetadatafiels are not set call the acquiadam.
+   *
+   * @return array
+   *   The xmpMetadataFields array.
+   */
+  public function getMetadataXmpFields() {
+    if (is_null($this->xmpMetadataFields)) {
+      $this->setMetadataXmpFields(
+        $this->acquiadam->getActiveXmpFields()
+      );
+    }
+    return $this->xmpMetadataFields;
   }
 
   /**
@@ -109,8 +139,9 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     ];
 
     // Add additional XMP fields to fields array.
-    if (!empty($this->xmpMetadataFields)) {
-      foreach ($this->xmpMetadataFields as $xmp_id => $xmp_field) {
+    $xmpMetadataFields = $this->getMetadataXmpFields();
+    if (!empty($xmpMetadataFields)) {
+      foreach ($xmpMetadataFields as $xmp_id => $xmp_field) {
         $fields[$xmp_id] = $xmp_field['label'];
       }
     }
@@ -132,7 +163,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public function getMetadataFromAsset(Asset $asset, $name) {
 
     // Return values of XMP metadata.
-    if (array_key_exists($name, $this->xmpMetadataFields)) {
+    $xmpMetadataFields = $this->getMetadataXmpFields();
+    if (array_key_exists($name, $xmpMetadataFields)) {
       // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
       $xmp_field = substr($name, 4);
 

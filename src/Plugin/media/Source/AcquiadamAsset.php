@@ -10,7 +10,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
-use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Drupal\media_acquiadam\Service\AssetMetadataHelper;
@@ -27,14 +26,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class AcquiadamAsset extends MediaSourceBase {
-
-  /**
-   * A configured API object.
-   *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client
-   *   $acquiadam
-   */
-  protected $acquiadam;
 
   /**
    * The asset that we're going to render details for.
@@ -69,7 +60,7 @@ class AcquiadamAsset extends MediaSourceBase {
    *
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, AcquiadamInterface $acquiadam, AssetImageHelper $assetImageHelper, AssetMetadataHelper $assetMetadataHelper, AssetMediaFactory $assetMediaFactory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, FieldTypePluginManagerInterface $field_type_manager, ConfigFactoryInterface $config_factory, AssetImageHelper $assetImageHelper, AssetMetadataHelper $assetMetadataHelper, AssetMediaFactory $assetMediaFactory) {
     parent::__construct(
       $configuration,
       $plugin_id,
@@ -80,14 +71,10 @@ class AcquiadamAsset extends MediaSourceBase {
       $config_factory
     );
 
-    $this->acquiadam = $acquiadam;
     $this->assetImageHelper = $assetImageHelper;
     $this->assetMetadataHelper = $assetMetadataHelper;
     $this->assetMediaFactory = $assetMediaFactory;
 
-    $this->assetMetadataHelper->setMetadataXmpFields(
-      $this->acquiadam->getActiveXmpFields()
-    );
   }
 
   /**
@@ -111,7 +98,6 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('entity_field.manager'),
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
-      $container->get('media_acquiadam.acquiadam'),
       $container->get('media_acquiadam.asset_image.helper'),
       $container->get('media_acquiadam.asset_metadata.helper'),
       $container->get('media_acquiadam.asset_media.factory')
