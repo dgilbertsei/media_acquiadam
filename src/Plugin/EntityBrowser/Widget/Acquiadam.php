@@ -5,6 +5,7 @@ namespace Drupal\media_acquiadam\Plugin\EntityBrowser\Widget;
 use cweagans\webdam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
 use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -22,7 +23,6 @@ use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
  * Uses a view to provide entity listing in a browser's widget.
