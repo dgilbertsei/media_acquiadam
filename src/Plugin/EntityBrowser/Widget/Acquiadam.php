@@ -21,6 +21,7 @@ use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
  * Uses a view to provide entity listing in a browser's widget.
@@ -95,7 +96,7 @@ class Acquiadam extends WidgetBase {
    *
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, WidgetValidationManager $validation_manager, AcquiadamInterface $acquiadam, AccountInterface $account, LanguageManagerInterface $languageManager, ModuleHandlerInterface $moduleHandler, MediaSourceManager $sourceManager, UserDataInterface $userData, RequestStack $requestStack) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, WidgetValidationManager $validation_manager, AcquiadamInterface $acquiadam, AccountInterface $account, LanguageManagerInterface $languageManager, ModuleHandlerInterface $moduleHandler, MediaSourceManager $sourceManager, UserDataInterface $userData, RequestStack $requestStack, ConfigFactoryInterface $config) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $event_dispatcher, $entity_type_manager, $validation_manager);
     $this->acquiadam = $acquiadam;
     $this->user = $account;
@@ -105,6 +106,7 @@ class Acquiadam extends WidgetBase {
     $this->entityFieldManager = $entity_field_manager;
     $this->userData = $userData;
     $this->requestStack = $requestStack;
+    $this->config = $config;
   }
 
   /**
@@ -145,7 +147,7 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'));
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
   }
 
   /**
@@ -162,6 +164,7 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
+    $config = $this->config->get('media_acquiadam.settings');
     $media_type_storage = $this->entityTypeManager->getStorage('media_type');
     /** @var \Drupal\media\MediaTypeInterface $media_type */
     if (!$this->configuration['media_type'] || !($media_type = $media_type_storage->load($this->configuration['media_type']))) {
@@ -224,7 +227,7 @@ class Acquiadam extends WidgetBase {
     // Default current page to first page.
     $page = 0;
     // Number of assets to show per page.
-    $num_per_page = 12;
+    $num_per_page = $config->get('num_images_per_page');;
     // Initial breadcrumb array representing the root folder only.
     $breadcrumbs = [
       '0' => 'Home',

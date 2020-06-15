@@ -174,6 +174,20 @@ class AcquiadamConfig extends ConfigFormBase {
       '#name' => 'perform_manual_sync',
       '#submit' => [[$this, 'performManualSync']],
     ];
+    $form['entity_browser'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Acquia DAM entity browser settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    ];
+
+    $form['entity_browser']['num_images_per_page'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Number of images per page'),
+      '#default_value' => $config->get('num_images_per_page'),
+      '#description' => $this->t('Number of images to be shown per page in the entity browser can be set using this field. Default is set to 12 images.'),
+      '#required' => TRUE,
+    ];
 
     return parent::buildForm($form, $form_state);
   }
@@ -373,6 +387,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('notifications_sync', $form_state->getValue('notifications_sync'))
+      ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
       ->save();
 
     parent::submitForm($form, $form_state);

@@ -8,3 +8,4 @@ oauth:
   excluded_redirect_keys:
     - original_path
 notifications_sync: 0
+num_images_per_page: 12
