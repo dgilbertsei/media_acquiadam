@@ -12,7 +12,6 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
-use PHPUnit\Framework\Constraint\StringContains;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
