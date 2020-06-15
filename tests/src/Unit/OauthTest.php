@@ -143,22 +143,4 @@ class OauthTest extends UnitTestCase {
     $this->oAuthClient = Oauth::create($this->container);
   }
 
-  /**
-   * {@inheritdoc}
-   *
-   * Added to make these tests compatible with both PHPUnit 6 and 8
-   * until Drupal 8.7 EOL.
-   */
-  public static function assertStringContainsString($needle, $haystack, string $message = '', bool $ignoreCase = FALSE, bool $checkForObjectIdentity = TRUE, bool $checkForNonObjectIdentity = FALSE): void {
-
-    // If using a version of PHPUnit that has this method already, call it.
-    if (is_callable('parent::assertStringContainsString')) {
-      parent::assertStringContainsString($needle, $haystack);
-      return;
-    }
-
-    $constraint = new StringContains($needle, $ignoreCase);
-    static::assertThat($haystack, $constraint, $message);
-  }
-
 }
