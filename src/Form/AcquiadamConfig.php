@@ -21,6 +21,8 @@ class AcquiadamConfig extends ConfigFormBase {
 
   const BATCH_SIZE = 5;
 
+  const NUM_IMAGES_PER_PAGE = 12;
+
   /**
    * Acquia DAM client factory.
    *
@@ -184,7 +186,7 @@ class AcquiadamConfig extends ConfigFormBase {
     $form['entity_browser']['num_images_per_page'] = [
       '#type' => 'number',
       '#title' => $this->t('Number of images per page'),
-      '#default_value' => $config->get('num_images_per_page'),
+      '#default_value' => $config->get('num_images_per_page') ?? self::NUM_IMAGES_PER_PAGE,
       '#description' => $this->t('Number of images to be shown per page in the entity browser can be set using this field. Default is set to 12 images.'),
       '#required' => TRUE,
     ];

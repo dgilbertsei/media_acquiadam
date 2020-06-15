@@ -17,6 +17,7 @@ use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
 use Drupal\media\MediaSourceManager;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Form\AcquiadamConfig;
 use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -227,7 +228,7 @@ class Acquiadam extends WidgetBase {
     // Default current page to first page.
     $page = 0;
     // Number of assets to show per page.
-    $num_per_page = $config->get('num_images_per_page');;
+    $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
     // Initial breadcrumb array representing the root folder only.
     $breadcrumbs = [
       '0' => 'Home',
