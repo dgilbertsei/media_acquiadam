@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\media_acquiadam\Kernel;
 
+use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 
 /**
@@ -33,12 +34,20 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
   protected $sourceReflectionClass;
 
   /**
+   * Reflection class so we can update cached assets.
+   *
+   * @var \ReflectionClass
+   */
+  protected $acquiadamReflectionClass;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
 
     $this->sourceReflectionClass = new \ReflectionClass(AcquiadamAsset::class);
+    $this->acquiadamReflectionClass = new \ReflectionClass(Acquiadam::class);
 
     $this->asset = $this->getAssetData();
     $this->testClient->addAsset($this->asset);
@@ -145,11 +154,9 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $current_asset_property->setAccessible(TRUE);
     $current_asset_property->setValue($source, NULL);
 
-    $acquiadam_property = $this->sourceReflectionClass->getProperty('acquiadam');
-    $acquiadam_property->setAccessible(TRUE);
-    /** @var \Drupal\media_acquiadam\Acquiadam $acquiadam */
-    $acquiadam = $acquiadam_property->getValue($source);
-    $acquiadam->staticAssetCache('clear');
+    $cached_assets_property = $this->acquiadamReflectionClass->getProperty('cachedAssets');
+    $cached_assets_property->setAccessible(TRUE);
+    $cached_assets_property->setValue([]);
   }
 
 }
