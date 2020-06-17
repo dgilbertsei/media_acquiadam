@@ -195,14 +195,26 @@ class Client extends OriginalClient {
         $body->refresh_token : $this->refreshToken;
     }
     catch (ClientException $e) {
-      // Looks like any form of bad auth with Webdam is a 400, but we're
-      // wrapping it here just in case.
-      if ($e->getResponse()->getStatusCode() == 400) {
+      // For bad auth, the WebDAM API has been observed to return either
+      // 400 or 403, so handle those via InvalidCredentialsException.
+      $status_code = $e->getResponse()->getStatusCode();
+      if ($status_code == 400 || $status_code == 403) {
         $body = (string) $e->getResponse()->getBody();
         $body = json_decode($body);
 
         throw new InvalidCredentialsException(
           $body->error_description . ' (' . $body->error . ').'
+        );
+      }
+      else {
+        // We've received an error status other than 400 or 403; log it
+        // and move on.
+        Drupal::logger('media_acquiadam')->error(
+          'Unable to authenticate. DAM API client returned a @code exception code with the following message: %message',
+          [
+            '@code' => $status_code,
+            '%message' => $e->getMessage(),
+          ]
         );
       }
     }
