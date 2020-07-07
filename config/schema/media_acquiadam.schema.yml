@@ -1,0 +1,36 @@
+# Schema for the configuration files of the media_acquiadam module.
+media_acquiadam.settings:
+  type: config_object
+  label: 'Media Acquia DAM settings'
+  mapping:
+    username:
+      type: string
+      label: 'Acquia DAM username'
+    password:
+      type: string
+      label: 'Acquia DAM password'
+    client_id:
+      type: string
+      label: 'Client ID for Acquia DAM API'
+    secret:
+      type: string
+      label: 'Secret for Acquia DAM API'
+    sync_interval:
+      type: string
+      label: 'Sync interval'
+    size_limit:
+      type: int
+      label: 'Size limit'
+    oauth:
+      type: mapping
+      label: 'Oauth'
+      mapping:
+        excluded_redirect_keys:
+          type: sequence
+          label: 'Excluded redirect keys'
+    notifications_sync:
+      type: bool
+      label: 'Notifications sync'
+    num_images_per_page:
+      type: int
+      label: 'Number of images per page'
