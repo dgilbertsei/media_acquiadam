@@ -4,7 +4,6 @@ namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Exception;
@@ -24,13 +23,6 @@ class MediaEntityHelper {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
-
-  /**
-   * Media: Acquia DAM logger channel.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelInterface
-   */
-  protected $loggerChannel;
 
   /**
    * Media: Acquia DAM asset data service.
@@ -67,8 +59,6 @@ class MediaEntityHelper {
    *   The media entity to wrap.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity Type Manager service.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
-   *   The Drupal LoggerChannelFactory service.
    * @param \Drupal\media_acquiadam\AssetDataInterface $assetData
    *   Media: Acquia DAM asset data service.
    * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiaDamClient
@@ -76,9 +66,8 @@ class MediaEntityHelper {
    * @param \Drupal\media_acquiadam\Service\AssetFileEntityHelper $assetFileHelper
    *   Media: Acquia DAM file entity helper service.
    */
-  public function __construct(MediaInterface $media, EntityTypeManagerInterface $entityTypeManager, LoggerChannelFactoryInterface $loggerChannelFactory, AssetDataInterface $assetData, AcquiadamInterface $acquiaDamClient, AssetFileEntityHelper $assetFileHelper) {
+  public function __construct(MediaInterface $media, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AcquiadamInterface $acquiaDamClient, AssetFileEntityHelper $assetFileHelper) {
     $this->entityTypeManager = $entityTypeManager;
-    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
     $this->assetData = $assetData;
     $this->acquiaDamClient = $acquiaDamClient;
     $this->assetFileHelper = $assetFileHelper;
@@ -103,13 +92,17 @@ class MediaEntityHelper {
     if (empty($asset)) {
       return FALSE;
     }
-    $is_updated_version = $this->assetData->isUpdatedAsset($asset);
-    if (!empty($asset) && (empty($file) || $is_updated_version)) {
-      $replace = $is_updated_version ? FileSystemInterface::EXISTS_REPLACE : FileSystemInterface::EXISTS_RENAME;
+    $is_different_version = $this->assetData->isUpdatedAsset($asset);
+    if (!empty($asset) && (empty($file) || $is_different_version)) {
+      $replace = $is_different_version ? FileSystemInterface::EXISTS_REPLACE : FileSystemInterface::EXISTS_RENAME;
       $destination_folder = $this->getAssetFileDestination();
       $file = $this->assetFileHelper->createNewFile($asset,
         $destination_folder,
         $replace);
+
+      if ($file) {
+        $this->assetData->set($asset->id, 'version', $asset->version);
+      }
     }
 
     return $file;

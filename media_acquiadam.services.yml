@@ -24,7 +24,7 @@ services:
     arguments: ['@date.formatter', '@media_acquiadam.acquiadam']
   media_acquiadam.asset_file.helper:
     class: Drupal\media_acquiadam\Service\AssetFileEntityHelper
-    arguments: ['@entity_type.manager', '@entity_field.manager','@config.factory', '@file_system', '@token', '@media_acquiadam.asset_image.helper', '@media_acquiadam.acquiadam', '@media_acquiadam.asset_media.factory']
+    arguments: ['@entity_type.manager', '@entity_field.manager','@config.factory', '@file_system', '@token', '@media_acquiadam.asset_image.helper', '@media_acquiadam.acquiadam', '@media_acquiadam.asset_media.factory', '@logger.factory']
   media_acquiadam.asset_media.factory:
     class: Drupal\media_acquiadam\Service\AssetMediaFactory
     arguments: ['@entity_type.manager']

@@ -52,7 +52,7 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
   }
 
   /**
-   * Check if the given asset is newer than what is stored.
+   * Check if the given asset is different than what is stored.
    *
    * @param \cweagans\webdam\Entity\Asset $asset
    *   The current version of the asset.
@@ -60,18 +60,12 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
    *   TRUE to save the new version (if newer than the existing).
    *
    * @return bool
-   *   TRUE if the given asset is a newer version than what has been stored.
+   *   TRUE if the given asset is a different version than what has been stored.
    */
   public function isUpdatedAsset(Asset $asset, $saveUpdatedVersion = TRUE) {
     $current_version = intval($this->get($asset->id, 'version'));
     $new_version = intval($asset->version);
-    $is_updated_version = $new_version > 1 && $new_version != $current_version;
-    if ($is_updated_version && $saveUpdatedVersion) {
-      // Track the new version for future reference.
-      $this->set($asset->id, 'version', $new_version);
-    }
-
-    return $is_updated_version;
+    return $new_version !== $current_version;
   }
 
   /**

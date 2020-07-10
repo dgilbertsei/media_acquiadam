@@ -50,7 +50,6 @@ class AssetMediaFactory implements ContainerInjectionInterface {
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager) {
     $this->entityTypeManager = $entityTypeManager;
-
     $this->mediaStorage = $this->entityTypeManager->getStorage('media');
   }
 
@@ -254,7 +253,6 @@ class AssetMediaFactory implements ContainerInjectionInterface {
     $helper_class = $this->getAssetMediaEntityHelperClass();
     return new $helper_class($media,
       $this->entityTypeManager,
-      $container->get('logger.factory'),
       $container->get('media_acquiadam.asset_data'),
       $container->get('media_acquiadam.acquiadam'),
       $container->get('media_acquiadam.asset_file.helper'));

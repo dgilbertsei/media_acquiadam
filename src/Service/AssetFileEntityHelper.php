@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
@@ -85,6 +86,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   protected $assetMediaFactory;
 
   /**
+   * Media: Acquia DAM logger channel.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $loggerChannel;
+
+  /**
    * AssetFileEntityHelper constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -103,8 +111,19 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   Media: Acquia DAM client.
    * @param \Drupal\media_acquiadam\Service\AssetMediaFactory $assetMediaFactory
    *   Media: Acquia DAM Asset Media Factory service.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
+   *   The Drupal LoggerChannelFactory service.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, EntityFieldManagerInterface $entityFieldManager, ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, Token $token, AssetImageHelper $assetImageHelper, AcquiadamInterface $acquiaDamClient, AssetMediaFactory $assetMediaFactory) {
+  public function __construct(
+    EntityTypeManagerInterface $entityTypeManager,
+    EntityFieldManagerInterface $entityFieldManager,
+    ConfigFactoryInterface $configFactory,
+    FileSystemInterface $fileSystem,
+    Token $token,
+    AssetImageHelper $assetImageHelper,
+    AcquiadamInterface $acquiaDamClient,
+    AssetMediaFactory $assetMediaFactory,
+    LoggerChannelFactoryInterface $loggerChannelFactory) {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
     $this->configFactory = $configFactory;
@@ -114,6 +133,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $this->assetImageHelper = $assetImageHelper;
     $this->acquiaDamClient = $acquiaDamClient;
     $this->assetMediaFactory = $assetMediaFactory;
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
   }
 
   /**
@@ -128,7 +148,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $container->get('token'),
       $container->get('media_acquiadam.asset_image.helper'),
       $container->get('media_acquiadam.acquiadam'),
-      $container->get('media_acquiadam.asset_media.factory')
+      $container->get('media_acquiadam.asset_media.factory'),
+      $container->get('logger.factory')
     );
   }
 
@@ -184,6 +205,12 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   public function createNewFile(Asset $asset, $destinationFolder, $replace = FileSystemInterface::EXISTS_RENAME) {
     // Ensure we can write to our destination directory.
     if (!$this->fileSystem->prepareDirectory($destinationFolder, FileSystemInterface::CREATE_DIRECTORY)) {
+      $this->loggerChannel->warning(
+        'Unable to save file for asset ID @asset_id on directory @destination_folder.', [
+          '@asset_id' => $asset->id,
+          '@destination_folder' => $destinationFolder,
+        ]
+      );
       return FALSE;
     }
 
@@ -198,6 +225,14 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $this->drupalFileSaveData($file_contents, $destination_path, $replace);
 
     $is_valid = !empty($file) && $file instanceof FileInterface;
+
+    if (!$is_valid) {
+      $this->loggerChannel->warning(
+        'Unable to save file for asset ID @asset_id.', [
+          '@asset_id' => $asset->id,
+        ]
+      );
+    }
 
     return $is_valid ? $file : FALSE;
   }
@@ -233,6 +268,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
         $size_limit
       );
       if (empty($largest_tn)) {
+        $this->loggerChannel->warning(
+          'Unable to save file for asset ID @asset_id. Largest thumbnail not found.', [
+            '@asset_id' => $asset->id,
+          ]
+        );
         return FALSE;
       }
       $file_contents = $this->phpFileGetContents($largest_tn);

@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\media_acquiadam\Kernel;
 
+use Drupal\Core\File\FileSystem;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 
@@ -71,17 +72,53 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests updating media entity when new version is available.
    */
   public function testNewVersionUpdate() {
-    $this->asset = $this->generateNewVersion($this->asset);
-    $this->testClient->addAsset($this->asset);
-    $this->reSaveMedia();
+    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
+    $asset_data = $this->container->get('media_acquiadam.asset_data');
+
+    $this->saveNewVersion();
 
     $file = $this->getAssetFileEntity($this->media);
     $file_uri = $file->getFileUri();
     $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
+    $new_version = $asset_data->get($this->asset->id, 'version');
 
     $this->assertEqual($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
     $this->assertEqual($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
     $this->assertEqual($file->label(), $this->asset->filename, 'File entity label updated as expected.');
+    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
+  }
+
+  /**
+   * Tests that version is only updated when file is saved correctly.
+   */
+  public function testFailedFileSave() {
+    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
+    $asset_data = $this->container->get('media_acquiadam.asset_data');
+    /** @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper $asset_file_helper */
+    $asset_file_helper = $this->container->get('media_acquiadam.asset_file.helper');
+    /** @var \Drupal\Core\File\FileSystem $file_system */
+    $file_system = $this->container->get('file_system');
+
+    // Store old version to test if version remains unchanged.
+    $old_version = $asset_data->get($this->asset->id, 'version');
+
+    // Makes directory read only so file save fails.
+    $directory = $asset_file_helper->getDestinationFromEntity($this->media, 'field_acquiadam_asset_file');
+    $file_system->chmod($directory, 0000);
+
+    // Attempts to save new version of asset while directory isn't accessible.
+    $this->saveNewVersion();
+    $new_version = $asset_data->get($this->asset->id, 'version');
+
+    $this->assertEqual($old_version, $new_version, 'Asset version unchanged as expected.');
+
+    // Restore permissions to directory and resave entity.
+    $file_system->chmod($directory, FileSystem::CHMOD_DIRECTORY);
+    $this->reSaveMedia();
+    $new_version = $asset_data->get($this->asset->id, 'version');
+
+    $this->assertNotEqual($old_version, $new_version, 'New version different from old version.');
+    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
   }
 
   /**
@@ -107,9 +144,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
 
     // Create a new version for intial asset and re-save corresponding media
     // entity to test if file was updated correctly.
-    $this->asset = $this->generateNewVersion($this->asset);
-    $this->testClient->addAsset($this->asset);
-    $this->reSaveMedia();
+    $this->saveNewVersion();
 
     // Re-loads FID to assert it's unchanged.
     $actual_fid = $this->getAssetFileEntity($this->media)->id();
@@ -128,6 +163,15 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $this->media->setName('test');
     $this->media->setNewRevision(TRUE);
     $this->media->save();
+  }
+
+  /**
+   * Generates a new version of the asset and resaves media entity.
+   */
+  protected function saveNewVersion() {
+    $this->asset = $this->generateNewVersion($this->asset);
+    $this->testClient->addAsset($this->asset);
+    $this->reSaveMedia();
   }
 
   /**

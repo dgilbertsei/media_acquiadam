@@ -14,7 +14,6 @@ use Drupal\media_acquiadam\AssetData;
 use Drupal\media_acquiadam\MediaEntityHelper;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 use stdClass;
@@ -26,7 +25,7 @@ use stdClass;
  */
 class MediaEntityHelperTest extends UnitTestCase {
 
-  use AcquiadamAssetDataTrait, AcquiadamLoggerFactoryTrait, AcquiadamMockedMediaEntityTrait;
+  use AcquiadamAssetDataTrait, AcquiadamMockedMediaEntityTrait;
 
   /**
    * Container builder helper.
@@ -156,7 +155,6 @@ class MediaEntityHelperTest extends UnitTestCase {
 
     return new MediaEntityHelper($media,
       $this->container->get('entity_type.manager'),
-      $this->container->get('logger.factory'),
       $this->container->get('media_acquiadam.asset_data'),
       $this->container->get('media_acquiadam.acquiadam'),
       $this->container->get('media_acquiadam.asset_file.helper'));
@@ -203,7 +201,6 @@ class MediaEntityHelperTest extends UnitTestCase {
     ]);
 
     $container->set('entity_type.manager', $entity_type_manager);
-    $container->set('logger.factory', $this->getLoggerFactoryStub());
   }
 
   /**
