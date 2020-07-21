@@ -3,6 +3,7 @@
 namespace Drupal\Tests\media_acquiadam\Kernel;
 
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 
@@ -51,6 +52,14 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $this->acquiadamReflectionClass = new \ReflectionClass(Acquiadam::class);
 
     $this->asset = $this->getAssetData();
+
+    // Create file with same name as asset file to make sure asset file
+    // replacement happens as expected.
+    $dir_path = 'public://acquiadam/';
+    $contents = 'test';
+    $this->container->get('file_system')->prepareDirectory($dir_path, FileSystemInterface::CREATE_DIRECTORY);
+    file_save_data($contents, $dir_path . $this->asset->filename);
+
     $this->testClient->addAsset($this->asset);
     $this->media = $this->createMedia($this->asset->id);
   }

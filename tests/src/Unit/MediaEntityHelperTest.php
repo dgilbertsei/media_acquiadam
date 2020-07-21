@@ -36,15 +36,10 @@ class MediaEntityHelperTest extends UnitTestCase {
 
   /**
    * Validate we can get file from a media entity.
-   *
-   * @TODO: Simulate createNewFile failure paths (Replace and Rename).
    */
   public function testGetFile() {
     $helper = $this->getNewMediaEntityHelper();
 
-    // First call will trigger an EXISTS_RENAME.
-    $this->assertInstanceOf(FileInterface::class, $helper->getFile());
-    // Second call will trigger an EXISTS_REPLACE.
     $this->assertInstanceOf(FileInterface::class, $helper->getFile());
 
     // Change the source field to a failing one to simulate a missing file.
@@ -229,8 +224,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     $asset_file_helper->method('getDestinationFromEntity')
       ->willReturn('private://assets/replaced');
     $asset_file_helper->method('createNewFile')->with($this->anything(),
-      'private://assets/replaced',
-      $this->anything())->willReturn($this->getMockedFileEntity());
+      'private://assets/replaced')->willReturn($this->getMockedFileEntity());
 
     $container->set('media_acquiadam.asset_data', $asset_data);
     $container->set('media_acquiadam.acquiadam', $acquiadam);

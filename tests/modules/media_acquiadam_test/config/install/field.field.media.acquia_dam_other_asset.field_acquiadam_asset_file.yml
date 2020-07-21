@@ -17,7 +17,7 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  file_directory: 'acquiadam/[date:custom:Y]-[date:custom:m]'
+  file_directory: 'acquiadam'
   file_extensions: 'jpg gif png tiff svg pdf doc docx ppt pptx xls xlsx txt mp4 mpg mpeg webm'
   max_filesize: ''
   description_field: false

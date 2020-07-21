@@ -195,14 +195,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   The asset to save a new file for.
    * @param string $destinationFolder
    *   The path to save the asset into.
-   * @param int $replace
-   *   FILE_EXISTS_REPLACE or FILE_EXISTS_RENAME to replace existing or create
-   *   new files.
    *
    * @return bool|\Drupal\file\FileInterface
    *   The created file or FALSE on failure.
    */
-  public function createNewFile(Asset $asset, $destinationFolder, $replace = FileSystemInterface::EXISTS_RENAME) {
+  public function createNewFile(Asset $asset, $destinationFolder) {
     // Ensure we can write to our destination directory.
     if (!$this->fileSystem->prepareDirectory($destinationFolder, FileSystemInterface::CREATE_DIRECTORY)) {
       $this->loggerChannel->warning(
@@ -218,23 +215,22 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $file_contents = $this->fetchRemoteAssetData($asset, $destinationFolder, $destination_path);
 
     $existing = $this->assetMediaFactory->getFileEntity($asset->id);
-    $is_replace = !empty($existing) && FileSystemInterface::EXISTS_REPLACE === $replace;
 
-    $file = $is_replace ?
+    $file = $existing instanceof FileInterface ?
       $this->replaceExistingFile($existing, $file_contents, $destination_path) :
-      $this->drupalFileSaveData($file_contents, $destination_path, $replace);
+      $this->drupalFileSaveData($file_contents, $destination_path);
 
-    $is_valid = !empty($file) && $file instanceof FileInterface;
-
-    if (!$is_valid) {
-      $this->loggerChannel->warning(
-        'Unable to save file for asset ID @asset_id.', [
-          '@asset_id' => $asset->id,
-        ]
-      );
+    if ($file instanceof FileInterface) {
+      return $file;
     }
 
-    return $is_valid ? $file : FALSE;
+    $this->loggerChannel->warning(
+      'Unable to save file for asset ID @asset_id.', [
+        '@asset_id' => $asset->id,
+      ]
+    );
+
+    return FALSE;
   }
 
   /**
@@ -362,21 +358,12 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   wrapper URI. If no value or NULL is provided, a randomized name will be
    *   generated and the file will be saved using Drupal's default files scheme,
    *   usually "public://".
-   * @param int $replace
-   *   (optional) The replace behavior when the destination file already exists.
-   *   Possible values include:
-   *   - FILE_EXISTS_REPLACE: Replace the existing file. If a managed file with
-   *     the destination name exists, then its database entry will be updated.
-   *     If no database entry is found, then a new one will be created.
-   *   - FILE_EXISTS_RENAME: (default) Append _{incrementing number} until the
-   *     filename is unique.
-   *   - FILE_EXISTS_ERROR: Do nothing and return FALSE.
    *
    * @return \Drupal\file\FileInterface|false
    *   A file entity, or FALSE on error.
    */
-  protected function drupalFileSaveData($data, $destination = NULL, $replace = FileSystemInterface::EXISTS_RENAME) {
-    return file_save_data($data, $destination, $replace);
+  protected function drupalFileSaveData($data, $destination = NULL) {
+    return file_save_data($data, $destination, FileSystemInterface::EXISTS_REPLACE);
   }
 
 }
