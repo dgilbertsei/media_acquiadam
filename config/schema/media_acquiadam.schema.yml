@@ -16,10 +16,10 @@ media_acquiadam.settings:
       type: string
       label: 'Secret for Acquia DAM API'
     sync_interval:
-      type: string
+      type: integer
       label: 'Sync interval'
     size_limit:
-      type: int
+      type: integer
       label: 'Size limit'
     oauth:
       type: mapping
@@ -28,9 +28,19 @@ media_acquiadam.settings:
         excluded_redirect_keys:
           type: sequence
           label: 'Excluded redirect keys'
+          sequence:
+            type: string
+            label: 'Key'
     notifications_sync:
-      type: bool
+      type: integer
       label: 'Notifications sync'
     num_images_per_page:
-      type: int
+      type: integer
       label: 'Number of images per page'
+    fallback_thumbnail:
+      type: uri
+      label: 'Fallback thumbnail'
+
+media.source.acquiadam_asset:
+  type: media.source.field_aware
+  label: 'Acquia DAM asset media source configuration'

@@ -18,12 +18,6 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   use AcquiadamAssetDataTrait;
 
   const DEFAULT_BUNDLE = 'acquia_dam_asset';
-  /**
-   * Set to FALSE so it doesn't strict check all configuration saved.
-   *
-   * @var bool
-   */
-  protected $strictConfigSchema = FALSE;
 
   /**
    * The modules to load to run the test.
