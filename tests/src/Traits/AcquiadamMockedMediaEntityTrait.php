@@ -2,9 +2,11 @@
 
 namespace Drupal\Tests\media_acquiadam\Traits;
 
+use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceInterface;
+use Drupal\media\MediaTypeInterface;
 use stdClass;
 
 /**
@@ -28,11 +30,25 @@ trait AcquiadamMockedMediaEntityTrait {
   protected function getMockedMediaEntity($assetId, $sourceField = NULL, $mediaEntityId = 47247625) {
     $sourceField = $sourceField ?? 'phpunit_asset_id_field';
 
+    $source_field_definition = $this->getMockBuilder(FieldDefinitionInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $source_field_definition->method('getName')
+      ->willReturn($sourceField);
+
     $media_source = $this->getMockBuilder(MediaSourceInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $media_source->method('getConfiguration')
-      ->willReturn(['source_field' => $sourceField]);
+    $media_source->method('getSourceFieldDefinition')
+      ->willReturn($source_field_definition);
+
+    $media_bundle = $this->getMockBuilder(MediaTypeInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $bundle_definition = $this->getMockBuilder(EntityReferenceFieldItemListInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $bundle_definition->entity = $media_bundle;
 
     $media = $this->getMockBuilder(MediaInterface::class)
       ->disableOriginalConstructor()
@@ -49,6 +65,9 @@ trait AcquiadamMockedMediaEntityTrait {
     $media->method('getEntityTypeId')->willReturn('media');
     $media->method('bundle')->willReturn('acquiadam');
     $media->method('id')->willReturn($mediaEntityId);
+    $media->method('get')
+      ->with('bundle')
+      ->willReturn($bundle_definition);
 
     $file_field = $this->getMockBuilder(stdClass::class)
       ->disableOriginalConstructor()

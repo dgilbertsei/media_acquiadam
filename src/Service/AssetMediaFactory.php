@@ -210,7 +210,8 @@ class AssetMediaFactory implements ContainerInjectionInterface {
     /** @var \Drupal\media\Entity\MediaType $bundle */
     foreach ($media_bundles as $name => $bundle) {
       $asset_id_fields[$name] = $bundle->getSource()
-        ->getConfiguration()['source_field'];
+        ->getSourceFieldDefinition($bundle)
+        ->getName();
     }
 
     return $asset_id_fields;

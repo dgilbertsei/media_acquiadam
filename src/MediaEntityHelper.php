@@ -175,7 +175,8 @@ class MediaEntityHelper {
    */
   public function getAssetId() {
     $sourceField = $this->mediaEntity->getSource()
-      ->getConfiguration()['source_field'];
+      ->getSourceFieldDefinition($this->mediaEntity->get('bundle')->entity)
+      ->getName();
     return $this->getFieldPropertyValue($sourceField) ?? FALSE;
   }
 

@@ -235,7 +235,7 @@ function media_acquiadam_form_media_form_alter(&$form, FormStateInterface &$form
   }
 
   // Disables Asset ID field on edit.
-  $form[$source->getConfiguration()['source_field']]['#disabled'] = TRUE;
+  $form[$source->getSourceFieldDefinition($entity->get('bundle')->entity)->getName()]['#disabled'] = TRUE;
 }
 
 /**
