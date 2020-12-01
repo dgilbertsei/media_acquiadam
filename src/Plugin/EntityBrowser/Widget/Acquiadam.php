@@ -372,7 +372,7 @@ class Acquiadam extends WidgetBase {
 
       // Add folder buttons to form.
       foreach ($folders as $folder) {
-        $form['asset-container'][$folder->name] = [
+        $form['asset-container']['folders'][$folder->name] = [
           '#type' => 'container',
           '#attributes' => [
             'class' => ['acquiadam-browser-folder-link'],
@@ -384,7 +384,7 @@ class Acquiadam extends WidgetBase {
         if (isset($folder->thumbnailurls) && !empty($folder->thumbnailurls[0]->url)) {
           $backgroundImageStyle .= 'background-image:url("' . $folder->thumbnailurls[0]->url . '")';
         }
-        $form['asset-container'][$folder->name][$folder->id] = [
+        $form['asset-container']['folders'][$folder->name][$folder->id] = [
           '#type' => 'button',
           '#value' => $folder->name,
           '#name' => 'acquiadam_folder',
@@ -395,7 +395,7 @@ class Acquiadam extends WidgetBase {
             'style' => $backgroundImageStyle,
           ],
         ];
-        $form['asset-container'][$folder->name]['title'] = [
+        $form['asset-container']['folders'][$folder->name]['title'] = [
           '#type' => 'html_tag',
           '#tag' => 'p',
           '#value' => $folder->name,
