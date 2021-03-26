@@ -8,7 +8,6 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Queue\SuspendQueueException;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -102,7 +101,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       }
       $asset = $this->assetMediaFactory->get($entity)->getAsset();
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       $this->loggerChannel->error(
         'Error trying to check asset from media entity @media_id',
         ['@media_id' => $data['media_id']]
@@ -126,7 +125,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       // metadata and asset file.
       $entity->save();
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       // If we're hitting an exception after the above checks there might be
       // something impacting the overall system, so prevent further queue
       // processing.

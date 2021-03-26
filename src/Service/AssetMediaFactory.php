@@ -2,12 +2,10 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\MediaEntityHelper;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -196,13 +194,13 @@ class AssetMediaFactory implements ContainerInjectionInterface {
    *   An array of media bundles and associated asset ID fields
    */
   public function getAssetIdFields() {
-    // @TODO: Static caching.
+    // @todo Static caching.
     try {
       $media_bundles = $this->entityTypeManager
         ->getStorage('media_type')
         ->loadByProperties(['source' => 'acquiadam_asset']);
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       return [];
     }
 
@@ -248,7 +246,7 @@ class AssetMediaFactory implements ContainerInjectionInterface {
     // as a circular dependency even though it's just a passthrough to another
     // class.
     // phpcs:disable DrupalPractice.Objects.GlobalDrupal.GlobalDrupal
-    $container = Drupal::getContainer();
+    $container = \Drupal::getContainer();
     // phpcs:enable
 
     $helper_class = $this->getAssetMediaEntityHelperClass();

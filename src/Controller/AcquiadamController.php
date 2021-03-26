@@ -88,7 +88,7 @@ class AcquiadamController extends ControllerBase {
   public function assetDetailsPage($assetId) {
 
     // Get the asset.
-    // @TODO: Catch exceptions here and do the right thing.
+    // @todo Catch exceptions here and do the right thing.
     $asset = $this->getAsset($assetId);
 
     $asset_attributes = [

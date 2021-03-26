@@ -113,7 +113,7 @@ class Acquiadam extends WidgetBase {
   /**
    * {@inheritdoc}
    *
-   * TODO: Add more settings for configuring this widget.
+   * @todo Add more settings for configuring this widget.
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);

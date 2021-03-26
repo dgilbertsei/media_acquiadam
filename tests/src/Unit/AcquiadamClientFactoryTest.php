@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\media_acquiadam\Client;
@@ -87,7 +86,7 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
     $this->container->set('http_client', $http_client);
     $this->container->set('user.data', $user_data);
     $this->container->set('current_user', $current_user);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->clientFactory = ClientFactory::create($this->container);
   }

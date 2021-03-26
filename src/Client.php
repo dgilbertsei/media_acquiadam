@@ -5,8 +5,6 @@ namespace Drupal\media_acquiadam;
 use cweagans\webdam\Client as OriginalClient;
 use cweagans\webdam\Entity\Asset;
 use cweagans\webdam\Exception\InvalidCredentialsException;
-use Drupal;
-use Exception;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 
@@ -45,8 +43,8 @@ class Client extends OriginalClient {
     try {
       $this->checkAuth();
     }
-    catch (Exception $x) {
-      Drupal::logger('media_acquiadam')->error(
+    catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')->error(
           'Unable to authenticate to retrieve xmp field data.'
         );
       $this->activeXmpFields = [];
@@ -60,8 +58,8 @@ class Client extends OriginalClient {
         ['headers' => $this->getDefaultHeaders()]
       );
     }
-    catch (Exception $x) {
-      Drupal::logger('media_acquiadam')->error('Unable to get xmp field data.');
+    catch (\Exception $x) {
+      \Drupal::logger('media_acquiadam')->error('Unable to get xmp field data.');
       $this->activeXmpFields = [];
       return $this->activeXmpFields;
     }
@@ -120,7 +118,7 @@ class Client extends OriginalClient {
     // Adding an $is_expired_session condition here allows the DAM browser to
     // fall back to the global account.
     elseif ($this->manualToken) {
-      // @TODO: Why can't we authenticate after a manual set?
+      // @todo Why can't we authenticate after a manual set?
       throw new InvalidCredentialsException(
         'Cannot reauthenticate a manually set token.'
       );
@@ -209,7 +207,7 @@ class Client extends OriginalClient {
       else {
         // We've received an error status other than 400 or 403; log it
         // and move on.
-        Drupal::logger('media_acquiadam')->error(
+        \Drupal::logger('media_acquiadam')->error(
           'Unable to authenticate. DAM API client returned a @code exception code with the following message: %message',
           [
             '@code' => $status_code,

@@ -11,6 +11,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class ClientFactory.
+ *
+ * Factory class for Client.
  */
 class ClientFactory implements ContainerInjectionInterface {
 

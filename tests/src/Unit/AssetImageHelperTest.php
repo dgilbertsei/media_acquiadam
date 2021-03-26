@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\Image\ImageFactory;
@@ -103,7 +102,7 @@ class AssetImageHelperTest extends UnitTestCase {
       'sub' => 'jpg',
     ];
 
-    // @TODO: Any way to reset the mock method so we can change willReturn?
+    // @todo Any way to reset the mock method so we can change willReturn?
     // We have to get a new mock class each test because it is (seemingly) not
     // possible to change the willReturn for a mocked method after it has been
     // set.
@@ -176,7 +175,7 @@ class AssetImageHelperTest extends UnitTestCase {
         'getAcquiaDamModulePath',
         'saveFallbackThumbnail',
       ])
-      ->getMock();;
+      ->getMock();
 
     $helper->method('getAcquiaDamModulePath')
       ->willReturn('modules/contrib/media_acquiadam');
@@ -227,7 +226,7 @@ class AssetImageHelperTest extends UnitTestCase {
     $this->container->set('file.mime_type.guesser', $mime_type_guesser);
     $this->container->set('image.factory', $image_factory);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->assetImageHelper = $this->getMockedAssetImageHelper();
   }

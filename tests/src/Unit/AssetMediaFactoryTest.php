@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -67,8 +66,8 @@ class AssetMediaFactoryTest extends UnitTestCase {
     $this->assertEquals(MediaEntityHelper::class,
       $this->assetMediaFactory->getAssetMediaEntityHelperClass());
 
-    $this->assetMediaFactory->setAssetMediaEntityHelperClass(Drupal::class);
-    $this->assertEquals(Drupal::class,
+    $this->assetMediaFactory->setAssetMediaEntityHelperClass(\Drupal::class);
+    $this->assertEquals(\Drupal::class,
       $this->assetMediaFactory->getAssetMediaEntityHelperClass());
 
     $this->assetMediaFactory->setAssetMediaEntityHelperClass(MediaEntityHelper::class);
@@ -243,7 +242,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
     $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
     $this->container->set('media_acquiadam.asset_file.helper',
       $asset_file_helper);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->assetMediaFactory = $this->getMockBuilder(AssetMediaFactory::class)
       ->setConstructorArgs([

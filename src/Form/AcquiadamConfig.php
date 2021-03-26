@@ -11,11 +11,12 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\State\State;
 use Drupal\media_acquiadam\ClientFactory;
-use Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class AcquiadamConfig.
+ *
+ * Config form form Acquia dam.
  */
 class AcquiadamConfig extends ConfigFormBase {
 
@@ -279,7 +280,7 @@ class AcquiadamConfig extends ConfigFormBase {
           $context['results']['processed']++;
         }
       }
-      catch (Exception $e) {
+      catch (\Exception $e) {
         $this->logger('media_acquiadam')->error(
           'Failed to update media entity id = :id. Message: :message',
           [

@@ -4,7 +4,6 @@ namespace Drupal\media_acquiadam;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Exception;
 use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -135,7 +134,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
         ]
       );
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       $this->staticAssetCache('set', $assetId, FALSE);
       $this->loggerChannel->debug($x->getMessage());
     }

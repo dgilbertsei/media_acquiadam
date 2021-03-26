@@ -2,9 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use DateTime;
-use DateTimeZone;
-use Drupal;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
@@ -177,7 +174,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $date_formatter->method('format')
       ->willReturnCallback(function ($timestamp, $type, $format) {
         if ('custom' == $type) {
-          $dt = new DateTime('now', new DateTimeZone('UTC'));
+          $dt = new \DateTime('now', new \DateTimeZone('UTC'));
           $dt->setTimestamp($timestamp);
           return $dt->format($format);
         }
@@ -195,7 +192,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
       $this->getStringTranslationStub());
     $this->container->set('date.formatter', $date_formatter);
     $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->assetMetadataHelper = AssetMetadataHelper::create($this->container);
   }

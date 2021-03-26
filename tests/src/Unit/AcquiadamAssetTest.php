@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -103,7 +102,7 @@ class AcquiadamAssetTest extends UnitTestCase {
       $asset_metadata_helper);
     $this->container->set('media_acquiadam.asset_media.factory',
       $asset_media_factory);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->acquiadamMediaSource = AcquiadamAsset::create($this->container,
       ['source_field' => 'field_acquiadam_asset_id'],

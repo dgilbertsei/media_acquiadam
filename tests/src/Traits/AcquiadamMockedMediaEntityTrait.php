@@ -7,7 +7,6 @@ use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceInterface;
 use Drupal\media\MediaTypeInterface;
-use stdClass;
 
 /**
  * Shared complex mocked media and related entities.
@@ -69,7 +68,7 @@ trait AcquiadamMockedMediaEntityTrait {
       ->with('bundle')
       ->willReturn($bundle_definition);
 
-    $file_field = $this->getMockBuilder(stdClass::class)
+    $file_field = $this->getMockBuilder(\stdClass::class)
       ->disableOriginalConstructor()
       ->setMethods(['first', 'mainPropertyName'])
       ->getMock();
@@ -79,7 +78,7 @@ trait AcquiadamMockedMediaEntityTrait {
     $media->phpunit_file_field = $file_field;
     $media->phpunit_file_field->target_id = $this->getMockedFileEntity()->id();
 
-    $asset_id_field = $this->getMockBuilder(stdClass::class)
+    $asset_id_field = $this->getMockBuilder(\stdClass::class)
       ->disableOriginalConstructor()
       ->setMethods(['first', 'mainPropertyName'])
       ->getMock();

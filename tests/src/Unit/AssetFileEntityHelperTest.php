@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -110,7 +109,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
     $this->container->set('media_acquiadam.asset_media.factory',
       $asset_media_factory);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->assetFileEntityHelper = $this->getMockedAssetFileEntityHelper();
   }
@@ -218,7 +217,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
         'phpFileGetContents',
         'drupalFileSaveData',
       ])
-      ->getMock();;
+      ->getMock();
 
     $helper->method('phpFileGetContents')->willReturn('File contents');
     $helper->method('drupalFileSaveData')->willReturn($this->mockedFileEntity);

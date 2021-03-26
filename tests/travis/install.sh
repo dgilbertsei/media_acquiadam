@@ -14,8 +14,14 @@ cd "$(dirname "$0")"
 # Reuse ORCA's own includes.
 source ../../../orca/bin/travis/_includes.sh
 
-# Target the deprecated code scan job.
-[[ "$ORCA_JOB" = "DEPRECATED_CODE_SCAN" ]] || exit 0
+# Exit early in the absence of a fixture.
+[[ -d "$ORCA_FIXTURE_DIR" ]] || exit 0
 
-composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/entity_browser
-composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/linkit:~5.0
+# Target the deprecated code scan job.
+if [[ "$ORCA_JOB" = "LOOSE_DEPRECATED_CODE_SCAN" || "$ORCA_JOB" = "STRICT_DEPRECATED_CODE_SCAN" ]]; then
+  (
+    composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/entity_browser
+    composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/linkit:~5.0
+  )
+fi
+exit 0

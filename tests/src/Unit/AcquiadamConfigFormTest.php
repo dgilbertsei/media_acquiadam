@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Component\Datetime\Time;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -249,7 +248,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->container->set('plugin.manager.queue_worker', $queue_worker_manager);
     $this->container->set('state', $this->state);
 
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->acquiaDamConfig = $this->getMockedAcquidamConfig();
   }

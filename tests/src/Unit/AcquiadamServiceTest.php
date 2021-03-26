@@ -3,7 +3,6 @@
 namespace Drupal\Tests\media_acquiadam\Unit;
 
 use cweagans\webdam\Entity\Asset;
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\AssetDataInterface;
@@ -264,7 +263,7 @@ class AcquiadamServiceTest extends UnitTestCase {
     $this->container->set('media_acquiadam.client_factory',
       $acquiadam_client_factory);
     $this->container->set('media_acquiadam.asset_data', $acquiadam_asset_data);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->acquiaDamClient = Acquiadam::create($this->container);
   }

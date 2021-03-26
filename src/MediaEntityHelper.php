@@ -5,7 +5,6 @@ namespace Drupal\media_acquiadam;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
-use Exception;
 
 /**
  * Class MediaEntityHelper.
@@ -118,7 +117,7 @@ class MediaEntityHelper {
         $file = $this->entityTypeManager->getStorage('file')->load($fid);
       }
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       $file = FALSE;
     }
 
@@ -148,7 +147,7 @@ class MediaEntityHelper {
         ->load($this->mediaEntity->bundle());
       $field_map = !empty($bundle) ? $bundle->getFieldMap() : FALSE;
     }
-    catch (Exception $x) {
+    catch (\Exception $x) {
       return FALSE;
     }
 

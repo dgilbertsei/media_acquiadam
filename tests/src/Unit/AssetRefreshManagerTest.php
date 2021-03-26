@@ -3,7 +3,6 @@
 namespace Drupal\Tests\media_acquiadam\Unit;
 
 use cweagans\webdam\Exception\InvalidCredentialsException;
-use Drupal;
 use Drupal\Component\Datetime\Time;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -16,9 +15,7 @@ use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Service\AssetRefreshManager;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
-use Exception;
 use GuzzleHttp\Exception\GuzzleException;
-use Throwable;
 
 /**
  * AssetRefreshManager Service test.
@@ -264,7 +261,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
    *
    * @dataProvider providerTestFailedApiRequest
    */
-  public function testFailedApiRequest(Throwable $exception_stub) {
+  public function testFailedApiRequest(\Throwable $exception_stub) {
     $this->acquiadamClient
       ->method('getNotifications')
       ->will($this->throwException($exception_stub));
@@ -486,7 +483,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     return [
       [
         new /* @noinspection PhpSuperClassIncompatibleWithInterfaceInspection */
-        class() extends Exception implements GuzzleException {},
+        class() extends \Exception implements GuzzleException {},
       ],
       [new InvalidCredentialsException()],
     ];
@@ -618,7 +615,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->container->set('entity_type.manager', $entity_type_manager);
     $this->container->set('datetime.time', $time);
     $this->container->set('media_acquiadam.acquiadam', $this->acquiadamClient);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->assetRefreshManager = AssetRefreshManager::create($this->container);
     $this->assetRefreshManager->setLastReadInterval(10000000);

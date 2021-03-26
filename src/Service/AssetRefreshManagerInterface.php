@@ -5,7 +5,7 @@ namespace Drupal\media_acquiadam\Service;
 /**
  * Interface AssetRefreshManagerInterface.
  *
- * @package media_acquiadam
+ * Defines asset refresh manager interface.
  */
 interface AssetRefreshManagerInterface {
 

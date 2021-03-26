@@ -4,6 +4,8 @@ namespace Drupal\media_acquiadam;
 
 /**
  * Interface AcquiadamInterface.
+ *
+ * Defines the Acquia dam interface.
  */
 interface AcquiadamInterface {
 

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\AssetData;
@@ -67,7 +66,7 @@ class AssetDataTest extends UnitTestCase {
 
     $this->container = new ContainerBuilder();
     $this->container->set('database', $connection);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
   }
 
 }

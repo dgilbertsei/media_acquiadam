@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal;
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -137,7 +136,7 @@ class OauthTest extends UnitTestCase {
     $this->container->set('http_client', $http_client);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
     $this->container->set('current_user', $current_user);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
 
     $this->oAuthClient = Oauth::create($this->container);
   }

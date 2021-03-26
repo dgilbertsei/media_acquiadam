@@ -3,7 +3,6 @@
 namespace Drupal\Tests\media_acquiadam\Unit;
 
 use cweagans\webdam\Entity\Asset;
-use Drupal;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -16,7 +15,6 @@ use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
-use stdClass;
 
 /**
  * Testing of the Media Entity helper class.
@@ -131,7 +129,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     $this->container = new ContainerBuilder();
     $this->setMockedDrupalServices($this->container);
     $this->setMockedAcquiaDamServices($this->container);
-    Drupal::setContainer($this->container);
+    \Drupal::setContainer($this->container);
   }
 
   /**
@@ -163,7 +161,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    */
   protected function setMockedDrupalServices(ContainerBuilder $container) {
 
-    $media_bundle = $this->getMockBuilder(stdClass::class)
+    $media_bundle = $this->getMockBuilder(\stdClass::class)
       ->setMethods(['getFieldMap'])
       ->getMock();
     $media_bundle->method('getFieldMap')
