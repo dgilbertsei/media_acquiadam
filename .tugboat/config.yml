@@ -33,7 +33,7 @@ services:
         vendor/bin/drush --yes en media_acquiadam_example
         vendor/bin/drush --yes en entity_browser
         vendor/bin/drush --yes en linkit
-        vendor/bin/drush --yes en watchdog
+        vendor/bin/drush --yes en dblog
         # Setup secret sauce
         vendor/bin/drush --yes cset media_acquiadam.settings username $dam_username
         vendor/bin/drush --yes cset media_acquiadam.settings password $dam_password

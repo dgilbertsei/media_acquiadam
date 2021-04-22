@@ -479,6 +479,12 @@ class Client extends OriginalClient {
         'query' => $query_options,
       ]
     );
+    if ($response->getStatusCode() == 429) {
+      Drupal::logger('media_acquiadam')->error(
+        'Failed to fetch asset ids: Too Many Requests.'
+      );
+      return [];
+    }
 
     return json_decode((string) $response->getBody(), TRUE);
   }
