@@ -143,6 +143,12 @@ class AcquiadamConfig extends ConfigFormBase {
       '#description' => $this->t('Faster synchronization method based on Notifications from the API.'),
       '#default_value' => $config->get('notifications_sync'),
     ];
+    $form['cron']['perform_sync_delete'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Delete inactive drupal dam assets.'),
+      '#default_value' => $config->get('perform_sync_delete'),
+      '#description' => $this->t('Deletes unpublished drupal media entities if DAM asset is not available.'),
+    ];
 
     $form['image'] = [
       '#type' => 'fieldset',
@@ -390,6 +396,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('notifications_sync', $form_state->getValue('notifications_sync'))
+      ->set('perform_sync_delete', $form_state->getValue('perform_sync_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
       ->save();
 

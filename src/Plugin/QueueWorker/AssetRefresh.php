@@ -2,6 +2,7 @@
 
 namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
+use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -43,13 +44,21 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   protected $assetMediaFactory;
 
   /**
+   * The config factory service.
+   *
+   * @var \Drupal\Core\Config\ConfigFactory
+   */
+  protected $configFactory;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetMediaFactory $assetMediaFactory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerChannelInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetMediaFactory $assetMediaFactory, ConfigFactory $config_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->loggerChannel = $loggerChannel;
     $this->entityTypeManager = $entityTypeManager;
     $this->assetMediaFactory = $assetMediaFactory;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -62,7 +71,8 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       $plugin_definition,
       $container->get('logger.factory')->get('media_acquiadam'),
       $container->get('entity_type.manager'),
-      $container->get('media_acquiadam.asset_media.factory')
+      $container->get('media_acquiadam.asset_media.factory'),
+      $container->get('config.factory')
     );
   }
 
@@ -107,6 +117,19 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
         ['@media_id' => $data['media_id']]
       );
       return FALSE;
+    }
+
+    $perform_delete = $this->configFactory->get('media_acquiadam.settings')->get('perform_sync_delete');
+    if ((empty($asset) || $asset->status == 'inactive') && $perform_delete && !$entity->isPublished()) {
+      $entity->delete();
+      $this->loggerChannel->warning(
+        'Deleted media entity @media_id with asset id @assetID.',
+        [
+          '@media_id' => $data['media_id'],
+          '@assetID' => $assetID,
+        ]
+      );
+      return TRUE;
     }
 
     if (empty($asset)) {

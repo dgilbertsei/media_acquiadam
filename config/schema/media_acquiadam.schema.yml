@@ -34,6 +34,9 @@ media_acquiadam.settings:
     notifications_sync:
       type: integer
       label: 'Notifications sync'
+    perform_sync_delete:
+      type: integer
+      label: 'Delete inactive drupal dam assets'
     num_images_per_page:
       type: integer
       label: 'Number of images per page'
