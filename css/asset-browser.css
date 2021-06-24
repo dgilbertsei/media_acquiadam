@@ -17,8 +17,9 @@
 
 /* Folders and assets take same basic sizing, width, etc. */
 .acquiadam-asset-browser .form-item.form-type-checkbox,
+.acquiadam-asset-browser .form-item.js-form-type-checkbox,
 .acquiadam-browser-folder-link {
-  width: 180px;
+  width: 170px;
   display: inline-block;
   margin: 5px;
   min-height: 180px;
@@ -26,10 +27,17 @@
   vertical-align: top;
 }
 
-.acquiadam-asset-browser .form-item.form-type-checkbox {
+.acquiadam-asset-browser .form-item.form-type-checkbox,
+.acquiadam-asset-browser .form-item.js-form-type-checkbox {
   border: 1px solid #f0f0f0;
   border-radius: 5px;
   vertical-align: top;
+}
+
+.acquiadam-asset-browser .js-form-type-checkbox .form-checkbox {
+  float: initial;
+  margin-left: initial;
+  transform: initial;
 }
 
 .acquiadam-asset-checkbox {
@@ -152,6 +160,17 @@ input[type="checkbox"] {
   margin: 5px;
 }
 
+.acquiadam-browser-breadcrumb-container li {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.acquiadam-browser-breadcrumb-container li:not(:first-child):before {
+  content: " \BB ";
+}
+
 input.acquiadam-browser-breadcrumb {
   background: transparent;
   border: none;
@@ -246,6 +265,8 @@ input.acquiadam-browser-breadcrumb:focus {
   border-top: 1px solid #efefef;
   padding: 15px 5px;
   margin: 0;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .asset-browser-message {

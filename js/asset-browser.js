@@ -7,9 +7,9 @@
 
   Drupal.behaviors.acquiadamAssetBrowser = {
     attach: function () {
-      $(".acquiadam-asset-browser").height($(window).height() - $(".filter-sort-container").height() - 175);
+      $(".acquiadam-asset-browser").height($(window).height() - $(".filter-sort-container").height());
       $(window).on('resize', function () {
-        $(".acquiadam-asset-browser").height($(window).height() - $(".filter-sort-container").height() - 175);
+        $(".acquiadam-asset-browser").height($(window).height() - $(".filter-sort-container").height());
       });
     }
   };
