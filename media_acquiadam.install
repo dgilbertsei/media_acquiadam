@@ -208,6 +208,23 @@ function media_acquiadam_update_8105(&$sandbox) {
 }
 
 /**
+ * Update Acquia Dam settings to fix a schema issue with sync_interval.
+ */
+function media_acquiadam_update_8106(&$sandbox) {
+  $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
+  $sync_interval = $config->get('sync_interval');
+  // If the interval is set to 0,
+  if ($sync_interval === '0') {
+    $int_val = 0;
+  }
+  else {
+    $int_val = intval($sync_interval);
+  }
+  $config->set('sync_interval', $int_val);
+  $config->save();
+}
+
+/**
  * Returns the entity view display associated with a bundle and view mode.
  *
  * This is an exact copy of the deprecated entity_get_display() from Core 8.6.x.
