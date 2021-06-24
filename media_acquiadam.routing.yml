@@ -14,12 +14,24 @@ entity.user.acquiadam_auth:
   requirements:
     _user_is_logged_in: 'TRUE'
     user: \d+
+  options:
+    no_cache: 'TRUE'
 
 media_acquiadam.auth_start:
   path: '/acquiadam/authStart'
   defaults:
     _title: 'Redirect to DAM'
     _controller: '\Drupal\media_acquiadam\Controller\OauthController::authStart'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+media_acquiadam.logout:
+  path: '/acquiadam/logout'
+  defaults:
+    _title: 'DAM Logout'
+    _controller: '\Drupal\media_acquiadam\Controller\OauthController::logout'
   requirements:
     _user_is_logged_in: 'TRUE'
   options:
@@ -32,6 +44,8 @@ media_acquiadam.auth_finish:
     _controller: '\Drupal\media_acquiadam\Controller\OauthController::authFinish'
   requirements:
     _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: 'TRUE'
 
 media_acquiadam.asset_details:
   path: 'acquiadam/asset/{assetId}'

@@ -43,6 +43,9 @@ media_acquiadam.settings:
     fallback_thumbnail:
       type: uri
       label: 'Fallback thumbnail'
+    samesite_cookie_disable:
+      type: integer
+      label: 'Disable SameSite Cookie Bypass'
 
 media.source.acquiadam_asset:
   type: media.source.field_aware

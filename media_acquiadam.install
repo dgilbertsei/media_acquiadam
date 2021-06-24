@@ -199,6 +199,15 @@ function media_acquiadam_update_8104(&$sandbox) {
 }
 
 /**
+ * Update Acquia Dam settings to include a setting to disable SameSite Cookies.
+ */
+function media_acquiadam_update_8105(&$sandbox) {
+  $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
+  $config->set('samesite_cookie_disable', FALSE);
+  $config->save();
+}
+
+/**
  * Returns the entity view display associated with a bundle and view mode.
  *
  * This is an exact copy of the deprecated entity_get_display() from Core 8.6.x.

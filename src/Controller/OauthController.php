@@ -145,7 +145,8 @@ class OauthController extends ControllerBase {
       $result[] = ['#markup' => '<p>' . $link->toString() . '</p>'];
     }
     elseif ($is_authenticated) {
-      $link = Link::createFromRoute('Reauthenticate', 'media_acquiadam.auth_start', ['auth_finish_redirect' => $redirect_url]);
+      $logout_link = Link::createFromRoute('Logout from DAM', 'media_acquiadam.logout', ['auth_finish_redirect' => $redirect_url]);
+      $reauthenticate_link = Link::createFromRoute('Reauthenticate', 'media_acquiadam.auth_start', ['auth_finish_redirect' => $redirect_url]);
       $result[] = ['#markup' => '<p>' . $this->t('You are authenticated with Acquia DAM.') . '</p>'];
       $result[] = [
         '#markup' => '<p>' . $this->t('Your authentication expires on @date.',
@@ -153,7 +154,7 @@ class OauthController extends ControllerBase {
             '@date' => $this->dateFormatter->format($access_token_expiration),
           ]) . '</p>',
       ];
-      $result[] = ['#markup' => '<p>' . $link->toString() . '</p>'];
+      $result[] = ['#markup' => '<p>' . $reauthenticate_link->toString() . ' | ' . $logout_link->toString() . '</p>'];
     }
 
     return !empty($result) ? $result : NULL;
@@ -168,6 +169,20 @@ class OauthController extends ControllerBase {
     $authFinishRedirect = $this->request->query->get('auth_finish_redirect');
     $this->oauth->setAuthFinishRedirect($authFinishRedirect);
     return new TrustedRedirectResponse($this->oauth->getAuthLink());
+  }
+
+  /**
+   * Redirects the user to the auth url.
+   *
+   * Route: /acquiadam/logout.
+   */
+  public function logout() {
+    $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token');
+    $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_access_token_expiration');
+    $this->userData->delete('media_acquiadam', $this->currentUser->id(), 'acquiadam_refresh_token');
+
+    $authFinishRedirect = $this->request->query->get('auth_finish_redirect');
+    return new TrustedRedirectResponse($authFinishRedirect);
   }
 
   /**

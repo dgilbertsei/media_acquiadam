@@ -1,4 +1,10 @@
 services:
+  media_acquiadam.cookie_samesite.session_configuration:
+    class: Drupal\media_acquiadam\Session\CookieSameSiteSessionConfiguration
+    decorates: session_configuration
+    public: false
+    arguments:
+      - '%session.storage.options%'
   media_acquiadam.client_factory:
     class: Drupal\media_acquiadam\ClientFactory
     arguments: ['@config.factory', '@http_client', '@user.data', '@current_user']
@@ -10,7 +16,7 @@ services:
     arguments: ['@media_acquiadam.client_factory', 'current', '@logger.factory', '@media_acquiadam.asset_data']
   media_acquiadam.oauth:
     class: Drupal\media_acquiadam\Oauth
-    arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client', '@logger.factory', '@current_user']
+    arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client', '@logger.factory', '@current_user', '@request_stack']
   media_acquiadam.asset_data:
     class: Drupal\media_acquiadam\AssetData
     arguments: ['@database']

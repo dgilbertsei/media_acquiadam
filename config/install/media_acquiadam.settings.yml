@@ -10,3 +10,4 @@ oauth:
 notifications_sync: 0
 perform_sync_delete: 0
 num_images_per_page: 12
+samesite_cookie_disable: 0

@@ -112,6 +112,13 @@ class Acquiadam extends WidgetBase {
 
   /**
    * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
+  }
+
+  /**
+   * {@inheritdoc}
    *
    * @todo Add more settings for configuring this widget.
    */
@@ -142,13 +149,6 @@ class Acquiadam extends WidgetBase {
     }
 
     return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
   }
 
   /**
@@ -191,14 +191,25 @@ class Acquiadam extends WidgetBase {
         }
       }
       catch (InvalidCredentialsException $x) {
-        $form['message'] = [
-          '#theme' => 'asset_browser_message',
-          '#message' => $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
+        $message = '';
+        if ($config->get('samesite_cookie_disable') || $this->requestStack->getCurrentRequest()
+          ->getScheme() == "http") {
+          $message = $this->t("You are not authenticated. %authenticate first, then re-open this modal to browse Acquia DAM assets..", [
+            '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [], ['attributes' => ['target' => '_blank']])
+              ->toString(),
+          ]);
+        }
+        else {
+          $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
             '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [
               'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
                 ->getRequestUri(),
             ])->toString(),
-          ]),
+          ]);
+        }
+        $form['message'] = [
+          '#theme' => 'asset_browser_message',
+          '#message' => $message,
           '#attached' => [
             'library' => [
               'media_acquiadam/asset_browser',
@@ -572,79 +583,12 @@ class Acquiadam extends WidgetBase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  protected function prepareEntities(array $form, FormStateInterface $form_state) {
-    // Get asset id's from form state.
-    $asset_ids = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
-    // Load type information.
-    /** @var \Drupal\media\MediaTypeInterface $media_type */
-    $media_type = $this->entityTypeManager->getStorage('media_type')
-      ->load($this->configuration['media_type']);
-    // Get the source field for this type which stores the asset id.
-    $source_field = $media_type->getSource()
-      ->getSourceFieldDefinition($media_type)
-      ->getName();
-    // Query for existing entities.
-    $existing_ids = $this->entityTypeManager->getStorage('media')
-      ->getQuery()
-      ->condition('bundle', $media_type->id())
-      ->condition($source_field, $asset_ids, 'IN')
-      ->execute();
-    // Load the entities found.
-    $entities = $this->entityTypeManager->getStorage('media')
-      ->loadMultiple($existing_ids);
-    // Loop through the existing entities.
-    foreach ($entities as $entity) {
-      // Set the asset id of the current entity.
-      $asset_id = $entity->get($source_field)->value;
-      // If the asset id of the entity is in the list of asset id's selected.
-      if (in_array($asset_id, $asset_ids)) {
-        // Remove the asset id from the input so it does not get fetched
-        // and does not get created as a duplicate.
-        unset($asset_ids[$asset_id]);
-      }
-    }
-    // Fetch the assets.
-    $assets = $this->acquiadam->getAssetMultiple($asset_ids);
-    // Loop through the returned assets.
-    foreach ($assets as $asset) {
-      // Initialize entity values.
-      $entity_values = [
-        'bundle' => $media_type->id(),
-        // This should be the current user id.
-        'uid' => $this->user->id(),
-        // This should be the current language code.
-        'langcode' => $this->languageManager->getCurrentLanguage()->getId(),
-        // This should map the asset status to the drupal entity status.
-        'status' => ($asset->status === 'active'),
-        // Set the entity name to the asset name.
-        'name' => $asset->name,
-        // Set the chosen source field for this entity to the asset id.
-        $source_field => $asset->id,
-      ];
-      // Create a new entity to represent the asset.
-      $entity = $this->entityTypeManager->getStorage('media')
-        ->create($entity_values);
-      // Save the entity.
-      $entity->save();
-      // Reload the entity to make sure we have everything populated properly.
-      $entity = $this->entityTypeManager->getStorage('media')
-        ->load($entity->id());
-      // Add the new entity to the array of returned entities.
-      $entities[] = $entity;
-    }
-    // Return the entities.
-    return $entities;
-  }
-
-  /**
    * Format display of one asset in media browser.
-   *
-   * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
    *
    * @return string
    *   Element HTML markup.
+   *
+   * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
    */
   public function layoutMediaEntity(Asset $acquiadamAsset) {
     $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
@@ -660,71 +604,6 @@ class Acquiadam extends WidgetBase {
     }
     $element = '<div class="acquiadam-asset-checkbox">' . $thumbnail . '<div class="acquiadam-asset-details"><a href="/acquiadam/asset/' . $acquiadamAsset->id . '" class="use-ajax" data-dialog-type="modal"><img src="/' . $modulePath . '/img/ext-link.png" alt="Folder link" class="acquiadam-asset-browser-icon" /></a><p class="acquiadam-asset-filename">' . $assetName . '</p></div></div>';
     return $element;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validate(array &$form, FormStateInterface $form_state) {
-    // If the primary submit button was clicked to select assets.
-    if (!empty($form_state->getTriggeringElement()['#eb_widget_main_submit'])) {
-      // The media bundle.
-      $media_bundle = $this->entityTypeManager->getStorage('media_type')
-        ->load($this->configuration['media_type']);
-      // Load the field definitions for this bundle.
-      $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
-      // Load the file settings to validate against.
-      $field_map = $media_bundle->getFieldMap();
-      if (!isset($field_map['file'])) {
-        $message = $this->t('Missing file mapping. Check your media configuration.');
-        $form_state->setError($form['widget']['asset-container']['assets'], $message);
-        return;
-      }
-      $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
-        ->getSetting('file_extensions');
-      $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
-      // The form input uses checkboxes which returns zero for unchecked assets.
-      // Remove these unchecked assets.
-      $assets = array_filter($form_state->getValue('assets'));
-      // Fetch assets.
-      $dam_assets = $this->acquiadam->getAssetMultiple($assets);
-      // Get the cardinality for the media field that is being populated.
-      $field_cardinality = $form_state->get([
-        'entity_browser',
-        'validators',
-        'cardinality',
-        'cardinality',
-      ]);
-
-      if (!count($assets)) {
-        $form_state->setError($form['widget']['asset-container'], $this->t('Please select an asset.'));
-      }
-
-      // If the field cardinality is limited and the number of assets selected
-      // is greater than the field cardinality.
-      if ($field_cardinality > 0 && count($assets) > $field_cardinality) {
-        // Format the error message for singular or plural
-        // depending on cardinality.
-        $message = $this->formatPlural($field_cardinality, 'You can not select more than 1 entity.', 'You can not select more than @count entities.');
-        // Set the error message on the form.
-        $form_state->setError($form['widget']['asset-container']['assets'], $message);
-      }
-
-      // If the asset's file type does not match allowed file types.
-      foreach ($dam_assets as $asset) {
-        $filetype = $asset->filetype;
-        $type_is_supported = in_array($filetype, $supported_extensions);
-
-        if (!$type_is_supported) {
-          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
-            '@filetype' => $filetype,
-            '@supported_types' => implode(', ', $supported_extensions),
-          ]);
-          // Set the error message on the form.
-          $form_state->setError($form['widget']['asset-container']['assets'], $message);
-        }
-      }
-    }
   }
 
   /**
@@ -815,12 +694,144 @@ class Acquiadam extends WidgetBase {
   /**
    * {@inheritdoc}
    */
+  public function validate(array &$form, FormStateInterface $form_state) {
+    // If the primary submit button was clicked to select assets.
+    if (!empty($form_state->getTriggeringElement()['#eb_widget_main_submit'])) {
+      // The media bundle.
+      $media_bundle = $this->entityTypeManager->getStorage('media_type')
+        ->load($this->configuration['media_type']);
+      // Load the field definitions for this bundle.
+      $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
+      // Load the file settings to validate against.
+      $field_map = $media_bundle->getFieldMap();
+      if (!isset($field_map['file'])) {
+        $message = $this->t('Missing file mapping. Check your media configuration.');
+        $form_state->setError($form['widget']['asset-container']['assets'], $message);
+        return;
+      }
+      $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
+        ->getSetting('file_extensions');
+      $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
+      // The form input uses checkboxes which returns zero for unchecked assets.
+      // Remove these unchecked assets.
+      $assets = array_filter($form_state->getValue('assets'));
+      // Fetch assets.
+      $dam_assets = $this->acquiadam->getAssetMultiple($assets);
+      // Get the cardinality for the media field that is being populated.
+      $field_cardinality = $form_state->get([
+        'entity_browser',
+        'validators',
+        'cardinality',
+        'cardinality',
+      ]);
+
+      if (!count($assets)) {
+        $form_state->setError($form['widget']['asset-container'], $this->t('Please select an asset.'));
+      }
+
+      // If the field cardinality is limited and the number of assets selected
+      // is greater than the field cardinality.
+      if ($field_cardinality > 0 && count($assets) > $field_cardinality) {
+        // Format the error message for singular or plural
+        // depending on cardinality.
+        $message = $this->formatPlural($field_cardinality, 'You can not select more than 1 entity.', 'You can not select more than @count entities.');
+        // Set the error message on the form.
+        $form_state->setError($form['widget']['asset-container']['assets'], $message);
+      }
+
+      // If the asset's file type does not match allowed file types.
+      foreach ($dam_assets as $asset) {
+        $filetype = $asset->filetype;
+        $type_is_supported = in_array($filetype, $supported_extensions);
+
+        if (!$type_is_supported) {
+          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
+            '@filetype' => $filetype,
+            '@supported_types' => implode(', ', $supported_extensions),
+          ]);
+          // Set the error message on the form.
+          $form_state->setError($form['widget']['asset-container']['assets'], $message);
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function submit(array &$element, array &$form, FormStateInterface $form_state) {
     $assets = [];
     if (!empty($form_state->getTriggeringElement()['#eb_widget_main_submit'])) {
       $assets = $this->prepareEntities($form, $form_state);
     }
     $this->selectEntities($assets, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function prepareEntities(array $form, FormStateInterface $form_state) {
+    // Get asset id's from form state.
+    $asset_ids = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
+    // Load type information.
+    /** @var \Drupal\media\MediaTypeInterface $media_type */
+    $media_type = $this->entityTypeManager->getStorage('media_type')
+      ->load($this->configuration['media_type']);
+    // Get the source field for this type which stores the asset id.
+    $source_field = $media_type->getSource()
+      ->getSourceFieldDefinition($media_type)
+      ->getName();
+    // Query for existing entities.
+    $existing_ids = $this->entityTypeManager->getStorage('media')
+      ->getQuery()
+      ->condition('bundle', $media_type->id())
+      ->condition($source_field, $asset_ids, 'IN')
+      ->execute();
+    // Load the entities found.
+    $entities = $this->entityTypeManager->getStorage('media')
+      ->loadMultiple($existing_ids);
+    // Loop through the existing entities.
+    foreach ($entities as $entity) {
+      // Set the asset id of the current entity.
+      $asset_id = $entity->get($source_field)->value;
+      // If the asset id of the entity is in the list of asset id's selected.
+      if (in_array($asset_id, $asset_ids)) {
+        // Remove the asset id from the input so it does not get fetched
+        // and does not get created as a duplicate.
+        unset($asset_ids[$asset_id]);
+      }
+    }
+    // Fetch the assets.
+    $assets = $this->acquiadam->getAssetMultiple($asset_ids);
+    // Loop through the returned assets.
+    foreach ($assets as $asset) {
+      // Initialize entity values.
+      $entity_values = [
+        'bundle' => $media_type->id(),
+        // This should be the current user id.
+        'uid' => $this->user->id(),
+        // This should be the current language code.
+        'langcode' => $this->languageManager->getCurrentLanguage()->getId(),
+        // This should map the asset status to the drupal entity status.
+        'status' => ($asset->status === 'active'),
+        // Set the entity name to the asset name.
+        'name' => $asset->name,
+        // Set the chosen source field for this entity to the asset id.
+        $source_field => $asset->id,
+      ];
+      // Create a new entity to represent the asset.
+      $entity = $this->entityTypeManager->getStorage('media')
+        ->create($entity_values);
+      // Save the entity.
+      $entity->save();
+      // Reload the entity to make sure we have everything populated properly.
+      $entity = $this->entityTypeManager->getStorage('media')
+        ->load($entity->id());
+      // Add the new entity to the array of returned entities.
+      $entities[] = $entity;
+    }
+    // Return the entities.
+    return $entities;
   }
 
 }
