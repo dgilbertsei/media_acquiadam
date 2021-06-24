@@ -90,7 +90,7 @@ function media_acquiadam_preprocess_checkboxes__acquiadam_assets(&$variables) {
  *
  * Override the preSave function from \Drupal\media\Entity\Media because it
  * ignores empty values (e.g. status = 0) and doesn't set date values for
- * created/changed because the are already set by Drupal core.
+ * created/changed because they are already set by Drupal core.
  */
 function media_acquiadam_media_presave(MediaInterface $entity) {
 
