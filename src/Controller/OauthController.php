@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @file
+ *
+ * @todo: Replace with new service's controller.
+ */
 namespace Drupal\media_acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
