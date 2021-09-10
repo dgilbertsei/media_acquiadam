@@ -2,7 +2,7 @@
 /**
  * @file
  *
- * @todo: Replace with the other services's authentication routines.
+ * @todo: Wildcat. Replace with the other services's authentication routines.
  */
 namespace Drupal\media_acquiadam;
 

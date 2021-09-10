@@ -135,7 +135,7 @@ class ClientFactory implements ContainerInjectionInterface {
    * @return \Drupal\media_acquiadam\Client
    *   The Acquia DAM client.
    *
-   * @todo: Replace the guzzleClient provided to the Client with a REST client.
+   * @todo: Wildcat. Replace the guzzleClient provided to the Client with a REST client.
    */
   public function getWithCredentials($username, $password, $client_id, $secret) {
     return new Client(

@@ -102,7 +102,7 @@ If you are using the [Crop](https://www.drupal.org/project/crop) module on your 
 In order to use the Acquia DAM asset browser you will need to create a new entity browser or add a Acquia DAM widget to an existing entity browser (/admin/config/content/entity_browser).
 
 - NOTE: For more information on entity browser configuration please see the [Entity Browser](https://www.drupal.org/project/entity_browser) module and the [documentation](https://github.com/drupal-media/d8-guide/blob/master/modules/entity_browser/inline_entity_form.md) page on github
-- NOTE: When editing and/or creating an entity browser, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button. 
+- NOTE: When editing and/or creating an entity browser, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button.
 - NOTE: When using the "Modal" Display plugin you may want to disable the "Auto open entity browser" setting.
 
 ### Add a media field
@@ -119,10 +119,13 @@ The media entity module provides a default embed button which can be configured 
 ### Acquia DAM Usage Report
 For a usage report, enable the media_acquiadam_report module. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
 
-The usage report can be accessed beneath the Media tab at /admin/content/media or directly via /acquiadam/asset/report. 
+The usage report can be accessed beneath the Media tab at /admin/content/media or directly via /acquiadam/asset/report.
 
 This module depends on the entity_usage module for it's media use count and references. For configuration options, refer to the entity_usage documentation: https://www.drupal.org/docs/8/modules/entity-usage.
 
 - NOTE: Usage count currently includes revisions. A node, with versioning enabled and a media item attached to it, will display a use count for each revision that references the media item. Track the discussion and improvements to this behavior here: https://www.drupal.org/project/entity_usage/issues/2952210
 
 Project page: http://drupal.org/project/media_acquiadam
+
+## TODO Items
+@todo: Wildcat. Remove the lightning_acquiadam submodule.
