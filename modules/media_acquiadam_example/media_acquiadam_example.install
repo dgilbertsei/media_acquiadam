@@ -10,7 +10,7 @@ use Drupal\entity_browser\Entity\EntityBrowser;
 /**
  * Implements hook_install().
  */
-function media_acquiadam_example_install() {
+function acquiadam_example_install() {
 
   // If we're using Lightning Media we should add the DAM browser by default so
   // there is less initial setup required from the end user.
@@ -62,11 +62,11 @@ function media_acquiadam_example_install() {
 /**
  * Implements hook_requirements().
  */
-function media_acquiadam_example_requirements($phase) {
+function acquiadam_example_requirements($phase) {
   $requirements = [];
 
   if ('runtime' === $phase) {
-    $requirements['media_acquiadam_example_uninstall'] = [
+    $requirements['acquiadam_example_uninstall'] = [
       'title' => t('Media: Acquia DAM'),
       'description' => t(
         'The Media: Acquia DAM - Example Configuration module has imported its configuration and can now be safely uninstalled.'
@@ -77,7 +77,7 @@ function media_acquiadam_example_requirements($phase) {
   elseif ('install' === $phase) {
     $config_factory = Drupal::configFactory();
     if (!$config_factory->get('media.type.acquia_dam_asset')->isNew()) {
-      $requirements['media_acquiadam_example_noinstall'] = [
+      $requirements['acquiadam_example_noinstall'] = [
         'title' => t('Media: Acquia DAM'),
         'description' => t(
           'The Media: Acquia DAM - Example Configuration module has already been installed once and cannot be installed again.'

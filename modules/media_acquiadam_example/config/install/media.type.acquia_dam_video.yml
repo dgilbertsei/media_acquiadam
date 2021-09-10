@@ -2,7 +2,7 @@ langcode: en
 status: true
 dependencies:
   module:
-    - media_acquiadam
+    - acquiadam
 id: acquia_dam_video
 label: 'Acquia DAM Video'
 description: 'A video asset hosted on Acquia DAM.'

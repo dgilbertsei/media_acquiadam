@@ -4,7 +4,7 @@
  *
  * @todo: Wildcat. Replace with the other services's authentication routines.
  */
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Access\CsrfTokenGenerator;
@@ -30,7 +30,7 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
   protected $damApiBase = "https://apiv2.webdamdb.com";
 
   /**
-   * The media_acquiadam configuration.
+   * The acquiadam configuration.
    *
    * @var \Drupal\Core\Config\Config|\Drupal\Core\Config\ImmutableConfig
    */
@@ -84,11 +84,11 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public function __construct(ConfigFactoryInterface $config_factory, CsrfTokenGenerator $csrfTokenGenerator, UrlGeneratorInterface $urlGenerator, ClientInterface $httpClient, LoggerChannelFactoryInterface $loggerChannelFactory, AccountProxyInterface $account) {
-    $this->config = $config_factory->get('media_acquiadam.settings');
+    $this->config = $config_factory->get('acquiadam.settings');
     $this->csrfTokenGenerator = $csrfTokenGenerator;
     $this->urlGenerator = $urlGenerator;
     $this->httpClient = $httpClient;
-    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->loggerChannel = $loggerChannelFactory->get('acquiadam');
     $this->currentUser = $account;
   }
 
@@ -110,7 +110,7 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public function authRequestStateIsValid($token) {
-    return $this->csrfTokenGenerator->validate($token, 'media_acquiadam.oauth');
+    return $this->csrfTokenGenerator->validate($token, 'acquiadam.oauth');
   }
 
   /**
@@ -132,7 +132,7 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
           'grant_type' => 'authorization_code',
           'code' => $auth_code,
           'redirect_uri' => $this->urlGenerator->generateFromRoute(
-            'media_acquiadam.auth_finish',
+            'acquiadam.auth_finish',
             ['auth_finish_redirect' => $this->authFinishRedirect],
             ['absolute' => TRUE]
           ),
@@ -157,9 +157,9 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
    */
   public function getAuthLink() {
     $client_id = $this->config->get('client_id');
-    $token = $this->csrfTokenGenerator->get('media_acquiadam.oauth');
+    $token = $this->csrfTokenGenerator->get('acquiadam.oauth');
     $redirect_uri = $this->urlGenerator->generateFromRoute(
-      'media_acquiadam.auth_finish',
+      'acquiadam.auth_finish',
       ['auth_finish_redirect' => $this->authFinishRedirect],
       ['absolute' => TRUE]
     );
@@ -189,7 +189,7 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
           'client_id' => $this->config->get('client_id'),
           'client_secret' => $this->config->get('secret'),
           'redirect_uri' => $this->urlGenerator->generateFromRoute(
-            'media_acquiadam.auth_finish',
+            'acquiadam.auth_finish',
             ['auth_finish_redirect' => $this->authFinishRedirect],
             ['absolute' => TRUE]
           ),

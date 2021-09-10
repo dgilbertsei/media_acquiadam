@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Service;
+namespace Drupal\acquiadam\Service;
 
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\TimeInterface;
@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\StateInterface;
-use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\acquiadam\AcquiadamInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -21,14 +21,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * assets where changed within the given period of time, and adds them to the
  * queue.
  *
- * @package Drupal\media_acquiadam
+ * @package Drupal\acquiadam
  */
 class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInjectionInterface {
 
   /**
    * The Acquiadam Service.
    *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface
+   * @var \Drupal\acquiadam\AcquiadamInterface
    */
   protected $acquiadam;
 
@@ -114,7 +114,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   /**
    * AssetRefreshManager constructor.
    *
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
+   * @param \Drupal\acquiadam\AcquiadamInterface $acquiadam
    *   The Acquiadam Service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The Drupal State Service.
@@ -133,7 +133,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager, TimeInterface $time) {
     $this->acquiadam = $acquiadam;
     $this->state = $state;
-    $this->logger = $logger_factory->get('media_acquiadam');
+    $this->logger = $logger_factory->get('acquiadam');
     $this->queue = $queue_factory->get($this->getQueueName());
     $this->mediaStorage = $entity_type_manager->getStorage('media');
     $this->time = $time;
@@ -144,7 +144,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('media_acquiadam.acquiadam'),
+      $container->get('acquiadam.acquiadam'),
       $container->get('state'),
       $container->get('logger.factory'),
       $container->get('queue'),
@@ -157,7 +157,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    * {@inheritdoc}
    */
   public function getQueueName(): string {
-    return 'media_acquiadam_asset_refresh';
+    return 'acquiadam_asset_refresh';
   }
 
   /**
@@ -329,7 +329,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Timestamp.
    */
   protected function getStartTime(): int {
-    $start_time_timestamp = $this->state->get('media_acquiadam.notifications_starttime');
+    $start_time_timestamp = $this->state->get('acquiadam.notifications_starttime');
     if ($start_time_timestamp) {
       return $start_time_timestamp;
     }
@@ -348,7 +348,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Timestamp.
    */
   protected function saveStartTime(int $timestamp) {
-    $this->state->set('media_acquiadam.notifications_starttime', $timestamp);
+    $this->state->set('acquiadam.notifications_starttime', $timestamp);
   }
 
   /**
@@ -361,7 +361,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Timestamp.
    */
   protected function getEndTime(): ?int {
-    return $this->state->get('media_acquiadam.notifications_endtime', $this->time->getRequestTime());
+    return $this->state->get('acquiadam.notifications_endtime', $this->time->getRequestTime());
   }
 
   /**
@@ -370,22 +370,22 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    * @param int $timestamp
    *   Timestamp.
    *
-   * @see \Drupal\media_acquiadam\Service\AssetRefreshManager::resetEndTime()
+   * @see \Drupal\acquiadam\Service\AssetRefreshManager::resetEndTime()
    */
   protected function saveEndTime(int $timestamp) {
-    if ($this->state->get('media_acquiadam.notifications_endtime')) {
+    if ($this->state->get('acquiadam.notifications_endtime')) {
       // Do not override the state if previously was set to non-zero value.
       return;
     }
 
-    $this->state->set('media_acquiadam.notifications_endtime', $timestamp);
+    $this->state->set('acquiadam.notifications_endtime', $timestamp);
   }
 
   /**
    * Resets the "End Time" Drupal State value.
    */
   protected function resetEndTime() {
-    $this->state->set('media_acquiadam.notifications_endtime', NULL);
+    $this->state->set('acquiadam.notifications_endtime', NULL);
   }
 
   /**
@@ -395,7 +395,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Page index.
    */
   protected function getNextPage(): ?int {
-    return $this->state->get('media_acquiadam.notifications_next_page');
+    return $this->state->get('acquiadam.notifications_next_page');
   }
 
   /**
@@ -405,14 +405,14 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Page index.
    */
   protected function saveNextPage(int $page) {
-    $this->state->set('media_acquiadam.notifications_next_page', $page);
+    $this->state->set('acquiadam.notifications_next_page', $page);
   }
 
   /**
    * Resets the "Next Page" value to the Drupal State.
    */
   protected function resetNextPage() {
-    $this->state->set('media_acquiadam.notifications_next_page', NULL);
+    $this->state->set('acquiadam.notifications_next_page', NULL);
   }
 
 }

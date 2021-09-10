@@ -1,14 +1,14 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Kernel;
+namespace Drupal\Tests\acquiadam\Kernel;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
-use Drupal\media_acquiadam\ClientFactory;
-use Drupal\media_acquiadam_test\TestClient;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\acquiadam\ClientFactory;
+use Drupal\acquiadam_test\TestClient;
+use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 
 /**
  * Base class for Acquia DAM kernel tests.
@@ -29,14 +29,14 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
     'file',
     'image',
     'media',
-    'media_acquiadam',
-    'media_acquiadam_test',
+    'acquiadam',
+    'acquiadam_test',
   ];
 
   /**
    * The test client.
    *
-   * @var \Drupal\media_acquiadam_test\TestClient
+   * @var \Drupal\acquiadam_test\TestClient
    */
   protected $testClient;
 
@@ -49,11 +49,11 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
 
     $this->setTestClient();
 
-    $this->installConfig('media_acquiadam_test');
+    $this->installConfig('acquiadam_test');
     $this->installEntitySchema('file');
     $this->installEntitySchema('media');
     $this->installSchema('file', ['file_usage']);
-    $this->installSchema('media_acquiadam', ['acquiadam_assets_data']);
+    $this->installSchema('acquiadam', ['acquiadam_assets_data']);
   }
 
   /**
@@ -69,7 +69,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ->method('get')
       ->willReturn($this->testClient);
 
-    $this->container->set('media_acquiadam.client_factory',
+    $this->container->set('acquiadam.client_factory',
       $acquiadam_client_factory);
 
     \Drupal::setContainer($this->container);
@@ -129,7 +129,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    */
   protected function getAssetUri(Asset $asset, MediaInterface $media) {
     $destination_folder = $this->container
-      ->get('media_acquiadam.asset_file.helper')
+      ->get('acquiadam.asset_file.helper')
       ->getDestinationFromEntity($media, 'field_acquiadam_asset_file');
 
     return sprintf('%s/%s', $destination_folder, $asset->filename);

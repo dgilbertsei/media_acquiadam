@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam_report\EventSubscriber;
+namespace Drupal\acquiadam_report\EventSubscriber;
 
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -49,7 +49,7 @@ class AcquiadamUsageSubscriber implements EventSubscriberInterface {
   public function mediaUsageChange(EntityUsageEvent $event) {
     if ($event->getTargetEntityType() == 'media') {
       $mid = $event->getTargetEntityId();
-      $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
+      $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
       $media = $this->entityTypeManager->getStorage('media')->load($mid);
       $media_bundle = $media->bundle();
 

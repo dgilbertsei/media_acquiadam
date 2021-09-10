@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam_test;
+namespace Drupal\acquiadam_test;
 
 use cweagans\webdam\Entity\Asset;
 

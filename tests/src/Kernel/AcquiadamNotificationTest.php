@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Kernel;
+namespace Drupal\Tests\acquiadam\Kernel;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\media\Entity\Media;
@@ -8,7 +8,7 @@ use Drupal\media\Entity\Media;
 /**
  * Tests integration with notification API.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AcquiadamNotificationTest extends AcquiadamKernelTestBase {
 
@@ -75,7 +75,7 @@ class AcquiadamNotificationTest extends AcquiadamKernelTestBase {
    */
   protected function enableNotificationSync() {
     $config_factory = $this->container->get('config.factory');
-    $config = $config_factory->getEditable('media_acquiadam.settings');
+    $config = $config_factory->getEditable('acquiadam.settings');
     $config->set('sync_interval', -1);
     $config->set('notifications_sync', 1);
     $config->save(TRUE);

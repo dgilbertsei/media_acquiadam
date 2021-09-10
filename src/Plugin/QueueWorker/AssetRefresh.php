@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Plugin\QueueWorker;
+namespace Drupal\acquiadam\Plugin\QueueWorker;
 
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -8,14 +8,14 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Queue\SuspendQueueException;
-use Drupal\media_acquiadam\Service\AssetMediaFactory;
+use Drupal\acquiadam\Service\AssetMediaFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Updates Acquia DAM assets.
  *
  * @QueueWorker (
- *   id = "media_acquiadam_asset_refresh",
+ *   id = "acquiadam_asset_refresh",
  *   title = @Translation("Acquia DAM Asset Refresh"),
  *   cron = {"time" = 30}
  * )
@@ -39,7 +39,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   /**
    * Media: Acquia DAM Asset Media Factory service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -69,9 +69,9 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('logger.factory')->get('media_acquiadam'),
+      $container->get('logger.factory')->get('acquiadam'),
       $container->get('entity_type.manager'),
-      $container->get('media_acquiadam.asset_media.factory'),
+      $container->get('acquiadam.asset_media.factory'),
       $container->get('config.factory')
     );
   }
@@ -119,7 +119,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       return FALSE;
     }
 
-    $perform_delete = $this->configFactory->get('media_acquiadam.settings')->get('perform_sync_delete');
+    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('perform_sync_delete');
     if ((empty($asset) || $asset->status == 'inactive') && $perform_delete && !$entity->isPublished()) {
       $entity->delete();
       $this->loggerChannel->warning(

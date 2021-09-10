@@ -13,7 +13,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 /**
  * Implements hook_schema().
  */
-function media_acquiadam_schema() {
+function acquiadam_schema() {
   $schema = [];
 
   $schema['acquiadam_assets_data'] = [
@@ -60,7 +60,7 @@ function media_acquiadam_schema() {
 /**
  * Installs the new asset data schema if necessary.
  */
-function media_acquiadam_update_8101(&$sandbox) {
+function acquiadam_update_8101(&$sandbox) {
 
   $table_name = 'acquiadam_assets_data';
 
@@ -69,14 +69,14 @@ function media_acquiadam_update_8101(&$sandbox) {
     return;
   }
 
-  $new_schema = media_acquiadam_schema();
+  $new_schema = acquiadam_schema();
   $db_schema->createTable($table_name, $new_schema[$table_name]);
 }
 
 /**
  * Consolidate Acquia DAM bundle source fields to a single field.
  */
-function media_acquiadam_update_8102(&$sandbox) {
+function acquiadam_update_8102(&$sandbox) {
   $default_field_name = 'field_acquiadam_asset_id';
   $destination_table = 'media__' . $default_field_name;
   $connection = Drupal::database();
@@ -93,7 +93,7 @@ function media_acquiadam_update_8102(&$sandbox) {
   }
 
   // Get asset id fields and reduce to those that don't match the default.
-  $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
+  $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
   $fields_to_migrate = array_diff($asset_id_fields, ['field_acquiadam_asset_id']);
 
   // Loop through existing bundles/fields and transfer field table data
@@ -129,7 +129,7 @@ function media_acquiadam_update_8102(&$sandbox) {
       $field->save();
 
       // Assign widget settings for the 'default' form mode.
-      media_acquiadam_entity_get_form_display('media', $bundle, 'default')
+      acquiadam_entity_get_form_display('media', $bundle, 'default')
         ->setComponent($default_field_name, ['type' => 'number'])
         ->save();
 
@@ -137,7 +137,7 @@ function media_acquiadam_update_8102(&$sandbox) {
       $view_modes = Drupal::service('entity_display.repository')
         ->getViewModes('media');
       foreach ($view_modes as $view_mode => $view_mode_config) {
-        media_acquiadam_entity_get_display('media', $bundle, $view_mode)
+        acquiadam_entity_get_display('media', $bundle, $view_mode)
           ->removeComponent($default_field_name)
           ->save();
       }
@@ -148,7 +148,7 @@ function media_acquiadam_update_8102(&$sandbox) {
 /**
  * Migrate type mappings to the new type_id property.
  */
-function media_acquiadam_update_8103(&$sandbox) {
+function acquiadam_update_8103(&$sandbox) {
   $media_bundles = Drupal::entityTypeManager()
     ->getStorage('media_type')
     ->loadByProperties(['source' => 'acquiadam_asset']);
@@ -171,7 +171,7 @@ function media_acquiadam_update_8103(&$sandbox) {
 /**
  * Migrate time mappings to the new datetime properties.
  */
-function media_acquiadam_update_8104(&$sandbox) {
+function acquiadam_update_8104(&$sandbox) {
   $media_bundles = Drupal::entityTypeManager()
     ->getStorage('media_type')
     ->loadByProperties(['source' => 'acquiadam_asset']);
@@ -201,8 +201,8 @@ function media_acquiadam_update_8104(&$sandbox) {
 /**
  * Update Acquia Dam settings to include a setting to disable SameSite Cookies.
  */
-function media_acquiadam_update_8105(&$sandbox) {
-  $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
+function acquiadam_update_8105(&$sandbox) {
+  $config = \Drupal::configFactory()->getEditable('acquiadam.settings');
   $config->set('samesite_cookie_disable', FALSE);
   $config->save();
 }
@@ -210,8 +210,8 @@ function media_acquiadam_update_8105(&$sandbox) {
 /**
  * Update Acquia Dam settings to fix a schema issue with sync_interval.
  */
-function media_acquiadam_update_8106(&$sandbox) {
-  $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
+function acquiadam_update_8106(&$sandbox) {
+  $config = \Drupal::configFactory()->getEditable('acquiadam.settings');
   $sync_interval = $config->get('sync_interval');
   // If the interval is set to 0,
   if ($sync_interval === '0') {
@@ -247,7 +247,7 @@ function media_acquiadam_update_8106(&$sandbox) {
  * @see \Drupal\Core\Entity\EntityStorageInterface::create()
  * @see \Drupal\Core\Entity\EntityStorageInterface::load()
  */
-function media_acquiadam_entity_get_display($entity_type, $bundle, $view_mode) {
+function acquiadam_entity_get_display($entity_type, $bundle, $view_mode) {
   // Try loading the display from configuration.
   $display = EntityViewDisplay::load($entity_type . '.' . $bundle . '.' . $view_mode);
 
@@ -291,7 +291,7 @@ function media_acquiadam_entity_get_display($entity_type, $bundle, $view_mode) {
  * @see \Drupal\Core\Entity\EntityStorageInterface::create()
  * @see \Drupal\Core\Entity\EntityStorageInterface::load()
  */
-function media_acquiadam_entity_get_form_display($entity_type, $bundle, $form_mode) {
+function acquiadam_entity_get_form_display($entity_type, $bundle, $form_mode) {
   // Try loading the entity from configuration.
   $entity_form_display = EntityFormDisplay::load($entity_type . '.' . $bundle . '.' . $form_mode);
 

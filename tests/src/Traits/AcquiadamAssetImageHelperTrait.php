@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Traits;
+namespace Drupal\Tests\acquiadam\Traits;
 
-use Drupal\media_acquiadam\Service\AssetImageHelper;
+use Drupal\acquiadam\Service\AssetImageHelper;
 
 /**
  * Shared methods for dealing with a mocked AssetImageHelper.
@@ -12,7 +12,7 @@ trait AcquiadamAssetImageHelperTrait {
   /**
    * Create a stub AssetImageHelper that implements some basic functions.
    *
-   * @return \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    *   The stubbed service.
    */
   public function getAssetImageHelperStub() {

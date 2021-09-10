@@ -12,14 +12,14 @@ This module uses 2 types of authentication as required by the Acquia DAM API. Th
 
 ## Module installation
 
-Download and install the media_acquiadam module and all dependencies. [See here for help with installing modules](https://www.drupal.org/docs/8/extending-drupal-8/installing-drupal-8-modules).
+Download and install the acquiadam module and all dependencies. [See here for help with installing modules](https://www.drupal.org/docs/8/extending-drupal-8/installing-drupal-8-modules).
 
 - (2017-09-25) The current version of media_entity depends on entity (>=8.x-1.0-alpha3) which may have to be [installed manually](https://www.drupal.org/node/1499548)
 - The [Crop](https://www.drupal.org/project/crop) and Entity Browser IEF modules are recommended for increased functionality
 
 ### Step-by-step configuration guide
 
-This guide provides an example for how to implement the media_acquiadam module on your Drupal 8 site. See [https://docs.acquia.com/dam/integrate/drupal/](https://docs.acquia.com/dam/integrate/drupal/) for up to date information.
+This guide provides an example for how to implement the acquiadam module on your Drupal 8 site. See [https://docs.acquia.com/dam/integrate/drupal/](https://docs.acquia.com/dam/integrate/drupal/) for up to date information.
 
 ### Quick start configuration guide
 
@@ -117,7 +117,7 @@ The media entity module provides a default embed button which can be configured 
 - NOTE: When choosing an entity browser to use for the media embed button, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button. You may want to use the "iFrame" display plugin or create a separate Entity Browser to use with the media embed button
 
 ### Acquia DAM Usage Report
-For a usage report, enable the media_acquiadam_report module. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
+For a usage report, enable the acquiadam_report module. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
 
 The usage report can be accessed beneath the Media tab at /admin/content/media or directly via /acquiadam/asset/report.
 
@@ -125,7 +125,7 @@ This module depends on the entity_usage module for it's media use count and refe
 
 - NOTE: Usage count currently includes revisions. A node, with versioning enabled and a media item attached to it, will display a use count for each revision that references the media item. Track the discussion and improvements to this behavior here: https://www.drupal.org/project/entity_usage/issues/2952210
 
-Project page: http://drupal.org/project/media_acquiadam
+Project page: http://drupal.org/project/acquiadam
 
 ## TODO Items
 @todo: Wildcat. Remove the lightning_acquiadam submodule.

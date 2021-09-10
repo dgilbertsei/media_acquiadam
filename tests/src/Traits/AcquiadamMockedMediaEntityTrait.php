@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Traits;
+namespace Drupal\Tests\acquiadam\Traits;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\file\FileInterface;

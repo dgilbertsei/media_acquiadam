@@ -1,5 +1,5 @@
 {
-    "name": "drupal/media_acquiadam_report",
+    "name": "drupal/acquiadam_report",
     "type": "drupal-module",
     "description": "Provides DAM asset usage information.",
     "license": "GPL-2.0-or-later",

@@ -5,8 +5,8 @@ core_version_requirement: '^8 || ^9'
 type: module
 package: Media
 dependencies:
-  - media_acquiadam:media_acquiadam
-  - media_acquiadam:media_acquiadam_example
+  - acquiadam:acquiadam
+  - acquiadam:acquiadam_example
   - drupal:file
   - drupal:image
   - fallback_formatter:fallback_formatter

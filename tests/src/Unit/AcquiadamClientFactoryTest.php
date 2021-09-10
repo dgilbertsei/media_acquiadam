@@ -1,12 +1,12 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\media_acquiadam\Client;
-use Drupal\media_acquiadam\ClientFactory;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\acquiadam\Client;
+use Drupal\acquiadam\ClientFactory;
+use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
@@ -14,7 +14,7 @@ use GuzzleHttp\ClientInterface;
 /**
  * Client factory test.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AcquiadamClientFactoryTest extends UnitTestCase {
 
@@ -30,7 +30,7 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
   /**
    * Media: Acquia DAM client factory.
    *
-   * @var \Drupal\media_acquiadam\ClientFactory
+   * @var \Drupal\acquiadam\ClientFactory
    */
   protected $clientFactory;
 

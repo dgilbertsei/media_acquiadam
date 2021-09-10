@@ -1,12 +1,12 @@
 <?php
 
-namespace Drupal\media_acquiadam\Service;
+namespace Drupal\acquiadam\Service;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -28,7 +28,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   /**
    * A configured API object.
    *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client
+   * @var \Drupal\acquiadam\AcquiadamInterface|\Drupal\acquiadam\Client
    *   $acquiadam
    */
   protected $acquiadam;
@@ -45,7 +45,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   A Drupal date formatter service.
-   * @param \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client $acquiadam
+   * @param \Drupal\acquiadam\AcquiadamInterface|\Drupal\acquiadam\Client $acquiadam
    *   A configured API object.
    */
   public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam) {
@@ -59,7 +59,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('date.formatter'),
-      $container->get('media_acquiadam.acquiadam')
+      $container->get('acquiadam.acquiadam')
     );
   }
 

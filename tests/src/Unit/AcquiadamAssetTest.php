@@ -1,25 +1,25 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\media_acquiadam\MediaEntityHelper;
-use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
-use Drupal\media_acquiadam\Service\AssetImageHelper;
-use Drupal\media_acquiadam\Service\AssetMediaFactory;
-use Drupal\media_acquiadam\Service\AssetMetadataHelper;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
+use Drupal\acquiadam\MediaEntityHelper;
+use Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset;
+use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\acquiadam\Service\AssetMediaFactory;
+use Drupal\acquiadam\Service\AssetMetadataHelper;
+use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests to validate that the Media source plugin works as expected.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AcquiadamAssetTest extends UnitTestCase {
 
@@ -35,7 +35,7 @@ class AcquiadamAssetTest extends UnitTestCase {
   /**
    * Media: Acquia DAM media source.
    *
-   * @var \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset
+   * @var \Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset
    */
   protected $acquiadamMediaSource;
 
@@ -96,11 +96,11 @@ class AcquiadamAssetTest extends UnitTestCase {
       $field_type_plugin_manager);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
 
-    $this->container->set('media_acquiadam.asset_image.helper',
+    $this->container->set('acquiadam.asset_image.helper',
       $asset_image_helper);
-    $this->container->set('media_acquiadam.asset_metadata.helper',
+    $this->container->set('acquiadam.asset_metadata.helper',
       $asset_metadata_helper);
-    $this->container->set('media_acquiadam.asset_media.factory',
+    $this->container->set('acquiadam.asset_media.factory',
       $asset_media_factory);
     \Drupal::setContainer($this->container);
 

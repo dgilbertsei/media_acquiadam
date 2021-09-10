@@ -2,7 +2,7 @@ langcode: en
 status: true
 dependencies:
   module:
-    - media_acquiadam
+    - acquiadam
 id: acquia_dam_audio
 label: 'Acquia DAM Audio'
 description: 'An audio file hosted on Acquia DAM.'

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam_report\Routing;
+namespace Drupal\acquiadam_report\Routing;
 
 use Drupal\Core\Routing\RouteSubscriberBase;
 use Symfony\Component\Routing\RouteCollection;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Plugin\EntityBrowser\Widget;
+namespace Drupal\acquiadam\Plugin\EntityBrowser\Widget;
 
 use cweagans\webdam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
@@ -17,8 +17,8 @@ use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
 use Drupal\media\MediaSourceManager;
-use Drupal\media_acquiadam\AcquiadamInterface;
-use Drupal\media_acquiadam\Form\AcquiadamConfig;
+use Drupal\acquiadam\AcquiadamInterface;
+use Drupal\acquiadam\Form\AcquiadamConfig;
 use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -39,7 +39,7 @@ class Acquiadam extends WidgetBase {
   /**
    * The dam interface.
    *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface
+   * @var \Drupal\acquiadam\AcquiadamInterface
    */
   protected $acquiadam;
 
@@ -114,7 +114,7 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
   }
 
   /**
@@ -165,7 +165,7 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
-    $config = $this->config->get('media_acquiadam.settings');
+    $config = $this->config->get('acquiadam.settings');
     $media_type_storage = $this->entityTypeManager->getStorage('media_type');
     /** @var \Drupal\media\MediaTypeInterface $media_type */
     if (!$this->configuration['media_type'] || !($media_type = $media_type_storage->load($this->configuration['media_type']))) {
@@ -185,9 +185,9 @@ class Acquiadam extends WidgetBase {
       try {
         $auth = $this->acquiadam->checkAuth();
         if (!empty($auth['valid_token'])) {
-          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_access_token', $auth['access_token']);
-          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_access_token_expiration', $auth['access_token_expiry']);
-          $this->userData->set('media_acquiadam', $this->user->id(), 'acquiadam_refresh_token', $auth['refresh_token']);
+          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_access_token', $auth['access_token']);
+          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_access_token_expiration', $auth['access_token_expiry']);
+          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_refresh_token', $auth['refresh_token']);
         }
       }
       catch (InvalidCredentialsException $x) {
@@ -195,13 +195,13 @@ class Acquiadam extends WidgetBase {
         if ($config->get('samesite_cookie_disable') || $this->requestStack->getCurrentRequest()
           ->getScheme() == "http") {
           $message = $this->t("You are not authenticated. %authenticate first, then re-open this modal to browse Acquia DAM assets..", [
-            '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [], ['attributes' => ['target' => '_blank']])
+            '%authenticate' => Link::createFromRoute('authenticate', 'acquiadam.auth_start', [], ['attributes' => ['target' => '_blank']])
               ->toString(),
           ]);
         }
         else {
           $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
-            '%authenticate' => Link::createFromRoute('authenticate', 'media_acquiadam.auth_start', [
+            '%authenticate' => Link::createFromRoute('authenticate', 'acquiadam.auth_start', [
               'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
                 ->getRequestUri(),
             ])->toString(),
@@ -212,7 +212,7 @@ class Acquiadam extends WidgetBase {
           '#message' => $message,
           '#attached' => [
             'library' => [
-              'media_acquiadam/asset_browser',
+              'acquiadam/asset_browser',
             ],
           ],
         ];
@@ -376,7 +376,7 @@ class Acquiadam extends WidgetBase {
     ];
 
     // Get module path to create URL for background images.
-    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
+    $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
     // If no search terms, display folders.
     if (empty($params['query'])) {
@@ -435,7 +435,7 @@ class Acquiadam extends WidgetBase {
       '#options' => $assets,
       '#attached' => [
         'library' => [
-          'media_acquiadam/asset_browser',
+          'acquiadam/asset_browser',
         ],
       ],
     ] + $assets_status;
@@ -591,7 +591,7 @@ class Acquiadam extends WidgetBase {
    * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
    */
   public function layoutMediaEntity(Asset $acquiadamAsset) {
-    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
+    $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
     $assetName = $acquiadamAsset->status !== 'active' ?
       "$acquiadamAsset->name ($acquiadamAsset->status)" :

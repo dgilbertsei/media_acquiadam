@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\Time;
@@ -11,18 +11,18 @@ use Drupal\Core\Entity\Query\Null\Query;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\State;
-use Drupal\media_acquiadam\Acquiadam;
-use Drupal\media_acquiadam\Service\AssetRefreshManager;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\acquiadam\Acquiadam;
+use Drupal\acquiadam\Service\AssetRefreshManager;
+use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * AssetRefreshManager Service test.
  *
- * @coversDefaultClass \Drupal\media_acquiadam\Service\AssetRefreshManager
+ * @coversDefaultClass \Drupal\acquiadam\Service\AssetRefreshManager
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AssetRefreshManagerTest extends UnitTestCase {
 
@@ -42,7 +42,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
   /**
    * AssetRefreshManager service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetRefreshManagerInterface
+   * @var \Drupal\acquiadam\Service\AssetRefreshManagerInterface
    */
   protected $assetRefreshManager;
 
@@ -63,7 +63,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
   /**
    * The Acquiadam Service.
    *
-   * @var \Drupal\media_acquiadam\AcquiadamInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\acquiadam\AcquiadamInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $acquiadamClient;
 
@@ -107,14 +107,14 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->state->method('get')
       ->willReturnMap([
         [
-          'media_acquiadam.notifications_endtime',
+          'acquiadam.notifications_endtime',
           self::REQUEST_TIME,
           self::REQUEST_TIME,
         ],
       ]);
 
     $this->state->method('set')
-      ->with('media_acquiadam.notifications_starttime', self::REQUEST_TIME);
+      ->with('acquiadam.notifications_starttime', self::REQUEST_TIME);
 
     $actual = $this->assetRefreshManager->updateQueue([]);
     $this->assertEquals(0, $actual);
@@ -135,14 +135,14 @@ class AssetRefreshManagerTest extends UnitTestCase {
   public function testNoMatchingMediaEntityIds(array $request_query_options, array $response, array $expected_asset_ids) {
     $this->state->method('get')
       ->willReturnMap([
-        ['media_acquiadam.notifications_next_page', NULL, NULL],
+        ['acquiadam.notifications_next_page', NULL, NULL],
         [
-          'media_acquiadam.notifications_starttime',
+          'acquiadam.notifications_starttime',
           NULL,
           self::LAST_READ_TIMESTAMP,
         ],
         [
-          'media_acquiadam.notifications_endtime',
+          'acquiadam.notifications_endtime',
           self::REQUEST_TIME,
           self::REQUEST_TIME,
         ],
@@ -187,10 +187,10 @@ class AssetRefreshManagerTest extends UnitTestCase {
   public function testNonInterruptedFetch(array $request_query_options, array $response, array $expected_asset_ids, int $expected_total) {
     $this->state->method('get')
       ->willReturnMap([
-        ['media_acquiadam.notifications_next_page', NULL, NULL],
-        ['media_acquiadam.notifications_starttime', NULL, NULL],
+        ['acquiadam.notifications_next_page', NULL, NULL],
+        ['acquiadam.notifications_starttime', NULL, NULL],
         [
-          'media_acquiadam.notifications_endtime',
+          'acquiadam.notifications_endtime',
           self::REQUEST_TIME,
           self::REQUEST_TIME,
         ],
@@ -201,10 +201,10 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
     $this->state->method('set')
       ->withConsecutive(
-        ['media_acquiadam.notifications_starttime', self::LAST_READ_TIMESTAMP],
-        ['media_acquiadam.notifications_starttime', self::REQUEST_TIME],
-        ['media_acquiadam.notifications_endtime', NULL],
-        ['media_acquiadam.notifications_next_page', NULL]);
+        ['acquiadam.notifications_starttime', self::LAST_READ_TIMESTAMP],
+        ['acquiadam.notifications_starttime', self::REQUEST_TIME],
+        ['acquiadam.notifications_endtime', NULL],
+        ['acquiadam.notifications_next_page', NULL]);
 
     $actual = $this->assetRefreshManager->updateQueue($this->getAssetIdFieldsStub());
     $this->assertEquals($expected_total, $actual);
@@ -227,18 +227,18 @@ class AssetRefreshManagerTest extends UnitTestCase {
   public function testInterruptedFetch(array $request_query_options, array $response, array $expected_asset_ids, int $expected_total) {
     $this->state->method('get')
       ->willReturnMap([
-        ['media_acquiadam.notifications_next_page', NULL, NULL],
+        ['acquiadam.notifications_next_page', NULL, NULL],
         [
-          'media_acquiadam.notifications_starttime',
+          'acquiadam.notifications_starttime',
           NULL,
           self::LAST_READ_TIMESTAMP,
         ],
         [
-          'media_acquiadam.notifications_endtime',
+          'acquiadam.notifications_endtime',
           self::REQUEST_TIME,
           self::REQUEST_TIME,
         ],
-        ['media_acquiadam.notifications_endtime', NULL, 1234],
+        ['acquiadam.notifications_endtime', NULL, 1234],
       ]);
 
     $this->setupApiResponseStub($request_query_options, $response);
@@ -246,8 +246,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
     $this->state->method('set')
       ->withConsecutive(
-        ['media_acquiadam.notifications_next_page', 2],
-        ['media_acquiadam.notifications_endtime', self::REQUEST_TIME]);
+        ['acquiadam.notifications_next_page', 2],
+        ['acquiadam.notifications_endtime', self::REQUEST_TIME]);
 
     $actual = $this->assetRefreshManager->updateQueue($this->getAssetIdFieldsStub());
     $this->assertEquals(3, $actual);
@@ -614,7 +614,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->container->set('queue', $queue_factory);
     $this->container->set('entity_type.manager', $entity_type_manager);
     $this->container->set('datetime.time', $time);
-    $this->container->set('media_acquiadam.acquiadam', $this->acquiadamClient);
+    $this->container->set('acquiadam.acquiadam', $this->acquiadamClient);
     \Drupal::setContainer($this->container);
 
     $this->assetRefreshManager = AssetRefreshManager::create($this->container);

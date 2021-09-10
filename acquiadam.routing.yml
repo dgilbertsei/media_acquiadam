@@ -1,7 +1,7 @@
-media_acquiadam.config:
+acquiadam.config:
   path: '/admin/config/media/acquiadam'
   defaults:
-    _form: '\Drupal\media_acquiadam\Form\AcquiadamConfig'
+    _form: '\Drupal\acquiadam\Form\AcquiadamConfig'
     _title: 'Acquia DAM Configuration'
   requirements:
     _permission: 'administer site configuration'
@@ -10,48 +10,48 @@ entity.user.acquiadam_auth:
   path: '/user/{user}/acquiadam'
   defaults:
     _title: 'Acquia DAM'
-    _controller: '\Drupal\media_acquiadam\Controller\OauthController::authPage'
+    _controller: '\Drupal\acquiadam\Controller\OauthController::authPage'
   requirements:
     _user_is_logged_in: 'TRUE'
     user: \d+
   options:
     no_cache: 'TRUE'
 
-media_acquiadam.auth_start:
+acquiadam.auth_start:
   path: '/acquiadam/authStart'
   defaults:
     _title: 'Redirect to DAM'
-    _controller: '\Drupal\media_acquiadam\Controller\OauthController::authStart'
+    _controller: '\Drupal\acquiadam\Controller\OauthController::authStart'
   requirements:
     _user_is_logged_in: 'TRUE'
   options:
     no_cache: 'TRUE'
 
-media_acquiadam.logout:
+acquiadam.logout:
   path: '/acquiadam/logout'
   defaults:
     _title: 'DAM Logout'
-    _controller: '\Drupal\media_acquiadam\Controller\OauthController::logout'
+    _controller: '\Drupal\acquiadam\Controller\OauthController::logout'
   requirements:
     _user_is_logged_in: 'TRUE'
   options:
     no_cache: 'TRUE'
 
-media_acquiadam.auth_finish:
+acquiadam.auth_finish:
   path: '/acquiadam/authFinish'
   defaults:
     _title: 'Authentication finalization'
-    _controller: '\Drupal\media_acquiadam\Controller\OauthController::authFinish'
+    _controller: '\Drupal\acquiadam\Controller\OauthController::authFinish'
   requirements:
     _user_is_logged_in: 'TRUE'
   options:
     no_cache: 'TRUE'
 
-media_acquiadam.asset_details:
+acquiadam.asset_details:
   path: 'acquiadam/asset/{assetId}'
   defaults:
-    _controller: '\Drupal\media_acquiadam\Controller\AcquiadamController:assetDetailsPage'
-    _title_callback: '\Drupal\media_acquiadam\Controller\AcquiadamController:assetDetailsPageTitle'
+    _controller: '\Drupal\acquiadam\Controller\AcquiadamController:assetDetailsPage'
+    _title_callback: '\Drupal\acquiadam\Controller\AcquiadamController:assetDetailsPageTitle'
   requirements:
     _user_is_logged_in: 'TRUE'
     assetId: \d+

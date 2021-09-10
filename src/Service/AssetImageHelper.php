@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Service;
+namespace Drupal\acquiadam\Service;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -209,7 +209,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getFallbackThumbnail() {
 
-    $fallback = $this->configFactory->get('media_acquiadam.settings')->get(
+    $fallback = $this->configFactory->get('acquiadam.settings')->get(
         'fallback_thumbnail'
       );
 
@@ -276,7 +276,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The path to the Media: Acquia DAM module.
    */
   protected function getAcquiaDamModulePath() {
-    return drupal_get_path('module', 'media_acquiadam');
+    return drupal_get_path('module', 'acquiadam');
   }
 
   /**
@@ -288,7 +288,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The URI to save as the fallback thumbnail.
    */
   protected function saveFallbackThumbnail($uri) {
-    $this->configFactory->getEditable('media_acquiadam.settings')->set(
+    $this->configFactory->getEditable('acquiadam.settings')->set(
         'fallback_thumbnail',
         $uri
       )->save();

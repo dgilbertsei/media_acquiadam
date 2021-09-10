@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Database\Connection;

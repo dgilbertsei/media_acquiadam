@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Provide views data for media_acquiadam_report.module.
+ * Provide views data for acquiadam_report.module.
  */
 
 /**
@@ -10,11 +10,11 @@
  *
  * Adds query condition to DAM listing to filter media bundles.
  */
-function media_acquiadam_report_views_query_alter($view, $query) {
+function acquiadam_report_views_query_alter($view, $query) {
   if ($view->id() == 'acquia_dam_reporting' && $view->getDisplay(
     )->display['id'] == 'asset_report') {
     // Limit the view to 'acquiadam_asset' media bundles.
-    $acquiadam_bundles = media_acquiadam_get_bundle_asset_id_fields();
+    $acquiadam_bundles = acquiadam_get_bundle_asset_id_fields();
     $acquiadam_bundles = array_keys($acquiadam_bundles);
     // Add media bundle query condition.
     $query->addWhere(
@@ -31,7 +31,7 @@ function media_acquiadam_report_views_query_alter($view, $query) {
  *
  * Adds a DAM source id field for use in the DAM listing.
  */
-function media_acquiadam_report_views_data_alter(array &$data) {
+function acquiadam_report_views_data_alter(array &$data) {
   $data['media']['acquiadam_source_id'] = [
     'title' => t('Acquia DAM source id'),
     'field' => [
@@ -47,14 +47,14 @@ function media_acquiadam_report_views_data_alter(array &$data) {
 /**
  * Implements hook_theme_registry_alter().
  */
-function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
+function acquiadam_report_theme_registry_alter(&$theme_registry) {
   // DAM asset URL path.
   try {
-    $dam_url = Drupal::service('media_acquiadam.acquiadam')
+    $dam_url = Drupal::service('acquiadam.acquiadam')
       ->getAccountSubscriptionDetails()->url;
   }
   catch (Exception $x) {
-    watchdog_exception('media_acquiadam_report', $x);
+    watchdog_exception('acquiadam_report', $x);
     return;
   }
 
@@ -72,6 +72,6 @@ function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
   $theme_registry[$template]['variables']['acquiadam_asset_url'] = $dam_asset_url;
   $theme_registry[$template]['path'] = drupal_get_path(
       'module',
-      'media_acquiadam_report'
+      'acquiadam_report'
     ) . '/templates';
 }

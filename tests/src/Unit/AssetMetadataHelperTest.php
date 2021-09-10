@@ -1,18 +1,18 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\media_acquiadam\Acquiadam;
-use Drupal\media_acquiadam\Service\AssetMetadataHelper;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\acquiadam\Acquiadam;
+use Drupal\acquiadam\Service\AssetMetadataHelper;
+use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
  * Tests integration of the AssetMetadataHelper service.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AssetMetadataHelperTest extends UnitTestCase {
 
@@ -28,7 +28,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
   /**
    * Media: Acquia DAM asset metadata helper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetMetadataHelper
+   * @var \Drupal\acquiadam\Service\AssetMetadataHelper
    */
   protected $assetMetadataHelper;
 
@@ -191,7 +191,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
     $this->container->set('date.formatter', $date_formatter);
-    $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
+    $this->container->set('acquiadam.acquiadam', $acquiadam_client);
     \Drupal::setContainer($this->container);
 
     $this->assetMetadataHelper = AssetMetadataHelper::create($this->container);

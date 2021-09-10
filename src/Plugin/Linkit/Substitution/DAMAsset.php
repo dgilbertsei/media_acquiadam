@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Plugin\Linkit\Substitution;
+namespace Drupal\acquiadam\Plugin\Linkit\Substitution;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -8,7 +8,7 @@ use Drupal\Core\GeneratedUrl;
 use Drupal\file\FileInterface;
 use Drupal\linkit\Plugin\Linkit\Substitution\Media;
 use Drupal\media\MediaInterface;
-use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
+use Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

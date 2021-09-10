@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\media_acquiadam\Controller;
+namespace Drupal\acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -14,7 +14,7 @@ class AcquiadamController extends ControllerBase {
   /**
    * A configured API object.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiadam;
 
@@ -28,7 +28,7 @@ class AcquiadamController extends ControllerBase {
   /**
    * AcquiadamController constructor.
    *
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
+   * @param \Drupal\acquiadam\AcquiadamInterface $acquiadam
    *   The Acquiadam Interface.
    */
   public function __construct(AcquiadamInterface $acquiadam) {
@@ -39,7 +39,7 @@ class AcquiadamController extends ControllerBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static($container->get('media_acquiadam.acquiadam'));
+    return new static($container->get('acquiadam.acquiadam'));
   }
 
   /**
@@ -136,7 +136,7 @@ class AcquiadamController extends ControllerBase {
       '#asset_link' => "https://{$dam_url}/cloud/#asset/{$assetId}",
       '#attached' => [
         'library' => [
-          'media_acquiadam/asset_details',
+          'acquiadam/asset_details',
         ],
       ],
     ];

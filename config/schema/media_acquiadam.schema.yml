@@ -1,5 +1,5 @@
-# Schema for the configuration files of the media_acquiadam module.
-media_acquiadam.settings:
+# Schema for the configuration files of the acquiadam module.
+acquiadam.settings:
   type: config_object
   label: 'Media Acquia DAM settings'
   mapping:

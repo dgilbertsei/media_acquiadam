@@ -5,7 +5,7 @@ core_version_requirement: '^8 || ^9'
 type: module
 package: Media
 dependencies:
-  - media_acquiadam:media_acquiadam
+  - acquiadam:acquiadam
   - drupal:file
   - drupal:image
   - entity_usage:entity_usage
