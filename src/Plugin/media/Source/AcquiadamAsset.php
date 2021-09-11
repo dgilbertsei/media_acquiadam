@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Plugin\media\Source;
+namespace Drupal\acquiadam\Plugin\media\Source;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -10,9 +10,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
-use Drupal\media_acquiadam\Service\AssetImageHelper;
-use Drupal\media_acquiadam\Service\AssetMediaFactory;
-use Drupal\media_acquiadam\Service\AssetMetadataHelper;
+use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\acquiadam\Service\AssetMediaFactory;
+use Drupal\acquiadam\Service\AssetMetadataHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -37,21 +37,21 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * Media: Acquia DAM asset image helper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetImageHelper
+   * @var \Drupal\acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
    * Media: Acquia DAM asset metadata helper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetMetadataHelper
+   * @var \Drupal\acquiadam\Service\AssetMetadataHelper
    */
   protected $assetMetadataHelper;
 
   /**
    * Media: Acquia DAM Asset Media Factory service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -98,9 +98,9 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('entity_field.manager'),
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
-      $container->get('media_acquiadam.asset_image.helper'),
-      $container->get('media_acquiadam.asset_metadata.helper'),
-      $container->get('media_acquiadam.asset_media.factory')
+      $container->get('acquiadam.asset_image.helper'),
+      $container->get('acquiadam.asset_metadata.helper'),
+      $container->get('acquiadam.asset_media.factory')
     );
   }
 

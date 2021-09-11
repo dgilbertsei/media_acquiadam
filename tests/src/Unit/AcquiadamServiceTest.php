@@ -1,22 +1,22 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\media_acquiadam\Acquiadam;
-use Drupal\media_acquiadam\AssetDataInterface;
-use Drupal\media_acquiadam\Client;
-use Drupal\media_acquiadam\ClientFactory;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\acquiadam\Acquiadam;
+use Drupal\acquiadam\AssetDataInterface;
+use Drupal\acquiadam\Client;
+use Drupal\acquiadam\ClientFactory;
+use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
  * Acquia DAM REST extension tests.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AcquiadamServiceTest extends UnitTestCase {
 
@@ -32,7 +32,7 @@ class AcquiadamServiceTest extends UnitTestCase {
   /**
    * Media: Acquia DAM client.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
@@ -260,9 +260,9 @@ class AcquiadamServiceTest extends UnitTestCase {
       $this->getStringTranslationStub());
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
-    $this->container->set('media_acquiadam.client_factory',
+    $this->container->set('acquiadam.client_factory',
       $acquiadam_client_factory);
-    $this->container->set('media_acquiadam.asset_data', $acquiadam_asset_data);
+    $this->container->set('acquiadam.asset_data', $acquiadam_asset_data);
     \Drupal::setContainer($this->container);
 
     $this->acquiaDamClient = Acquiadam::create($this->container);

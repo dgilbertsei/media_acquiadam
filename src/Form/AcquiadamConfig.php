@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Form;
+namespace Drupal\acquiadam\Form;
 
 use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\TimeInterface;
@@ -10,7 +10,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\State\State;
-use Drupal\media_acquiadam\ClientFactory;
+use Drupal\acquiadam\ClientFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,7 +27,7 @@ class AcquiadamConfig extends ConfigFormBase {
   /**
    * Acquia DAM client factory.
    *
-   * @var \Drupal\media_acquiadam\ClientFactory
+   * @var \Drupal\acquiadam\ClientFactory
    */
   protected $acquiaDamClientFactory;
 
@@ -77,7 +77,7 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('media_acquiadam.settings');
+    $config = $this->config('acquiadam.settings');
 
     $form['authentication'] = [
       '#type' => 'fieldset',
@@ -243,12 +243,12 @@ class AcquiadamConfig extends ConfigFormBase {
   }
 
   /**
-   * Wrapper for media_acquiadam_get_active_media_ids().
+   * Wrapper for acquiadam_get_active_media_ids().
    *
    * This method exists so the functionality can be overridden in unit tests.
    */
   protected function getActiveMediaIds() {
-    return media_acquiadam_get_active_media_ids();
+    return acquiadam_get_active_media_ids();
   }
 
   /**
@@ -274,9 +274,9 @@ class AcquiadamConfig extends ConfigFormBase {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function processBatchItems(array $media_ids, array &$context) {
-    /** @var \Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh $asset_refresh_queue_worker */
+    /** @var \Drupal\acquiadam\Plugin\QueueWorker\AssetRefresh $asset_refresh_queue_worker */
     $asset_refresh_queue_worker = $this->queueWorkerManager
-      ->createInstance('media_acquiadam_asset_refresh');
+      ->createInstance('acquiadam_asset_refresh');
 
     if (empty($context['sandbox']['progress'])) {
       $context['sandbox']['progress'] = $context['results']['processed'] = 0;
@@ -294,7 +294,7 @@ class AcquiadamConfig extends ConfigFormBase {
         }
       }
       catch (\Exception $e) {
-        $this->logger('media_acquiadam')->error(
+        $this->logger('acquiadam')->error(
           'Failed to update media entity id = :id. Message: :message',
           [
             ':id' => $media_id,
@@ -332,9 +332,9 @@ class AcquiadamConfig extends ConfigFormBase {
 
     if ($results['processed'] === $results['total']) {
       // Reset all Drupal States related to the automatic asset synchronization.
-      $this->state->set('media_acquiadam.notifications_starttime', $results['start_time']);
-      $this->state->set('media_acquiadam.notifications_endtime', NULL);
-      $this->state->set('media_acquiadam.notifications_next_page', NULL);
+      $this->state->set('acquiadam.notifications_starttime', $results['start_time']);
+      $this->state->set('acquiadam.notifications_endtime', NULL);
+      $this->state->set('acquiadam.notifications_next_page', NULL);
     }
   }
 
@@ -344,7 +344,7 @@ class AcquiadamConfig extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('media_acquiadam.client_factory'),
+      $container->get('acquiadam.client_factory'),
        new BatchBuilder(),
       $container->get('datetime.time'),
       $container->get('plugin.manager.queue_worker'),
@@ -364,7 +364,7 @@ class AcquiadamConfig extends ConfigFormBase {
    */
   protected function getEditableConfigNames() {
     return [
-      'media_acquiadam.settings',
+      'acquiadam.settings',
     ];
   }
 
@@ -395,7 +395,7 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('media_acquiadam.settings')
+    $this->config('acquiadam.settings')
       ->set('username', $form_state->getValue('username'))
       ->set('password', $form_state->getValue('password'))
       ->set('client_id', $form_state->getValue('client_id'))

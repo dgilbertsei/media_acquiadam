@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Traits;
+namespace Drupal\Tests\acquiadam\Traits;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
@@ -14,7 +14,7 @@ trait AcquiadamLoggerFactoryTrait {
    * Gets a stubbed out Logger factory for Media: Acquia DAM test usage.
    *
    * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Logger\LoggerChannelFactoryInterface
-   *   A mock LoggerChannelFactoryInstance with a media_acquiadam channel.
+   *   A mock LoggerChannelFactoryInstance with a acquiadam channel.
    */
   protected function getLoggerFactoryStub() {
     $logger_channel = $this->getMockBuilder(LoggerChannelInterface::class)
@@ -25,7 +25,7 @@ trait AcquiadamLoggerFactoryTrait {
       ->disableOriginalConstructor()
       ->getMock();
     $logger_factory->method('get')
-      ->with('media_acquiadam')
+      ->with('acquiadam')
       ->willReturn($logger_channel);
 
     return $logger_factory;

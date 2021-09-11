@@ -3,7 +3,7 @@
  * @file
  * @todo: Wildcat. Replace this client with the new service's client.
  */
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use cweagans\webdam\Client as OriginalClient;
 use cweagans\webdam\Entity\Asset;
@@ -47,7 +47,7 @@ class Client extends OriginalClient {
       $this->checkAuth();
     }
     catch (\Exception $x) {
-      \Drupal::logger('media_acquiadam')->error(
+      \Drupal::logger('acquiadam')->error(
           'Unable to authenticate to retrieve xmp field data.'
         );
       $this->activeXmpFields = [];
@@ -62,7 +62,7 @@ class Client extends OriginalClient {
       );
     }
     catch (\Exception $x) {
-      \Drupal::logger('media_acquiadam')->error('Unable to get xmp field data.');
+      \Drupal::logger('acquiadam')->error('Unable to get xmp field data.');
       $this->activeXmpFields = [];
       return $this->activeXmpFields;
     }
@@ -94,7 +94,7 @@ class Client extends OriginalClient {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \cweagans\webdam\Exception\InvalidCredentialsException
    *
-   * @see \Drupal\media_acquiadam\Client::getAuthState()
+   * @see \Drupal\acquiadam\Client::getAuthState()
    */
   public function checkAuth() {
 
@@ -210,7 +210,7 @@ class Client extends OriginalClient {
       else {
         // We've received an error status other than 400 or 403; log it
         // and move on.
-        \Drupal::logger('media_acquiadam')->error(
+        \Drupal::logger('acquiadam')->error(
           'Unable to authenticate. DAM API client returned a @code exception code with the following message: %message',
           [
             '@code' => $status_code,
@@ -483,7 +483,7 @@ class Client extends OriginalClient {
       ]
     );
     if ($response->getStatusCode() == 429) {
-      Drupal::logger('media_acquiadam')->error(
+      Drupal::logger('acquiadam')->error(
         'Failed to fetch asset ids: Too Many Requests.'
       );
       return [];

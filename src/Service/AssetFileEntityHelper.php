@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Service;
+namespace Drupal\acquiadam\Service;
 
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -12,7 +12,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
-use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -67,21 +67,21 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Media: Acquia DAM asset image helper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetImageHelper
+   * @var \Drupal\acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
    * Media: Acquia DAM client.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
    * Media: Acquia DAM factory for wrapping media entities.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -105,11 +105,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   Drupal filesystem service.
    * @param \Drupal\Core\Utility\Token $token
    *   Drupal token service.
-   * @param \Drupal\media_acquiadam\Service\AssetImageHelper $assetImageHelper
+   * @param \Drupal\acquiadam\Service\AssetImageHelper $assetImageHelper
    *   Media: Acquia DAM asset image helper service.
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiaDamClient
+   * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
    *   Media: Acquia DAM client.
-   * @param \Drupal\media_acquiadam\Service\AssetMediaFactory $assetMediaFactory
+   * @param \Drupal\acquiadam\Service\AssetMediaFactory $assetMediaFactory
    *   Media: Acquia DAM Asset Media Factory service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
@@ -127,13 +127,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
     $this->configFactory = $configFactory;
-    $this->config = $configFactory->get('media_acquiadam.settings');
+    $this->config = $configFactory->get('acquiadam.settings');
     $this->fileSystem = $fileSystem;
     $this->token = $token;
     $this->assetImageHelper = $assetImageHelper;
     $this->acquiaDamClient = $acquiaDamClient;
     $this->assetMediaFactory = $assetMediaFactory;
-    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->loggerChannel = $loggerChannelFactory->get('acquiadam');
   }
 
   /**
@@ -146,9 +146,9 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $container->get('config.factory'),
       $container->get('file_system'),
       $container->get('token'),
-      $container->get('media_acquiadam.asset_image.helper'),
-      $container->get('media_acquiadam.acquiadam'),
-      $container->get('media_acquiadam.asset_media.factory'),
+      $container->get('acquiadam.asset_image.helper'),
+      $container->get('acquiadam.acquiadam'),
+      $container->get('acquiadam.asset_media.factory'),
       $container->get('logger.factory')
     );
   }

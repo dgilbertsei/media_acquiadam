@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
-use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
+use Drupal\acquiadam\Service\AssetFileEntityHelper;
 
 /**
  * Class MediaEntityHelper.
@@ -25,21 +25,21 @@ class MediaEntityHelper {
   /**
    * Media: Acquia DAM asset data service.
    *
-   * @var \Drupal\media_acquiadam\AssetData
+   * @var \Drupal\acquiadam\AssetData
    */
   protected $assetData;
 
   /**
    * Media: Acquia DAM client.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
    * Media: Acquia DAM asset file helper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper
+   * @var \Drupal\acquiadam\Service\AssetFileEntityHelper
    */
   protected $assetFileHelper;
 
@@ -57,11 +57,11 @@ class MediaEntityHelper {
    *   The media entity to wrap.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity Type Manager service.
-   * @param \Drupal\media_acquiadam\AssetDataInterface $assetData
+   * @param \Drupal\acquiadam\AssetDataInterface $assetData
    *   Media: Acquia DAM asset data service.
-   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiaDamClient
+   * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
    *   Media: Acquia DAM client.
-   * @param \Drupal\media_acquiadam\Service\AssetFileEntityHelper $assetFileHelper
+   * @param \Drupal\acquiadam\Service\AssetFileEntityHelper $assetFileHelper
    *   Media: Acquia DAM file entity helper service.
    */
   public function __construct(MediaInterface $media, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AcquiadamInterface $acquiaDamClient, AssetFileEntityHelper $assetFileHelper) {

@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * @file
+ * Drupal install and update hooks.
+ */
+
+use Drupal\entity_browser\Entity\EntityBrowser;
+
+/**
+ * Implements hook_install().
+ */
+function acquiadam_example_install() {
+
+  // If we're using Lightning Media we should add the DAM browser by default so
+  // there is less initial setup required from the end user.
+  if (Drupal::moduleHandler()->moduleExists('lightning_media')) {
+    /** @var \Drupal\entity_browser\EntityBrowserInterface $browser */
+    $browser = EntityBrowser::load('media_browser');
+    if (!empty($browser)) {
+      $widgets = [
+        'acquia_dam_asset' => [
+          'label' => t('Acquia DAM Asset'),
+          'submit_text' => t('Select assets'),
+        ],
+        'acquia_dam_audio' => [
+          'label' => t('Acquia DAM Audio'),
+          'submit_text' => t('Select audio'),
+        ],
+        'acquia_dam_document' => [
+          'label' => t('Acquia DAM Documents'),
+          'submit_text' => t('Select documents'),
+        ],
+        'acquia_dam_image' => [
+          'label' => t('Acquia DAM Images'),
+          'submit_text' => t('Select images'),
+        ],
+        'acquia_dam_video' => [
+          'label' => t('Acquia DAM Video'),
+          'submit_text' => t('Select video'),
+        ],
+      ];
+
+      $weight = 10;
+      foreach ($widgets as $type => $text) {
+        $browser->addWidget([
+          'id' => 'acquiadam',
+          'label' => $text['label'],
+          'weight' => $weight++,
+          'settings' => [
+            'media_type' => $type,
+            'submit_text' => $text['submit_text'],
+          ],
+        ]);
+      }
+
+      $browser->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function acquiadam_example_requirements($phase) {
+  $requirements = [];
+
+  if ('runtime' === $phase) {
+    $requirements['acquiadam_example_uninstall'] = [
+      'title' => t('Media: Acquia DAM'),
+      'description' => t(
+        'The Media: Acquia DAM - Example Configuration module has imported its configuration and can now be safely uninstalled.'
+      ),
+      'severity' => REQUIREMENT_WARNING,
+    ];
+  }
+  elseif ('install' === $phase) {
+    $config_factory = Drupal::configFactory();
+    if (!$config_factory->get('media.type.acquia_dam_asset')->isNew()) {
+      $requirements['acquiadam_example_noinstall'] = [
+        'title' => t('Media: Acquia DAM'),
+        'description' => t(
+          'The Media: Acquia DAM - Example Configuration module has already been installed once and cannot be installed again.'
+        ),
+        'severity' => REQUIREMENT_ERROR,
+      ];
+    }
+  }
+
+  return $requirements;
+}

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -57,7 +57,7 @@ class ClientFactory implements ContainerInjectionInterface {
    *   The currently authenticated user.
    */
   public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $guzzleClient, UserDataInterface $userData, AccountProxyInterface $currentUser) {
-    $this->config = $config_factory->get('media_acquiadam.settings');
+    $this->config = $config_factory->get('acquiadam.settings');
     $this->guzzleClient = $guzzleClient;
     $this->userData = $userData;
     $this->currentUser = $currentUser;
@@ -82,7 +82,7 @@ class ClientFactory implements ContainerInjectionInterface {
    *   The switch for which credentials the client object
    *   should be configured with.
    *
-   * @return \Drupal\media_acquiadam\Client
+   * @return \Drupal\acquiadam\Client
    *   A configured DAM HTTP client object.
    */
   public function get($credentials = 'background') {
@@ -96,17 +96,17 @@ class ClientFactory implements ContainerInjectionInterface {
     // Set the user's credentials in the client if necessary.
     if ($credentials == 'current') {
       $access_token = $this->userData->get(
-        'media_acquiadam',
+        'acquiadam',
         $this->currentUser->id(),
         'acquiadam_access_token'
       );
       $access_token_expiration = $this->userData->get(
-        'media_acquiadam',
+        'acquiadam',
         $this->currentUser->id(),
         'acquiadam_access_token_expiration'
       );
       $refresh_token = $this->userData->get(
-        'media_acquiadam',
+        'acquiadam',
         $this->currentUser->id(),
         'acquiadam_refresh_token'
       );
@@ -132,7 +132,7 @@ class ClientFactory implements ContainerInjectionInterface {
    * @param string $secret
    *   The secret to authenticate with.
    *
-   * @return \Drupal\media_acquiadam\Client
+   * @return \Drupal\acquiadam\Client
    *   The Acquia DAM client.
    *
    * @todo: Wildcat. Replace the guzzleClient provided to the Client with a REST client.

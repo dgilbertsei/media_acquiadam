@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam\Session;
+namespace Drupal\acquiadam\Session;
 
 use Drupal\Core\Session\SessionConfiguration;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +17,7 @@ class CookieSameSiteSessionConfiguration extends SessionConfiguration {
     $options = parent::getOptions($request);
 
     // Return defaults if configuration tells us to disable the bypass.
-    $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
+    $config = \Drupal::configFactory()->getEditable('acquiadam.settings');
     if ($config->get('samesite_cookie_disable')) {
       return $options;
     }

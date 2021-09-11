@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\media_acquiadam\Service\AssetImageHelper;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 /**
  * Tests integration of the AssetImageHelper service.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class AssetImageHelperTest extends UnitTestCase {
 
@@ -31,7 +31,7 @@ class AssetImageHelperTest extends UnitTestCase {
   /**
    * A mocked version of the AssetImageHelper service.
    *
-   * @var \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $assetImageHelper;
 
@@ -158,7 +158,7 @@ class AssetImageHelperTest extends UnitTestCase {
    * This is used to provide some implemented methods that would normally be
    * an issue to test.
    *
-   * @return \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    *   A mocked AssetImageHelper object.
    */
   protected function getMockedAssetImageHelper() {
@@ -178,7 +178,7 @@ class AssetImageHelperTest extends UnitTestCase {
       ->getMock();
 
     $helper->method('getAcquiaDamModulePath')
-      ->willReturn('modules/contrib/media_acquiadam');
+      ->willReturn('modules/contrib/acquiadam');
     $helper->method('saveFallbackThumbnail')->willReturn(NULL);
 
     return $helper;

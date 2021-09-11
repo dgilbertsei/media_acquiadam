@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Traits;
+namespace Drupal\Tests\acquiadam\Traits;
 
 /**
  * A shared mock config factory service.
@@ -14,7 +14,7 @@ trait AcquiadamConfigTrait {
    */
   public function getConfigFactoryStub(array $configs = []) {
     return parent::getConfigFactoryStub([
-      'media_acquiadam.settings' => [
+      'acquiadam.settings' => [
         'username' => 'WDusername',
         'password' => 'WDpassword',
         'client_id' => 'WDclient-id',

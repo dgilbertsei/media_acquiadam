@@ -1,14 +1,14 @@
 <?php
 
-namespace Drupal\Tests\media_acquiadam\Unit;
+namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
-use Drupal\media_acquiadam\Oauth;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
-use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\acquiadam\Oauth;
+use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
 use Psr\Http\Message\ResponseInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /**
  * Oauth test.
  *
- * @group media_acquiadam
+ * @group acquiadam
  */
 class OauthTest extends UnitTestCase {
 
@@ -33,7 +33,7 @@ class OauthTest extends UnitTestCase {
   /**
    * Media: Acquia DAM oAuth client.
    *
-   * @var \Drupal\media_acquiadam\Oauth
+   * @var \Drupal\acquiadam\Oauth
    */
   protected $oAuthClient;
 

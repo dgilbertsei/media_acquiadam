@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\media_acquiadam;
+namespace Drupal\acquiadam;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -24,7 +24,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * The Acquia DAM client service.
    *
-   * @var \Drupal\media_acquiadam\Client
+   * @var \Drupal\acquiadam\Client
    */
   protected $acquiaDamClient;
 
@@ -38,7 +38,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * Acquiadam constructor.
    *
-   * @param \Drupal\media_acquiadam\ClientFactory $client_factory
+   * @param \Drupal\acquiadam\ClientFactory $client_factory
    *   An instance of ClientFactory that we can get a webdam client from.
    * @param string $credential_type
    *   The type of credentials to use.
@@ -47,7 +47,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    */
   public function __construct(ClientFactory $client_factory, $credential_type, LoggerChannelFactoryInterface $loggerChannelFactory) {
     $this->acquiaDamClient = $client_factory->get($credential_type);
-    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->loggerChannel = $loggerChannelFactory->get('acquiadam');
   }
 
   /**
@@ -55,7 +55,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('media_acquiadam.client_factory'),
+      $container->get('acquiadam.client_factory'),
       'background',
       $container->get('logger.factory')
     );

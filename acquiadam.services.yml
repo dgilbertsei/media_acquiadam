@@ -1,0 +1,39 @@
+services:
+  acquiadam.cookie_samesite.session_configuration:
+    class: Drupal\acquiadam\Session\CookieSameSiteSessionConfiguration
+    decorates: session_configuration
+    public: false
+    arguments:
+      - '%session.storage.options%'
+  acquiadam.client_factory:
+    class: Drupal\acquiadam\ClientFactory
+    arguments: ['@config.factory', '@http_client', '@user.data', '@current_user']
+  acquiadam.acquiadam:
+    class: Drupal\acquiadam\Acquiadam
+    arguments: ['@acquiadam.client_factory', 'background', '@logger.factory', '@acquiadam.asset_data']
+  acquiadam.acquiadam_user_creds:
+    class: Drupal\acquiadam\Acquiadam
+    arguments: ['@acquiadam.client_factory', 'current', '@logger.factory', '@acquiadam.asset_data']
+  acquiadam.oauth:
+    class: Drupal\acquiadam\Oauth
+    arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client', '@logger.factory', '@current_user', '@request_stack']
+  acquiadam.asset_data:
+    class: Drupal\acquiadam\AssetData
+    arguments: ['@database']
+    tags:
+      - { name: backend_overridable }
+  acquiadam.asset_image.helper:
+    class: Drupal\acquiadam\Service\AssetImageHelper
+    arguments: ['@config.factory', '@file_system', '@http_client', '@file.mime_type.guesser', '@image.factory']
+  acquiadam.asset_metadata.helper:
+    class: Drupal\acquiadam\Service\AssetMetadataHelper
+    arguments: ['@date.formatter', '@acquiadam.acquiadam']
+  acquiadam.asset_file.helper:
+    class: Drupal\acquiadam\Service\AssetFileEntityHelper
+    arguments: ['@entity_type.manager', '@entity_field.manager','@config.factory', '@file_system', '@token', '@acquiadam.asset_image.helper', '@acquiadam.acquiadam', '@acquiadam.asset_media.factory', '@logger.factory']
+  acquiadam.asset_media.factory:
+    class: Drupal\acquiadam\Service\AssetMediaFactory
+    arguments: ['@entity_type.manager']
+  acquiadam.asset_refresh.manager:
+    class: Drupal\acquiadam\Service\AssetRefreshManager
+    arguments: ['@acquiadam.acquiadam', '@state', '@logger.factory', '@queue', '@entity_type.manager', '@datetime.time']
