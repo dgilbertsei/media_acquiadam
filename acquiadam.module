@@ -134,25 +134,6 @@ function acquiadam_entity_type_alter(array &$entity_types) {
 }
 
 /**
- * Implements hook_menu_local_tasks_alter().
- *
- * Hides the 'Acquia DAM' tab on the user profile if the user is not viewing
- * their own profile.
- */
-function acquiadam_menu_local_tasks_alter(&$data, $route_name) {
-  if ($route_name === 'entity.user.canonical') {
-    foreach ($data['tabs'][0] as $key => $link) {
-      $url = $link['#link']['url'];
-      if ($url->getRouteName() === 'entity.user.acquiadam_auth') {
-        if ($url->getRouteParameters()['user'] != Drupal::currentUser()->id()) {
-          unset($data['tabs'][0][$key]);
-        }
-      }
-    }
-  }
-}
-
-/**
  * Implements hook_preprocess_HOOK().
  *
  * Allow custom markup for acquiadam asset checkboxes.
