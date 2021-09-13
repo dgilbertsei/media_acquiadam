@@ -1,4 +1,7 @@
 services:
+  acquiadam.auth:
+    class: Drupal\acquiadam\acquiadamAuthService
+    arguments: [ ]
   acquiadam.cookie_samesite.session_configuration:
     class: Drupal\acquiadam\Session\CookieSameSiteSessionConfiguration
     decorates: session_configuration

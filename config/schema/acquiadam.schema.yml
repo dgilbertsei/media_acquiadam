@@ -6,6 +6,15 @@ acquiadam.settings:
     domain:
       type: string
       label: 'Acquia DAM domain'
+    search_endpoint:
+      type: string
+      label: 'Search endpoint'
+    client_registration:
+      type: string
+      label: 'Client registration'
+    client_hash:
+      type: string
+      label: 'Client hash'
     sync_interval:
       type: integer
       label: 'Sync interval'
