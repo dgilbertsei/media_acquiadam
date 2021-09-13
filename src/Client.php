@@ -5,7 +5,7 @@
  */
 namespace Drupal\acquiadam;
 
-use cweagans\webdam\Client as OriginalClient;
+use Drupal\acquiadam\CweagansClient as OriginalClient;
 use cweagans\webdam\Entity\Asset;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use GuzzleHttp\Exception\ClientException;
