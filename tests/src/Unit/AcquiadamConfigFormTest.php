@@ -36,7 +36,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM config form.
+   * Acquia DAM config form.
    *
    * @var \Drupal\Tests\acquiadam\Unit\AcquiadamConfig
    */

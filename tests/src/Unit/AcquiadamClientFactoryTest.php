@@ -28,7 +28,7 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM client factory.
+   * Acquia DAM client factory.
    *
    * @var \Drupal\acquiadam\ClientFactory
    */

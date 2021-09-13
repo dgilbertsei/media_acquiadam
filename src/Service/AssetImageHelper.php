@@ -268,19 +268,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
   }
 
   /**
-   * Get the path to the Media: Acquia DAM module.
+   * Get the path to the Acquia DAM module.
    *
    * This call is broken out for better flexibility when writing tests.
    *
    * @return string
-   *   The path to the Media: Acquia DAM module.
+   *   The path to the Acquia DAM module.
    */
   protected function getAcquiaDamModulePath() {
     return drupal_get_path('module', 'acquiadam');
   }
 
   /**
-   * Saves the fallback thumbnail URI to the Media: Acquia DAM config.
+   * Saves the fallback thumbnail URI to the Acquia DAM config.
    *
    * This call is broken out for better flexibility when writing tests.
    *

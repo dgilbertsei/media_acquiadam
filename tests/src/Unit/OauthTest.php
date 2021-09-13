@@ -31,7 +31,7 @@ class OauthTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM oAuth client.
+   * Acquia DAM oAuth client.
    *
    * @var \Drupal\acquiadam\Oauth
    */

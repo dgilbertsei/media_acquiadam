@@ -23,21 +23,21 @@ class MediaEntityHelper {
   protected $entityTypeManager;
 
   /**
-   * Media: Acquia DAM asset data service.
+   * Acquia DAM asset data service.
    *
    * @var \Drupal\acquiadam\AssetData
    */
   protected $assetData;
 
   /**
-   * Media: Acquia DAM client.
+   * Acquia DAM client.
    *
    * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
-   * Media: Acquia DAM asset file helper service.
+   * Acquia DAM asset file helper service.
    *
    * @var \Drupal\acquiadam\Service\AssetFileEntityHelper
    */
@@ -58,11 +58,11 @@ class MediaEntityHelper {
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity Type Manager service.
    * @param \Drupal\acquiadam\AssetDataInterface $assetData
-   *   Media: Acquia DAM asset data service.
+   *   Acquia DAM asset data service.
    * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
-   *   Media: Acquia DAM client.
+   *   Acquia DAM client.
    * @param \Drupal\acquiadam\Service\AssetFileEntityHelper $assetFileHelper
-   *   Media: Acquia DAM file entity helper service.
+   *   Acquia DAM file entity helper service.
    */
   public function __construct(MediaInterface $media, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AcquiadamInterface $acquiaDamClient, AssetFileEntityHelper $assetFileHelper) {
     $this->entityTypeManager = $entityTypeManager;

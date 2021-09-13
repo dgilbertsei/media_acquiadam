@@ -33,7 +33,7 @@ class AcquiadamAssetTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM media source.
+   * Acquia DAM media source.
    *
    * @var \Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset
    */

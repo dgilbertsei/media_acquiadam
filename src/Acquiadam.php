@@ -29,7 +29,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   protected $acquiaDamClient;
 
   /**
-   * Media: Acquia DAM logging service.
+   * Acquia DAM logging service.
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface
    */

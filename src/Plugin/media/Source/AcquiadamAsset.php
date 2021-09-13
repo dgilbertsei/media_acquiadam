@@ -35,21 +35,21 @@ class AcquiadamAsset extends MediaSourceBase {
   protected $currentAsset = NULL;
 
   /**
-   * Media: Acquia DAM asset image helper service.
+   * Acquia DAM asset image helper service.
    *
    * @var \Drupal\acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
-   * Media: Acquia DAM asset metadata helper service.
+   * Acquia DAM asset metadata helper service.
    *
    * @var \Drupal\acquiadam\Service\AssetMetadataHelper
    */
   protected $assetMetadataHelper;
 
   /**
-   * Media: Acquia DAM Asset Media Factory service.
+   * Acquia DAM Asset Media Factory service.
    *
    * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */
