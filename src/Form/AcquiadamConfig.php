@@ -276,20 +276,20 @@ class AcquiadamConfig extends ConfigFormBase {
         // If ping returns a successful HTTP response, display a confirmation
         // message.
         if ($status == '200') {
-          $this->messenger()->addStatus($this->t('Validating Widen Collective domain (@protocol): OK!', [
+          $this->messenger()->addStatus($this->t('Validating domain (@protocol): OK!', [
             '@protocol' => $protocol,
           ]));
         }
         else {
           // If failed, display an error message.
-          $form_state->setErrorByName('collective_domain', $this->t('Validating Widen Collective domain (@protocol): @status', [
+          $form_state->setErrorByName('domain', $this->t('Validating domain (@protocol): @status', [
             '@protocol' => $protocol,
             '@status' => $status,
           ]));
         }
       }
       catch (ConnectException $e) {
-        $form_state->setErrorByName('collective_domain', $this->t('Unable to resolve widen collective domain.'));
+        $form_state->setErrorByName('domain', $this->t('Unable to resolve the domain.'));
       }
     }
   }
