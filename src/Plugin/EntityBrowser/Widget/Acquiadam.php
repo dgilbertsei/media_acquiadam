@@ -3,7 +3,7 @@
 namespace Drupal\acquiadam\Plugin\EntityBrowser\Widget;
 
 use Drupal\acquiadam\Entity\Asset;
-use cweagans\webdam\Entity\Folder;
+use Drupal\acquiadam\Entity\Folder;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;

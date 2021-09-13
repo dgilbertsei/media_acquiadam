@@ -8,7 +8,7 @@
 namespace Drupal\acquiadam;
 
 use Drupal\acquiadam\Entity\Asset;
-use cweagans\webdam\Entity\Folder;
+use Drupal\acquiadam\Entity\Folder;
 use cweagans\webdam\Entity\MiniFolder;
 use cweagans\webdam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
