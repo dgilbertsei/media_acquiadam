@@ -39,7 +39,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    * Acquiadam constructor.
    *
    * @param \Drupal\acquiadam\ClientFactory $client_factory
-   *   An instance of ClientFactory that we can get a webdam client from.
+   *   An instance of ClientFactory that we can get a acquiadam client from.
    * @param string $credential_type
    *   The type of credentials to use.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
