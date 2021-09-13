@@ -21,7 +21,7 @@ class AcquiadamController extends ControllerBase {
   /**
    * The asset that we're going to render details for.
    *
-   * @var \cweagans\webdam\Entity\Asset
+   * @var \Drupal\acquiadam\Entity\Asset
    */
   protected $asset;
 
@@ -65,7 +65,7 @@ class AcquiadamController extends ControllerBase {
    * @param int $assetId
    *   The asset ID for the asset to render details for.
    *
-   * @return \cweagans\webdam\Entity\Asset|false
+   * @return \Drupal\acquiadam\Entity\Asset|false
    *   The asset or FALSE on failure.
    */
   protected function getAsset($assetId) {

@@ -151,7 +151,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    *   The operation to perform. One of get, set, or clear.
    * @param int $assetId
    *   The asset ID when using get or set.
-   * @param \cweagans\webdam\Entity\Asset|false|null $asset
+   * @param \Drupal\acquiadam\Entity\Asset|false|null $asset
    *   The data to store under the given asset ID.
    *
    * @return mixed|null

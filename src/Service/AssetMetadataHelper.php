@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam\Service;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -152,7 +152,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   /**
    * Gets a metadata item from the given asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to get metadata from.
    * @param string $name
    *   The name of the metadata item to retrieve.

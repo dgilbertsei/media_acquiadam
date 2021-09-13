@@ -30,7 +30,7 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * The asset that we're going to render details for.
    *
-   * @var \cweagans\webdam\Entity\Asset
+   * @var \Drupal\acquiadam\Entity\Asset
    */
   protected $currentAsset = NULL;
 

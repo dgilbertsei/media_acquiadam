@@ -17,7 +17,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
   /**
    * The initial asset for this test.
    *
-   * @var \cweagans\webdam\Entity\Asset
+   * @var \Drupal\acquiadam\Entity\Asset
    */
   protected $asset;
 

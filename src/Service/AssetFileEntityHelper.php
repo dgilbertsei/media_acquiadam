@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam\Service;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -191,7 +191,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Creates a new file for an asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to save a new file for.
    * @param string $destinationFolder
    *   The path to save the asset into.
@@ -236,7 +236,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Fetches binary asset data from a remote source.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to fetch data for.
    * @param string $destination_folder
    *   The destination folder to save the asset to.

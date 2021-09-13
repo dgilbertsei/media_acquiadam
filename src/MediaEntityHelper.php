@@ -157,7 +157,7 @@ class MediaEntityHelper {
   /**
    * Get the asset from a media entity.
    *
-   * @return bool|\cweagans\webdam\Entity\Asset
+   * @return bool|\Drupal\acquiadam\Entity\Asset
    *   The asset or FALSE on failure.
    */
   public function getAsset() {

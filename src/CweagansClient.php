@@ -7,7 +7,7 @@
 
 namespace Drupal\acquiadam;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
 use cweagans\webdam\Entity\MiniFolder;
 use cweagans\webdam\Entity\User;
