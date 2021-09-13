@@ -5,9 +5,87 @@
  * Integrates Drupal with Acquia DAM.
  */
 
+use Drupal\acquiadam\AcquiadamAuthService;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\Core\Render\Element;
 use Drupal\media\MediaInterface;
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Adds Acquia DAM authorization field on user profile form. A link will be
+ * provided if user has not authenticated yet. On the other hand if the
+ * current user account has already been associated with a username and token,
+ * an option (a checkbox) to remove such credentials is given.
+ */
+function acquiadam_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  global $base_url;
+
+  if ($form_id == 'user_form') {
+    // Get the editing user.
+    $user = \Drupal::routeMatch()->getParameter('user');
+
+    $acquiadam_account = \Drupal::service('user.data')
+      ->get('acquiadam', $user->id(), 'account');
+
+    $form['acquiadam'] = [
+      '#type' => 'details',
+      '#title' => t('Acquia DAM Authorization'),
+      '#weight' => 7,
+      '#open' => TRUE,
+    ];
+
+    $domain = \Drupal::config('acquiadam.settings')->get('domain');
+
+    if (!empty($domain)) {
+      if (isset($acquiadam_account['acquiadam_token'])) {
+        $acquiadam_username = $acquiadam_account['acquiadam_username'];
+
+        $form['acquiadam']['acquiadam_remove_auth'] = [
+          '#type' => 'checkbox',
+          '#title' => t('Remove Acquia DAM authorization'),
+          '#prefix' => t('Currently authorized with Acquia DAM as "@username".', array('@username' => $acquiadam_username)) . '<br />',
+        ];
+
+        $form['actions']['submit']['#submit'][] = 'acquiadam_unathorize';
+      }
+      else {
+        $return_link = $base_url . Url::fromRoute('acquiadam.user_auth')->toString() . '?uid=' . $user->id();
+        $form['acquiadam']['acquiadam_auth_link'] = [
+          '#markup' => '<a href="' . AcquiadamAuthService::generateAuthUrl($return_link) . '">' . t('Authorize with Acquia DAM.') . '</a>',
+        ];
+      }
+    }
+    else {
+      $form['acquiadam']['setup_message'] = [
+        '#markup' => t('You must configure your Acquia DAM domain first. @link', array('@link' => Link::createFromRoute(t('Click here to configure.'), 'acquiadam.config')->toString())),
+      ];
+    }
+  }
+}
+
+/**
+ * Custom user form submit handler.
+ */
+function acquiadam_unathorize($form, FormStateInterface $form_state) {
+  if ($form_state->getValue('acquiadam_remove_auth')) {
+    // Get the editing user.
+    $user = \Drupal::routeMatch()->getParameter('user');
+
+    $acquiadam_account = \Drupal::service('user.data')
+      ->get('acquiadam', $user->id(), 'account');
+
+    $cancelled = AcquiadamAuthService::cancel($acquiadam_account['acquiadam_token']);
+
+    // Unset Acquia DAM account data.
+    if ($cancelled) {
+      \Drupal::service('user.data')
+        ->set('acquiadam', $user->id(), 'account', []);
+    }
+  }
+}
 
 /**
  * Implements hook_theme().
@@ -53,25 +131,6 @@ function acquiadam_field_formatter_info_alter(&$info) {
 function acquiadam_entity_type_alter(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
   $entity_types['user']->setLinkTemplate('acquiadam-auth-form', '/user/{user}/acquiadam');
-}
-
-/**
- * Implements hook_menu_local_tasks_alter().
- *
- * Hides the 'Acquia DAM' tab on the user profile if the user is not viewing
- * their own profile.
- */
-function acquiadam_menu_local_tasks_alter(&$data, $route_name) {
-  if ($route_name === 'entity.user.canonical') {
-    foreach ($data['tabs'][0] as $key => $link) {
-      $url = $link['#link']['url'];
-      if ($url->getRouteName() === 'entity.user.acquiadam_auth') {
-        if ($url->getRouteParameters()['user'] != Drupal::currentUser()->id()) {
-          unset($data['tabs'][0][$key]);
-        }
-      }
-    }
-  }
 }
 
 /**

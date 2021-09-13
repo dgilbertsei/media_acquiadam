@@ -6,46 +6,12 @@ acquiadam.config:
   requirements:
     _permission: 'administer site configuration'
 
-entity.user.acquiadam_auth:
-  path: '/user/{user}/acquiadam'
+acquiadam.user_auth:
+  path: '/user/acquiadam/auth'
   defaults:
-    _title: 'Acquia DAM'
-    _controller: '\Drupal\acquiadam\Controller\OauthController::authPage'
+    _controller: '\Drupal\acquiadam\Controller\AcquiadamAuthController::authenticate'
   requirements:
-    _user_is_logged_in: 'TRUE'
-    user: \d+
-  options:
-    no_cache: 'TRUE'
-
-acquiadam.auth_start:
-  path: '/acquiadam/authStart'
-  defaults:
-    _title: 'Redirect to DAM'
-    _controller: '\Drupal\acquiadam\Controller\OauthController::authStart'
-  requirements:
-    _user_is_logged_in: 'TRUE'
-  options:
-    no_cache: 'TRUE'
-
-acquiadam.logout:
-  path: '/acquiadam/logout'
-  defaults:
-    _title: 'DAM Logout'
-    _controller: '\Drupal\acquiadam\Controller\OauthController::logout'
-  requirements:
-    _user_is_logged_in: 'TRUE'
-  options:
-    no_cache: 'TRUE'
-
-acquiadam.auth_finish:
-  path: '/acquiadam/authFinish'
-  defaults:
-    _title: 'Authentication finalization'
-    _controller: '\Drupal\acquiadam\Controller\OauthController::authFinish'
-  requirements:
-    _user_is_logged_in: 'TRUE'
-  options:
-    no_cache: 'TRUE'
+    _access: 'TRUE'
 
 acquiadam.asset_details:
   path: 'acquiadam/asset/{assetId}'
