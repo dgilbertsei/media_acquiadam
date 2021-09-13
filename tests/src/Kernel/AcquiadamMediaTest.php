@@ -8,7 +8,7 @@ use Drupal\acquiadam\Acquiadam;
 use Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset;
 
 /**
- * Tests Media entities with Media: Acquia DAM source.
+ * Tests Media entities with Acquia DAM source.
  *
  * @group acquiadam
  */

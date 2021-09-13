@@ -26,7 +26,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM asset metadata helper service.
+   * Acquia DAM asset metadata helper service.
    *
    * @var \Drupal\acquiadam\Service\AssetMetadataHelper
    */

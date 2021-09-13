@@ -30,7 +30,7 @@ class AcquiadamServiceTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM client.
+   * Acquia DAM client.
    *
    * @var \Drupal\acquiadam\Acquiadam
    */

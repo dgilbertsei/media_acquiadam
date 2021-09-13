@@ -1,4 +1,4 @@
-# Media: Acquia DAM
+# Acquia DAM
 
 This module provides Acquia DAM integration for Media entity (i.e. media type provider plugin). When a Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site. These media entities will be periodically synchronized with Acquia DAM via cron.
 
@@ -23,7 +23,7 @@ This guide provides an example for how to implement the acquiadam module on your
 
 ### Quick start configuration guide
 
-Recommended: The Media: Acquia DAM - Example Configuration module will create a new Media bundle and add an entity browser.
+Recommended: The Acquia DAM - Example Configuration module will create a new Media bundle and add an entity browser.
 
 Manual:
 

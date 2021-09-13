@@ -25,7 +25,7 @@ class AssetDataTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Media: Acquia DAM asset data service.
+   * Acquia DAM asset data service.
    *
    * Mocked to have a fixed set/get.
    *

@@ -11,7 +11,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 trait AcquiadamLoggerFactoryTrait {
 
   /**
-   * Gets a stubbed out Logger factory for Media: Acquia DAM test usage.
+   * Gets a stubbed out Logger factory for Acquia DAM test usage.
    *
    * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\Core\Logger\LoggerChannelFactoryInterface
    *   A mock LoggerChannelFactoryInstance with a acquiadam channel.

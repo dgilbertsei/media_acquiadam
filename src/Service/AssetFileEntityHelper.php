@@ -44,7 +44,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   protected $configFactory;
 
   /**
-   * Media: Acquia DAM config.
+   * Acquia DAM config.
    *
    * @var \Drupal\Core\Config\ImmutableConfig
    */
@@ -65,28 +65,28 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   protected $token;
 
   /**
-   * Media: Acquia DAM asset image helper service.
+   * Acquia DAM asset image helper service.
    *
    * @var \Drupal\acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
-   * Media: Acquia DAM client.
+   * Acquia DAM client.
    *
    * @var \Drupal\acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
-   * Media: Acquia DAM factory for wrapping media entities.
+   * Acquia DAM factory for wrapping media entities.
    *
    * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
   /**
-   * Media: Acquia DAM logger channel.
+   * Acquia DAM logger channel.
    *
    * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
@@ -106,11 +106,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    * @param \Drupal\Core\Utility\Token $token
    *   Drupal token service.
    * @param \Drupal\acquiadam\Service\AssetImageHelper $assetImageHelper
-   *   Media: Acquia DAM asset image helper service.
+   *   Acquia DAM asset image helper service.
    * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
-   *   Media: Acquia DAM client.
+   *   Acquia DAM client.
    * @param \Drupal\acquiadam\Service\AssetMediaFactory $assetMediaFactory
-   *   Media: Acquia DAM Asset Media Factory service.
+   *   Acquia DAM Asset Media Factory service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
    */

@@ -37,7 +37,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   protected $entityTypeManager;
 
   /**
-   * Media: Acquia DAM Asset Media Factory service.
+   * Acquia DAM Asset Media Factory service.
    *
    * @var \Drupal\acquiadam\Service\AssetMediaFactory
    */

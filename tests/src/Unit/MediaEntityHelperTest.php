@@ -197,7 +197,7 @@ class MediaEntityHelperTest extends UnitTestCase {
   }
 
   /**
-   * Sets Media: Acquia DAM mocked services into a container.
+   * Sets Acquia DAM mocked services into a container.
    *
    * @param \Drupal\Core\DependencyInjection\ContainerBuilder $container
    *   The container to set mocks into.

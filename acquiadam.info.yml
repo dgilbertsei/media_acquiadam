@@ -1,4 +1,4 @@
-name: "Media: Acquia DAM"
+name: "Acquia DAM"
 description: "Integrates the Media module ecosystem with Acquia DAM"
 core: 8.x
 core_version_requirement: '^8 || ^9'
