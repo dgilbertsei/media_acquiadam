@@ -11,8 +11,8 @@ use Drupal\acquiadam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
 use cweagans\webdam\Entity\MiniFolder;
 use cweagans\webdam\Entity\User;
-use cweagans\webdam\Exception\InvalidCredentialsException;
-use cweagans\webdam\Exception\UploadAssetException;
+use Drupal\acquiadam\Exception\InvalidCredentialsException;
+use Drupal\acquiadam\Exception\UploadAssetException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 
