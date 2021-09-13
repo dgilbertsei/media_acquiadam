@@ -9,7 +9,7 @@ namespace Drupal\acquiadam;
 
 use Drupal\acquiadam\Entity\Asset;
 use Drupal\acquiadam\Entity\Folder;
-use cweagans\webdam\Entity\MiniFolder;
+use Drupal\acquiadam\Entity\MiniFolder;
 use cweagans\webdam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\acquiadam\Exception\UploadAssetException;
