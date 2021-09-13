@@ -12,7 +12,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 
 /**
- * Overridden implementation of the cweagans php-webdam-client.
+ * Overridden implementation of the CweagansClient.
  *
  * Adds support for refreshing OAuth sessions.
  */
@@ -172,10 +172,10 @@ class Client extends OriginalClient {
     }
 
     // For error response body details:
-    // @see \cweagans\webdam\tests\ClientTest::testInvalidClient().
-    // @see \cweagans\webdam\tests\ClientTest::testInvalidGrant().
+    // @see \Drupal\acquiadam\tests\ClientTest::testInvalidClient().
+    // @see \Drupal\acquiadam\tests\ClientTest::testInvalidGrant().
     // For successful auth response body details:
-    // @see \cweagans\webdam\tests\ClientTest::testSuccessfulAuthentication().
+    // @see \Drupal\acquiadam\tests\ClientTest::testSuccessfulAuthentication().
     try {
       $response = $this->client->request(
         "POST",
@@ -196,7 +196,7 @@ class Client extends OriginalClient {
         $body->refresh_token : $this->refreshToken;
     }
     catch (ClientException $e) {
-      // For bad auth, the WebDAM API has been observed to return either
+      // For bad auth, the Acquia DAM API has been observed to return either
       // 400 or 403, so handle those via InvalidCredentialsException.
       $status_code = $e->getResponse()->getStatusCode();
       if ($status_code == 400 || $status_code == 403) {
@@ -240,7 +240,7 @@ class Client extends OriginalClient {
   }
 
   /**
-   * Uploads file to Webdam AWS S3.
+   * Uploads file to Acquia DAM AWS S3.
    *
    * @param mixed $presignedUrl
    *   The presigned URL we got in previous step from AWS.
@@ -442,7 +442,7 @@ class Client extends OriginalClient {
   }
 
   /**
-   * Returns the list of recent Webdam REST API "Notifications".
+   * Returns the list of recent Acquia DAM REST API "Notifications".
    *
    * @param array $query_options
    *   The associative array of optional query parameters:

@@ -242,7 +242,7 @@ class CweagansClient {
    * Get a Folder given a Folder ID.
    *
    * @param int $folderID
-   *   The webdam Folder ID.
+   *   The Acquia DAM Folder ID.
    *
    * @return Folder
    */
@@ -288,7 +288,7 @@ class CweagansClient {
    * Get an Asset given an Asset ID.
    *
    * @param int $assetId
-   *   The webdam Asset ID.
+   *   The Acquia DAM Asset ID.
    * @param bool $include_xmp
    *   If TRUE, $this->getAssetMetadata() will be called and the result will
    *   be added to the returned asset object.
@@ -416,7 +416,7 @@ class CweagansClient {
    *   that contains a message for the caller.
    *
    * @return string
-   *   Webdam response (asset id).
+   *   Acquia DAM response (asset id).
    */
   public function uploadAsset($file_uri, $file_name, $folderID) {
     $this->checkAuth();
