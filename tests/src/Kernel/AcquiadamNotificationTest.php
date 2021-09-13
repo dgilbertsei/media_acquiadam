@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\acquiadam\Kernel;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\media\Entity\Media;
 
 /**
@@ -84,7 +84,7 @@ class AcquiadamNotificationTest extends AcquiadamKernelTestBase {
   /**
    * Updates an Asset and add notification to it.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to be updated.
    */
   protected function generateNewVersionAndNotify(Asset $asset) {

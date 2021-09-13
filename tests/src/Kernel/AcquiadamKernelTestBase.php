@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\acquiadam\Kernel;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
@@ -117,7 +117,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   /**
    * Get the URI from a given asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to generate the URI.
    * @param \Drupal\media\MediaInterface $media
    *   The media entity for this asset.

@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\acquiadam\Traits;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 
 /**
  * Shared asset data.
@@ -15,7 +15,7 @@ trait AcquiadamAssetDataTrait {
    * @param array $values
    *   Extra values for the asset.
    *
-   * @return \cweagans\webdam\Entity\Asset
+   * @return \Drupal\acquiadam\Entity\Asset
    *   A hard-coded Asset item.
    */
   protected function getAssetData(array $values = []) {
@@ -98,10 +98,10 @@ trait AcquiadamAssetDataTrait {
   /**
    * Create a new version of a given asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to be updated.
    *
-   * @return \cweagans\webdam\Entity\Asset
+   * @return \Drupal\acquiadam\Entity\Asset
    *   The updated asset.
    */
   protected function generateNewVersion(Asset $asset) {

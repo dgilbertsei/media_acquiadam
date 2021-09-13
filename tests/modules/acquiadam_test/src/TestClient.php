@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam_test;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 
 /**
  * Overridden implementation of the Acquia DAM client for testing.
@@ -59,7 +59,7 @@ class TestClient {
   /**
    * Add or modify a test asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to add/modify.
    */
   public function addAsset(Asset $asset) {
@@ -72,7 +72,7 @@ class TestClient {
    * @param int $assetId
    *   The test Asset ID.
    *
-   * @return \cweagans\webdam\Entity\Asset
+   * @return \Drupal\acquiadam\Entity\Asset
    *   The test asset.
    */
   public function getAsset($assetId) {

@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam\Plugin\EntityBrowser\Widget;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use cweagans\webdam\Entity\Folder;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -588,7 +588,7 @@ class Acquiadam extends WidgetBase {
    * @return string
    *   Element HTML markup.
    *
-   * @var \cweagans\webdam\Entity\Asset $acquiadamAsset
+   * @var \Drupal\acquiadam\Entity\Asset $acquiadamAsset
    */
   public function layoutMediaEntity(Asset $acquiadamAsset) {
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();

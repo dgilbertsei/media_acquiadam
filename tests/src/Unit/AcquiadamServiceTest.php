@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\acquiadam\Unit;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\acquiadam\Acquiadam;
 use Drupal\acquiadam\AssetDataInterface;

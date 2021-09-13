@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam\Service;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
@@ -94,7 +94,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get the URL to the DAM-provided thumbnail if possible.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to get the thumbnail size from.
    * @param int $thumbnailSize
    *   Find the closest thumbnail size without going over when multiple
@@ -154,7 +154,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get the thumbnail for the given asset.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The Acquia DAM asset.
    * @param \Drupal\file\FileInterface|false $file
    *   The file entity to create a thumbnail uri from.

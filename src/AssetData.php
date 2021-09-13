@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam;
 
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -54,7 +54,7 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
   /**
    * Check if the given asset is different than what is stored.
    *
-   * @param \cweagans\webdam\Entity\Asset $asset
+   * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The current version of the asset.
    * @param bool $saveUpdatedVersion
    *   TRUE to save the new version (if newer than the existing).

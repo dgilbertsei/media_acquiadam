@@ -6,7 +6,7 @@
 namespace Drupal\acquiadam;
 
 use Drupal\acquiadam\CweagansClient as OriginalClient;
-use cweagans\webdam\Entity\Asset;
+use Drupal\acquiadam\Entity\Asset;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
@@ -381,7 +381,7 @@ class Client extends OriginalClient {
    *                             Values: '+3 min', '+15 min', '+2 hours',
    *                             '+1 day', '+2 weeks', 'no-expiration'.
    *
-   * @return \cweagans\webdam\Entity\Asset|bool
+   * @return \Drupal\acquiadam\Entity\Asset|bool
    *   An asset object on success, or FALSE on failure.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
