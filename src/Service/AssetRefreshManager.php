@@ -2,7 +2,7 @@
 
 namespace Drupal\acquiadam\Service;
 
-use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;

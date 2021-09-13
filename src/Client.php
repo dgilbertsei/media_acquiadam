@@ -7,7 +7,7 @@ namespace Drupal\acquiadam;
 
 use cweagans\webdam\Client as OriginalClient;
 use cweagans\webdam\Entity\Asset;
-use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 
@@ -92,7 +92,7 @@ class Client extends OriginalClient {
    *   An array of authentication token information.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    *
    * @see \Drupal\acquiadam\Client::getAuthState()
    */
@@ -156,7 +156,7 @@ class Client extends OriginalClient {
    *   authentication information.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function authenticate(array $data = []) {
 
@@ -253,7 +253,7 @@ class Client extends OriginalClient {
    *   Response Status 100 / 200
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   protected function uploadPresigned($presignedUrl, $file_uri, $file_type) {
     $this->checkAuth();
@@ -296,7 +296,7 @@ class Client extends OriginalClient {
    *   An array of response data.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function queueAssetDownload($assetIDs, array $options) {
     $this->checkAuth();
@@ -342,7 +342,7 @@ class Client extends OriginalClient {
    *   An array of response data.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function downloadFromQueue($downloadKey) {
     $this->checkAuth();
@@ -385,7 +385,7 @@ class Client extends OriginalClient {
    *   An asset object on success, or FALSE on failure.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function editAsset($assetID, array $data) {
     $this->checkAuth();
@@ -420,7 +420,7 @@ class Client extends OriginalClient {
    *   The metadata of the asset.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function editAssetXmpMetadata($assetID, array $data) {
     $this->checkAuth();
@@ -463,7 +463,7 @@ class Client extends OriginalClient {
    *   - "notifications" - notification items.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \cweagans\webdam\Exception\InvalidCredentialsException
+   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
   public function getNotifications(array $query_options = []): array {
     $this->checkAuth();

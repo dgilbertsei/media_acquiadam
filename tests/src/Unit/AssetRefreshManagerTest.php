@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\acquiadam\Unit;
 
-use cweagans\webdam\Exception\InvalidCredentialsException;
+use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\Time;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
