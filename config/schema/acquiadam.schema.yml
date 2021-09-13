@@ -3,18 +3,9 @@ acquiadam.settings:
   type: config_object
   label: 'Acquia DAM settings'
   mapping:
-    username:
+    domain:
       type: string
-      label: 'Acquia DAM username'
-    password:
-      type: string
-      label: 'Acquia DAM password'
-    client_id:
-      type: string
-      label: 'Client ID for Acquia DAM API'
-    secret:
-      type: string
-      label: 'Secret for Acquia DAM API'
+      label: 'Acquia DAM domain'
     sync_interval:
       type: integer
       label: 'Sync interval'

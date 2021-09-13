@@ -2,15 +2,16 @@
 
 namespace Drupal\acquiadam\Form;
 
-use cweagans\webdam\Exception\InvalidCredentialsException;
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Component\Utility\Xss;
 use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\State\State;
-use Drupal\acquiadam\ClientFactory;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,11 +26,18 @@ class AcquiadamConfig extends ConfigFormBase {
   const NUM_IMAGES_PER_PAGE = 12;
 
   /**
-   * Acquia DAM client factory.
+   * The AcquiaDAM domain.
    *
-   * @var \Drupal\acquiadam\ClientFactory
+   * @var string
    */
-  protected $acquiaDamClientFactory;
+  protected $domain;
+
+  /**
+   * The Guzzle HTTP client service.
+   *
+   * @var \GuzzleHttp\Client
+   */
+  protected $httpClient;
 
   /**
    * The Batch Builder.
@@ -64,13 +72,43 @@ class AcquiadamConfig extends ConfigFormBase {
    *
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientFactory $acquiaDamClientFactory, BatchBuilder $batch_builder, TimeInterface $time, QueueWorkerManagerInterface $queue_worker_manager, State $state) {
+  public function __construct(ConfigFactoryInterface $config_factory, Client $http_client, BatchBuilder $batch_builder, TimeInterface $time, QueueWorkerManagerInterface $queue_worker_manager, State $state) {
     parent::__construct($config_factory);
-    $this->acquiaDamClientFactory = $acquiaDamClientFactory;
+    $this->httpClient = $http_client;
     $this->batchBuilder = $batch_builder;
     $this->time = $time;
     $this->queueWorkerManager = $queue_worker_manager;
     $this->state = $state;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('http_client'),
+      new BatchBuilder(),
+      $container->get('datetime.time'),
+      $container->get('plugin.manager.queue_worker'),
+      $container->get('state')
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
+    return 'acquiadam_config';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return [
+      'acquiadam.settings',
+    ];
   }
 
   /**
@@ -84,34 +122,12 @@ class AcquiadamConfig extends ConfigFormBase {
       '#title' => $this->t('Authentication details'),
     ];
 
-    $form['authentication']['username'] = [
+    $form['authentication']['domain'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Username'),
-      '#default_value' => $config->get('username'),
-      '#description' => $this->t('The username of the Acquia DAM account to use for API access.'),
+      '#title' => $this->t('Acquia DAM Domain'),
+      '#default_value' => $config->get('domain'),
+      '#description' => $this->t('example: demo.acquiadam.com'),
       '#required' => TRUE,
-    ];
-
-    $form['authentication']['password'] = [
-      '#type' => 'password',
-      '#title' => $this->t('Password'),
-      '#default_value' => $config->get('password'),
-      '#description' => $this->t('The password of the Acquia DAM account to use for API access. Note that this field will appear blank even if you have previously saved a value.'),
-    ];
-
-    $form['authentication']['client_id'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Client ID'),
-      '#default_value' => $config->get('client_id'),
-      '#description' => $this->t('API Client ID to use for API access. Contact the Acquia DAM support team to get one assigned.'),
-      '#required' => TRUE,
-    ];
-
-    $form['authentication']['secret'] = [
-      '#type' => 'password',
-      '#title' => $this->t('Client secret'),
-      '#default_value' => $config->get('secret'),
-      '#description' => $this->t('API Client Secret to use for API access. Contact the Acquia DAM support team to get one assigned. Note that this field will appear blank even if you have previously saved a value.'),
     ];
 
     $form['cron'] = [
@@ -206,6 +222,76 @@ class AcquiadamConfig extends ConfigFormBase {
     ];
 
     return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $domain = Xss::filter($form_state->getValue('domain'));
+    $domain = trim($domain);
+    if (!empty($domain)) {
+      // Make sure that we don't have http:// or https://.
+      $this->domain = preg_replace('#^https?://#', '', $domain);
+      $this->validateDomain($form_state);
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $this->config('acquiadam.settings')
+      ->set('domain', $this->domain)
+      ->set('sync_interval', $form_state->getValue('sync_interval'))
+      ->set('size_limit', $form_state->getValue('size_limit'))
+      ->set('notifications_sync', $form_state->getValue('notifications_sync'))
+      ->set('perform_sync_delete', $form_state->getValue('perform_sync_delete'))
+      ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
+      ->set('samesite_cookie_disable', $form_state->getValue('samesite_cookie_disable'))
+      ->save();
+
+    parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Checks domain with an 80 and 443 ping.
+   */
+  private function validateDomain(FormStateInterface $form_state) {
+    // Generate the ping endpoint non-SSL URL of the configured domain.
+    $endpoints = [
+      'http' => 'http://' . $this->domain . '/collective.ping',
+      'https' => 'https://' . $this->domain . '/collective.ping',
+    ];
+
+    foreach ($endpoints as $protocol => $endpoint) {
+      try {
+        // Process the response of the HTTP request.
+        $response = $this->httpClient->get($endpoint);
+        $status = $response->getStatusCode();
+
+        // If ping returns a successful HTTP response, display a confirmation
+        // message.
+        if ($status == '200') {
+          $this->messenger()->addStatus($this->t('Validating Widen Collective domain (@protocol): OK!', [
+            '@protocol' => $protocol,
+          ]));
+        }
+        else {
+          // If failed, display an error message.
+          $form_state->setErrorByName('collective_domain', $this->t('Validating Widen Collective domain (@protocol): @status', [
+            '@protocol' => $protocol,
+            '@status' => $status,
+          ]));
+        }
+      }
+      catch (ConnectException $e) {
+        $form_state->setErrorByName('collective_domain', $this->t('Unable to resolve widen collective domain.'));
+      }
+    }
   }
 
   /**
@@ -336,79 +422,6 @@ class AcquiadamConfig extends ConfigFormBase {
       $this->state->set('acquiadam.notifications_endtime', NULL);
       $this->state->set('acquiadam.notifications_next_page', NULL);
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('acquiadam.client_factory'),
-       new BatchBuilder(),
-      $container->get('datetime.time'),
-      $container->get('plugin.manager.queue_worker'),
-      $container->get('state')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId() {
-    return 'acquiadam_config';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function getEditableConfigNames() {
-    return [
-      'acquiadam.settings',
-    ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    // We set the client data array with the values from form_state.
-    $username = $form_state->getValue('username');
-    $password = $this->getFieldValue($form_state, 'password');
-    $form_state->setValue('password', $password);
-    $client_id = $form_state->getValue('client_id');
-    $client_secret = $this->getFieldValue($form_state, 'secret');
-    $form_state->setValue('secret', $client_secret);
-
-    try {
-      $acquiadam_client = $this->acquiaDamClientFactory->getWithCredentials($username, $password, $client_id, $client_secret);
-      $acquiadam_client->getAccountSubscriptionDetails();
-    }
-    // If checkCredentials() throws an exception,
-    // we catch it here and display the error message to the user.
-    catch (InvalidCredentialsException $e) {
-      $form_state->setErrorByName('authentication', $e->getMessage());
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('acquiadam.settings')
-      ->set('username', $form_state->getValue('username'))
-      ->set('password', $form_state->getValue('password'))
-      ->set('client_id', $form_state->getValue('client_id'))
-      ->set('secret', $form_state->getValue('secret'))
-      ->set('sync_interval', $form_state->getValue('sync_interval'))
-      ->set('size_limit', $form_state->getValue('size_limit'))
-      ->set('notifications_sync', $form_state->getValue('notifications_sync'))
-      ->set('perform_sync_delete', $form_state->getValue('perform_sync_delete'))
-      ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
-      ->set('samesite_cookie_disable', $form_state->getValue('samesite_cookie_disable'))
-      ->save();
-
-    parent::submitForm($form, $form_state);
   }
 
   /**
