@@ -1,7 +1,4 @@
-username:
-password:
-client_id:
-secret:
+domain:
 sync_interval: 3600
 size_limit: -1
 oauth:
