@@ -11,6 +11,7 @@ use Drupal\acquiadam\Entity\MiniFolder;
 use Drupal\acquiadam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\acquiadam\Exception\UploadAssetException;
+use Drupal\user\UserData;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
@@ -51,123 +52,59 @@ class Client {
   protected $client;
 
   /**
-   * A flag for determining if a token has been manually set.
-   *
-   * @var bool
-   */
-  protected $manualToken = FALSE;
-
-  /**
-   * The username for the Acquia DAM API account.
-   *
-   * @var string
-   */
-  protected $username;
-
-  /**
-   * The password for the Acquia DAM API account.
-   *
-   * @var string
-   */
-  protected $password;
-
-  /**
-   * The client ID provided by Acquia DAM for API communication.
-   *
-   * @var string
-   */
-  protected $clientId;
-
-  /**
-   * The client secret provided by Acquia DAM for API communication.
-   *
-   * @var string
-   */
-  protected $clientSecret;
-
-  /**
    * The base URL of the Acquia DAM API.
    */
   protected $baseUrl = "https://api.widencollective.com/v2";
 
   /**
-   * The access token retreived from the Acquia DAM authentication endpoint.
+   * The user data factory service.
+   *
+   * @var \Drupal\user\UserData
    */
-  protected $accessToken;
-
-  /**
-   * Unix timestamp when $this->accessToken expires.
-   */
-  protected $accessTokenExpiry;
+  protected $userData;
 
   /**
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
-   * @param $username
-   * @param $password
-   * @param $client_id
-   * @param $client_secret
+   * @param UserData $user_data
    */
-  public function __construct(ClientInterface $client, $username, $password, $client_id, $client_secret) {
+  public function __construct(ClientInterface $client, UserData $user_data) {
     $this->client = $client;
-    $this->username = $username;
-    $this->password = $password;
-    $this->clientId = $client_id;
-    $this->clientSecret = $client_secret;
+    $this->userData = $user_data;
   }
 
   /**
    * Authenticates with the Acquia DAM service and retrieves an access token, or uses existing one.
    */
   public function checkAuth() {
-    // If we have an unexpired access token, we're good to go.
-    if (!is_null($this->accessToken) && time() < $this->accessTokenExpiry) {
-      return;
+    $account = $this->userData->get('acquiadam', $this->currentUser()->id(), 'account');
+
+    if (!isset($account['acquiadam_username']) || !isset($account['acquiadam_token'])) {
+      return FALSE;
     }
 
-    if ($this->manualToken) {
-      throw new InvalidCredentialsException('Cannot reauthenticate a manually set token.');
+    return TRUE;
+  }
+
+  /**
+   * Get internal auth state details.
+   *
+   * {@inheritdoc}
+   */
+  public function getAuthState() {
+    $state = ['valid_token' => FALSE];
+
+    $account = $this->userData->get('acquiadam', $this->currentUser()->id(), 'account');
+    if (isset($account['acquiadam_username']) || isset($account['acquiadam_token'])) {
+      $state = [
+        'valid_token' => TRUE,
+        'username' => $account['acquiadam_username'],
+        'access_token' => $account['acquiadam_token'],
+      ];
     }
 
-    // Otherwise, we need to authenticate and store the access token and expiry.
-    $url = $this->baseUrl . '/oauth2/token';
-    $data = [
-      'grant_type' => 'password',
-      'username' => $this->username,
-      'password' => $this->password,
-      'client_id' => $this->clientId,
-      'client_secret' => $this->clientSecret,
-    ];
-
-    /**
-     * For error response body details:
-     * @see \Drupal\acquiadam\tests\ClientTest::testInvalidClient()
-     * @see \Drupal\acquiadam\tests\ClientTest::testInvalidGrant()
-     *
-     * For successful auth response body details:
-     * @see \Drupal\acquiadam\tests\ClientTest::testSuccessfulAuthentication()
-     */
-    try {
-      $response = $this->client->request("POST", $url, ['form_params' => $data]);
-
-      // Body properties: access_token, expires_in, token_type, refresh_token
-      $body = (string) $response->getBody();
-      $body = json_decode($body);
-
-      $this->accessToken = $body->access_token;
-      $this->accessTokenExpiry = time() + $body->expires_in;
-    }
-    catch (ClientException $e) {
-      // Looks like any form of bad auth with Acquia DAM is a 400, but we're
-      // wrapping it here just in case.
-      if ($e->getResponse()->getStatusCode() == 400) {
-        $body = (string) $e->getResponse()->getBody();
-        $body = json_decode($body);
-
-        throw new InvalidCredentialsException($body->error_description . ' (' . $body->error . ').');
-      }
-    }
+    return $state;
   }
 
   /**
@@ -219,79 +156,6 @@ class Client {
     }
 
     return $this->activeXmpFields;
-  }
-
-  /**
-   * Authenticates with the DAM service and retrieves or uses an access token.
-   *
-   * {@inheritdoc}
-   *
-   * @return array
-   *   An array of authentication token information.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
-   *
-   * @see \Drupal\acquiadam\Client::getAuthState()
-   */
-  public function checkAuth() {
-
-    $is_expired_token = empty($this->accessTokenExpiry) || time(
-      ) >= $this->accessTokenExpiry;
-    $is_expired_session = !empty($this->accessToken) && $is_expired_token;
-
-    // Session is still valid.
-    if (!empty($this->accessToken) && !$is_expired_token) {
-      return $this->getAuthState();
-    }
-
-    // Session has expired but we have a refresh token.
-    elseif ($is_expired_session && !empty($this->refreshToken)) {
-      $data = [
-        'grant_type' => 'refresh_token',
-        'refresh_token' => $this->refreshToken,
-        'client_id' => $this->clientId,
-        'client_secret' => $this->clientSecret,
-      ];
-      $this->authenticate($data);
-    }
-    // Session was manually set so we don't do anything.
-    // Adding an $is_expired_session condition here allows the DAM browser to
-    // fall back to the global account.
-    elseif ($this->manualToken) {
-      // @todo Why can't we authenticate after a manual set?
-      throw new InvalidCredentialsException(
-        'Cannot reauthenticate a manually set token.'
-      );
-    }
-    // Expired or new session.
-    else {
-      $this->authenticate();
-    }
-
-    return $this->getAuthState();
-  }
-
-  /**
-   * Get internal auth state details.
-   *
-   * {@inheritdoc}
-   */
-  public function getAuthState() {
-
-    if (!is_null($this->accessToken) && time() < $this->accessTokenExpiry) {
-      $state = [
-        'valid_token' => TRUE,
-        'access_token' => $this->accessToken,
-        'access_token_expiry' => $this->accessTokenExpiry,
-      ];
-    }
-    $state = ['valid_token' => FALSE];
-
-    if (!empty($state['valid_token']) && empty($state['refresh_token'])) {
-      $state['refresh_token'] = $this->refreshToken;
-    }
-    return $state;
   }
 
   /**
