@@ -14,14 +14,10 @@ class Asset implements EntityInterface, \JsonSerializable {
    */
   public $id;
 
-  public $type_id;
-
   /**
-   * "active" or "inactive"
-   *
-   * @var string $status
+   * @var string $external_id
    */
-  public $status;
+  public $external_id;
 
   /**
    * @var string $filename
@@ -29,117 +25,47 @@ class Asset implements EntityInterface, \JsonSerializable {
   public $filename;
 
   /**
-   * @var string $version
+   * @var string $created_date
    */
-  public $version;
+  public $created_date;
 
   /**
-   * @var string $name
+   * @var string $last_update_date
    */
-  public $name;
+  public $last_update_date;
 
   /**
-   * @var string $description
+   * @var string $file_upload_date
    */
-  public $description;
+  public $file_upload_date;
 
   /**
-   * @var string $filesize
+   * @var string $deleted_date
    */
-  public $filesize;
+  public $deleted_date;
 
   /**
-   * @var string $width
+   * @var boolean $released_and_not_expired
    */
-  public $width;
+  public $released_and_not_expired;
 
   /**
-   * @var string $height
+   * @var array $download_link
    */
-  public $height;
+  public $download_link;
 
-  /**
-   * @var string $filetype
-   */
-  public $filetype;
-
-  /**
-   * @var string $colorspace
-   */
-  public $colorspace;
-
-  /**
-   * @var stdClass $thumbnailurls
-   */
-  public $thumbnailurls;
-
-  /**
-   * @var string $datecreated
-   */
-  public $datecreated;
-
-  public $date_created_unix;
-
-  /**
-   * @var string $datemodified
-   */
-  public $datemodified;
-
-  public $date_modified_unix;
-
-  /**
-   * @var string $datecaptured
-   */
-  public $datecaptured;
-
-  public $datecapturedUnix;
-
-  public $mediaUrl;
-
-  public $hiResMediaUrl;
-
-  public $numExif;
-
-  public $numXmp;
-
-  public $pagecount;
-
-  public $watched;
-
-  public $numRelated;
-
-  public $readonly;
-
-  public $readonlynext;
-
-  public $onhold;
-
-  public $metadata;
-
-  /**
-   * @var string $numComments
-   */
-  public $numComments;
-
-  /**
-   * @var MiniUser $user
-   */
-  public $user;
-
-  /**
-   * @var MiniFolder $folder
-   */
-  public $folder;
-
-  /**
-   * @var array $additional_properties
-   */
-  public $xmp_metadata;
-
-  /**
-   * @var stdClass $expiration
-   */
-  public $expiration;
+  public function getAllowedExpands() {
+    return [
+      'asset_properties',
+      'file_properties',
+      'metadata',
+      'metadata_info',
+      'metadata_vocabulary',
+      'security',
+      'status',
+      'thumbnails'
+    ];
+  }
 
   /**
    * {@inheritdoc}
@@ -151,36 +77,14 @@ class Asset implements EntityInterface, \JsonSerializable {
 
     $properties = [
       'id',
-      'type_id',
-      'status',
+      'external_id',
       'filename',
-      'version',
-      'name',
-      'filesize',
-      'width',
-      'height',
-      'filetype',
-      'colorspace',
-      'thumbnailurls',
-      'datecreated',
-      'datemodified',
-      'datecaptured',
-      'numComments',
-      'description',
-      'date_created_unix',
-      'date_modified_unix',
-      'datecapturedUnix',
-      'mediaUrl',
-      'hiResMediaUrl',
-      'numExif',
-      'numXmp',
-      'pagecount',
-      'watched',
-      'numRelated',
-      'readonly',
-      'readonlynext',
-      'onhold',
-      'metadata',
+      'created_date',
+      'last_update_date',
+      'file_upload_date',
+      'deleted_date',
+      'released_and_not_expired',
+      'download_link',
     ];
 
     // Copy all of the simple properties.
@@ -191,62 +95,21 @@ class Asset implements EntityInterface, \JsonSerializable {
       }
     }
 
-    if (isset($json->user)) {
-      $asset->user = MiniUser::fromJson($json->user);
-    }
-
-    if (isset($json->folder)) {
-      $asset->folder = MiniFolder::fromJson($json->folder);
-    }
-
-    if (isset($json->expiration)) {
-      $asset->expiration = $json->expiration;
-    }
-
     return $asset;
   }
 
   public function jsonSerialize() {
     $properties = [
       'id' => $this->id,
-      'type' => 'asset',
-      'type_id' => $this->type_id,
-      'status' => $this->status,
+      'external_id' => $this->external_id,
       'filename' => $this->filename,
-      'name' => $this->name,
-      'filesize' => $this->filesize,
-      'width' => $this->width,
-      'height' => $this->height,
-      'description' => $this->description,
-      'filetype' => $this->filetype,
-      'colorspace' => $this->colorspace,
-      'version' => $this->version,
-      'datecreated' => $this->datecreated,
-      'date_created_unix' => $this->date_created_unix,
-      'datemodified' => $this->datemodified,
-      'date_modified_unix' => $this->date_modified_unix,
-      'datecapturedUnix' => $this->datecapturedUnix,
-      'datecaptured' => $this->datecaptured,
-      'mediaUrl' => $this->mediaUrl,
-      'hiResMediaUrl' => $this->hiResMediaUrl,
-      'numExif' => $this->numExif,
-      'numXmp' => $this->numXmp,
-      'numComments' => $this->numComments,
-      'pagecount' => $this->pagecount,
-      'folder' => $this->folder,
-      'user' => $this->user,
-      'thumbnailurls' => $this->thumbnailurls,
-      'watched' => $this->watched,
-      'numRelated' => $this->numRelated,
-      'readonly' => $this->readonly,
-      'readonlynext' => $this->readonlynext,
-      'onhold' => $this->onhold,
-      'metadata' => $this->metadata,
+      'created_date' => $this->created_date,
+      'last_update_date' => $this->last_update_date,
+      'file_upload_date' => $this->file_upload_date,
+      'deleted_date' => $this->deleted_date,
+      'released_and_not_expired' => $this->released_and_not_expired,
+      'download_link' => $this->download_link,
     ];
-
-    if (isset($this->expiration)) {
-      $properties['expiration'] = $this->expiration;
-    }
 
     return $properties;
   }

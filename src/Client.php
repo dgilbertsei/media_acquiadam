@@ -11,6 +11,7 @@ use Drupal\acquiadam\Entity\MiniFolder;
 use Drupal\acquiadam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\acquiadam\Exception\UploadAssetException;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserData;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
@@ -64,21 +65,30 @@ class Client {
   protected $userData;
 
   /**
+   * The current user.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $account;
+
+  /**
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
    * @param UserData $user_data
+   * @param \Drupal\Core\Session\AccountInterface $account
    */
-  public function __construct(ClientInterface $client, UserData $user_data) {
+  public function __construct(ClientInterface $client, UserData $user_data, AccountInterface $account) {
     $this->client = $client;
     $this->userData = $user_data;
+    $this->account = $account;
   }
 
   /**
    * Authenticates with the Acquia DAM service and retrieves an access token, or uses existing one.
    */
   public function checkAuth() {
-    $account = $this->userData->get('acquiadam', $this->currentUser()->id(), 'account');
+    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
 
     if (!isset($account['acquiadam_username']) || !isset($account['acquiadam_token'])) {
       return FALSE;
@@ -95,7 +105,7 @@ class Client {
   public function getAuthState() {
     $state = ['valid_token' => FALSE];
 
-    $account = $this->userData->get('acquiadam', $this->currentUser()->id(), 'account');
+    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
     if (isset($account['acquiadam_username']) || isset($account['acquiadam_token'])) {
       $state = [
         'valid_token' => TRUE,
@@ -108,12 +118,30 @@ class Client {
   }
 
   /**
+   * Return an array of headers to add to every authenticated request.
+   *
+   * Note that this should not be used for the initial authentication request, as
+   * it will attempt to add an access token that we don't have yet.
+   *
+   * @return array
+   */
+  protected function getDefaultHeaders() {
+    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+
+    return [
+      'User-Agent' => 'drupal/acquiadam ' . self::CLIENTVERSION,
+      'Accept' => 'application/json',
+      'Authorization' => 'Bearer ' . $account['acquiadam_token'],
+    ];
+  }
+
+  /**
    * Get a list of metadata.
    *
    * @return array
    *   A list of active xmp metadata fields.
    */
-  public function getActiveXmpFields() {
+  /*public function getActiveXmpFields() {
     if (!is_null($this->activeXmpFields)) {
       return $this->activeXmpFields;
     }
@@ -156,7 +184,7 @@ class Client {
     }
 
     return $this->activeXmpFields;
-  }
+  }*/
 
   /**
    * Get subscription details for the account.
@@ -177,7 +205,7 @@ class Client {
    *    - activeUsers
    *    - inactiveUsers
    */
-  public function getAccountSubscriptionDetails() {
+  /*public function getAccountSubscriptionDetails() {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -189,7 +217,7 @@ class Client {
     $account = json_decode($response->getBody());
 
     return $account;
-  }
+  }*/
 
   /**
    * Get a Folder given a Folder ID.
@@ -199,7 +227,7 @@ class Client {
    *
    * @return Folder
    */
-  public function getFolder($folderID) {
+  /*public function getFolder($folderID) {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -211,14 +239,14 @@ class Client {
     $folder = Folder::fromJson((string) $response->getBody());
 
     return $folder;
-  }
+  }*/
 
   /**
    * Get top level folders.
    *
    * @return Folder[]
    */
-  public function getTopLevelFolders() {
+  /*public function getTopLevelFolders() {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -235,33 +263,30 @@ class Client {
     }
 
     return $folders;
-  }
+  }*/
 
   /**
    * Get an Asset given an Asset ID.
    *
    * @param int $assetId
    *   The Acquia DAM Asset ID.
-   * @param bool $include_xmp
-   *   If TRUE, $this->getAssetMetadata() will be called and the result will
-   *   be added to the returned asset object.
+   * @param array $expand
+   *   The additional properties to be included.
    *
    * @return Asset
    */
-  public function getAsset($assetId, $include_xmp = FALSE) {
+  public function getAsset($assetId, $expand = []) {
     $this->checkAuth();
+
+    $expand = array_intersect($expand, Asset::getAllowedExpands());
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/assets/' . $assetId,
+      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode(',', $expand),
       ['headers' => $this->getDefaultHeaders()]
     );
 
     $asset = Asset::fromJson((string) $response->getBody());
-
-    if ($include_xmp) {
-      $asset->xmp_metadata = $this->getAssetMetadata($assetId);
-    }
 
     return $asset;
   }
@@ -312,7 +337,7 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
    */
-  public function authenticate(array $data = []) {
+  /*public function authenticate(array $data = []) {
 
     $url = $this->baseUrl . '/oauth2/token';
     if (empty($data)) {
@@ -373,7 +398,7 @@ class Client {
         );
       }
     }
-  }
+  }*/
 
   /**
    * Set the internal auth token.
@@ -387,28 +412,12 @@ class Client {
    * @param string $refresh_token
    *   The refresh token to set.
    */
-  public function setToken($token, $token_expiry, $refresh_token = NULL) {
+  /*public function setToken($token, $token_expiry, $refresh_token = NULL) {
     $this->manualToken = TRUE;
     $this->accessToken = $token;
     $this->accessTokenExpiry = $token_expiry;
     $this->refreshToken = $refresh_token;
-  }
-
-  /**
-   * Return an array of headers to add to every authenticated request.
-   *
-   * Note that this should not be used for the initial authentication request, as
-   * it will attempt to add an access token that we don't have yet.
-   *
-   * @return array
-   */
-  protected function getDefaultHeaders() {
-    return [
-      'User-Agent' => "acquiadam/drupal " . self::CLIENTVERSION,
-      'Accept' => 'application/json',
-      'Authorization' => 'Bearer ' . $this->accessToken,
-    ];
-  }
+  }*/
 
   /**
    * Uploads file to Acquia DAM AWS S3.
