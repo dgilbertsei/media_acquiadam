@@ -166,6 +166,7 @@ class Acquiadam extends WidgetBase {
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
     $config = $this->config->get('acquiadam.settings');
+
     $media_type_storage = $this->entityTypeManager->getStorage('media_type');
     /** @var \Drupal\media\MediaTypeInterface $media_type */
     if (!$this->configuration['media_type'] || !($media_type = $media_type_storage->load($this->configuration['media_type']))) {
@@ -176,48 +177,30 @@ class Acquiadam extends WidgetBase {
     }
     // If this is not the current entity browser widget being rendered.
     elseif ($this->uuid() != $form_state->getStorage()['entity_browser_current_widget']) {
-      // Return an empty array.
       return [];
     }
 
+    // If the current user is not authenticated over Acquia DAM, display an
+    // error message with invitation to authenticate via his user edit form.
     $auth = $this->acquiadam->getAuthState();
     if (empty($auth['valid_token'])) {
-      try {
-        $auth = $this->acquiadam->checkAuth();
-        if (!empty($auth['valid_token'])) {
-          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_access_token', $auth['access_token']);
-          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_access_token_expiration', $auth['access_token_expiry']);
-          $this->userData->set('acquiadam', $this->user->id(), 'acquiadam_refresh_token', $auth['refresh_token']);
-        }
-      }
-      catch (InvalidCredentialsException $x) {
-        $message = '';
-        if ($config->get('samesite_cookie_disable') || $this->requestStack->getCurrentRequest()
-          ->getScheme() == "http") {
-          $message = $this->t("You are not authenticated. %authenticate first, then re-open this modal to browse Acquia DAM assets..", [
-            '%authenticate' => Link::createFromRoute('authenticate', 'acquiadam.auth_start', [], ['attributes' => ['target' => '_blank']])
-              ->toString(),
-          ]);
-        }
-        else {
-          $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
-            '%authenticate' => Link::createFromRoute('authenticate', 'acquiadam.auth_start', [
-              'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
-                ->getRequestUri(),
-            ])->toString(),
-          ]);
-        }
-        $form['message'] = [
-          '#theme' => 'asset_browser_message',
-          '#message' => $message,
-          '#attached' => [
-            'library' => [
-              'acquiadam/asset_browser',
-            ],
+      $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
+        '%authenticate' => Link::createFromRoute('authenticate', 'entity.user.edit_form', [
+          'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
+            ->getRequestUri(),
+        ])->toString(),
+      ]);
+
+      $form['message'] = [
+        '#theme' => 'asset_browser_message',
+        '#message' => $message,
+        '#attached' => [
+          'library' => [
+            'acquiadam/asset_browser',
           ],
-        ];
-        return $form;
-      }
+        ],
+      ];
+      return $form;
     }
 
     // Start by inheriting parent form.

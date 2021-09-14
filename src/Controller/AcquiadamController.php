@@ -70,7 +70,7 @@ class AcquiadamController extends ControllerBase {
    */
   protected function getAsset($assetId) {
     if (!isset($this->asset)) {
-      $this->asset = $this->acquiadam->getAsset($assetId, TRUE);
+      $this->asset = $this->acquiadam->getAsset($assetId);
     }
 
     return $this->asset;

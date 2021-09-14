@@ -8,15 +8,15 @@ services:
     public: false
     arguments:
       - '%session.storage.options%'
-  acquiadam.client_factory:
-    class: Drupal\acquiadam\ClientFactory
-    arguments: ['@config.factory', '@http_client', '@user.data', '@current_user']
+  acquiadam.client:
+    class: Drupal\acquiadam\Client
+    arguments: ['@http_client', '@user.data', '@current_user']
   acquiadam.acquiadam:
     class: Drupal\acquiadam\Acquiadam
-    arguments: ['@acquiadam.client_factory', 'background', '@logger.factory', '@acquiadam.asset_data']
+    arguments: ['@acquiadam.client', '@logger.factory', '@acquiadam.asset_data']
   acquiadam.acquiadam_user_creds:
     class: Drupal\acquiadam\Acquiadam
-    arguments: ['@acquiadam.client_factory', 'current', '@logger.factory', '@acquiadam.asset_data']
+    arguments: ['@acquiadam.client', '@logger.factory', '@acquiadam.asset_data']
   acquiadam.oauth:
     class: Drupal\acquiadam\Oauth
     arguments: ['@config.factory', '@csrf_token', '@url_generator.non_bubbling', '@http_client', '@logger.factory', '@current_user', '@request_stack']
