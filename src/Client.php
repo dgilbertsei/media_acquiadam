@@ -903,7 +903,7 @@ class Client {
       ]
     );
     if ($response->getStatusCode() == 429) {
-      Drupal::logger('acquiadam')->error(
+      \Drupal::logger('acquiadam')->error(
         'Failed to fetch asset ids: Too Many Requests.'
       );
       return [];
