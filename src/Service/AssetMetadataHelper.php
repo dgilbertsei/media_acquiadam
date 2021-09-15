@@ -38,7 +38,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *
    * @var array
    */
-  protected $xmpMetadataFields = NULL;
+  protected $xmpMetadataFields = [];
 
   /**
    * AssetImageHelper constructor.
