@@ -200,7 +200,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   /**
    * Returns the most recent media asset ids.
    *
-   * Requests Notifications API and gets the most recent asset ids available.
+   * Requests Assets Search API and gets the most recent asset ids available.
    *
    * @return array
    *   List of unique asset ids.
@@ -210,11 +210,14 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
       $page = $this->getNextPage() ? $this->getNextPage() : 1;
       // Calculate the offset value as a number of previously processed items.
       $offset = $this->getRequestLimit() * ($page - 1);
-      $response = $this->acquiadam->getNotifications([
+
+      // @TODO: Deal with the timezone.
+      $date = date('Y-m-dTH:i:sZ', \Drupal::state()->get('acquiadam.last_sync'));
+
+      $response = $this->acquiadam->searchAssets([
         'limit' => $this->getRequestLimit(),
         'offset' => $offset,
-        'starttime' => $this->getStartTime(),
-        'endtime' => $this->getEndTime(),
+        'query' => ["lastEditDate:[after $date]"],
       ]);
     }
     catch (GuzzleException | InvalidCredentialsException $e) {
@@ -223,23 +226,20 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
       return [];
     }
 
-    if (empty($response['notifications'])) {
+    if (empty($response['items'])) {
       $continue_fetch = FALSE;
       $asset_ids = [];
     }
     else {
-      $continue_fetch = $response['total'] > $this->getRequestLimit() * $page;
-      $asset_ids = $this->extractAssetIds($response['notifications']);
+      $continue_fetch = $response['total_count'] > $this->getRequestLimit() * $page;
+      $asset_ids = array_unique(array_map(function($item) { return $item['id']; }, $response['items']));
     }
 
     if ($continue_fetch) {
       $this->saveNextPage(++$page);
-      $this->saveEndTime($this->getEndTime());
       return $asset_ids;
     }
 
-    $this->saveStartTime($this->getEndTime());
-    $this->resetEndTime();
     $this->resetNextPage();
 
     return $asset_ids;
@@ -255,137 +255,10 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   /**
    * {@inheritdoc}
    */
-  public function setRequestLimit(int $newLimit = 250): int {
+  public function setRequestLimit(int $newLimit = 100): int {
     $old_limit = $this->getRequestLimit();
     $this->requestLimit = max(1, $newLimit);
     return $old_limit;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getLastReadInterval(): int {
-    return $this->lastReadInterval;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setLastReadInterval(int $lastReadInterval = 43200): int {
-    $old_interval = $this->getLastReadInterval();
-    $this->lastReadInterval = max(1, $lastReadInterval);
-    return $old_interval;
-  }
-
-  /**
-   * Extracts asset id values from the response body.
-   *
-   * @param array $notifications
-   *   Notification items.
-   *
-   * @return array
-   *   List of asset ids.
-   */
-  protected function extractAssetIds(array $notifications): array {
-    $asset_ids = [];
-    foreach ($notifications as $item) {
-      if (!in_array($item['action'], $this->getActionsToTrack(), TRUE)) {
-        continue;
-      }
-
-      if (isset($item['source']['type']) && in_array($item['source']['type'], $this->getItemsTypesToTrack(), TRUE)) {
-        $asset_ids[] = $item['source']['id'];
-      }
-
-      if (!isset($item['subitems']) || !is_array($item['subitems'])) {
-        continue;
-      }
-
-      foreach ($item['subitems'] as $subitem) {
-        if (!isset($subitem['type'], $subitem['id'])) {
-          continue;
-        }
-        if (!in_array($subitem['type'], $this->getItemsTypesToTrack(), TRUE)) {
-          continue;
-        }
-        if (in_array($subitem['id'], $asset_ids)) {
-          continue;
-        }
-
-        $asset_ids[] = $subitem['id'];
-      }
-    }
-
-    return array_unique($asset_ids);
-  }
-
-  /**
-   * Returns the "Start Time" Drupal State value.
-   *
-   * As a query parameter, filters out all older (by date created) items in
-   * Notifications API.
-   *
-   * @return int
-   *   Timestamp.
-   */
-  protected function getStartTime(): int {
-    $start_time_timestamp = $this->state->get('acquiadam.notifications_starttime');
-    if ($start_time_timestamp) {
-      return $start_time_timestamp;
-    }
-
-    // Setting up the default value.
-    $default_start_time_timestamp = $this->time->getRequestTime() - $this->getLastReadInterval();
-    $this->saveStartTime($default_start_time_timestamp);
-
-    return $default_start_time_timestamp;
-  }
-
-  /**
-   * Saves the "Start Time" Drupal State value.
-   *
-   * @param int $timestamp
-   *   Timestamp.
-   */
-  protected function saveStartTime(int $timestamp) {
-    $this->state->set('acquiadam.notifications_starttime', $timestamp);
-  }
-
-  /**
-   * Returns the "End Time" Drupal State value.
-   *
-   * As a query parameter, filters out all newer (by date created, inclusively)
-   * items in Notifications API.
-   *
-   * @return int
-   *   Timestamp.
-   */
-  protected function getEndTime(): ?int {
-    return $this->state->get('acquiadam.notifications_endtime', $this->time->getRequestTime());
-  }
-
-  /**
-   * Saves the "End Time" Drupal State value.
-   *
-   * @param int $timestamp
-   *   Timestamp.
-   *
-   * @see \Drupal\acquiadam\Service\AssetRefreshManager::resetEndTime()
-   */
-  protected function saveEndTime(int $timestamp) {
-    if ($this->state->get('acquiadam.notifications_endtime')) {
-      // Do not override the state if previously was set to non-zero value.
-      return;
-    }
-
-    $this->state->set('acquiadam.notifications_endtime', $timestamp);
-  }
-
-  /**
-   * Resets the "End Time" Drupal State value.
-   */
-  protected function resetEndTime() {
-    $this->state->set('acquiadam.notifications_endtime', NULL);
   }
 
   /**
