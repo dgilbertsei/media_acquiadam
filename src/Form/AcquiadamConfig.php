@@ -11,8 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\State\State;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\TransferException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -289,14 +288,11 @@ class AcquiadamConfig extends ConfigFormBase {
           ]));
         }
       }
-      catch (ConnectException $e) {
-        $form_state->setErrorByName('domain', $this->t('Unable to resolve the domain.'));
-      }
-      catch (RequestException $e) {
+      catch (TransferException $e) {
         $form_state->setErrorByName(
           'domain',
           $this->t('Unable to connect to the domain. Please verify the domain is entered correctly.')
-        );        
+        );
       }
     }
   }
