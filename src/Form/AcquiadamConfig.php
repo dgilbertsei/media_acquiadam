@@ -153,11 +153,15 @@ class AcquiadamConfig extends ConfigFormBase {
       '#description' => $this->t('How often should Acquia DAM assets saved in this site be synced with Acquia DAM (this includes asset metadata as well as the asset itself)?'),
       '#required' => TRUE,
     ];
-    $form['cron']['notifications_sync'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Enable notification-based synchronization'),
-      '#description' => $this->t('Faster synchronization method based on Notifications from the API.'),
-      '#default_value' => $config->get('notifications_sync'),
+    $form['cron']['sync_method'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Synchronization method'),
+      '#description' => $this->t('- "Updated date" method will fetch the assets for which the updated_date attributes in Acquia DAM is more recent than latest synchronization.<br/>- "All" method will synchronize all the assets.<br/>If you identify miss synchronized asset, use the "all" method.'),
+      '#options' => [
+        'updated_date' => $this->t('Updated date'),
+        'all' => $this->t('All assets'),
+      ],
+      '#default_value' => $config->get('sync_method'),
     ];
     $form['cron']['perform_sync_delete'] = [
       '#type' => 'checkbox',
@@ -247,8 +251,8 @@ class AcquiadamConfig extends ConfigFormBase {
     $this->config('acquiadam.settings')
       ->set('domain', $this->domain)
       ->set('sync_interval', $form_state->getValue('sync_interval'))
+      ->set('sync_method', $form_state->getValue('sync_method'))
       ->set('size_limit', $form_state->getValue('size_limit'))
-      ->set('notifications_sync', $form_state->getValue('notifications_sync'))
       ->set('perform_sync_delete', $form_state->getValue('perform_sync_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
       ->set('samesite_cookie_disable', $form_state->getValue('samesite_cookie_disable'))
