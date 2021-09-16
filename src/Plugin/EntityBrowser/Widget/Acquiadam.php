@@ -300,11 +300,11 @@ class Acquiadam extends WidgetBase {
     $params = [
       'limit' => $num_per_page,
       'offset' => $offset,
-      'sortby' => $form_state->getValue('sortby'),
-      'sortdir' => $form_state->getValue('sortdir'),
-      'types' => $form_state->getValue('types'),
+      // 'sort' => $form_state->getValue('sortby'),
+      // 'sortdir' => $form_state->getValue('sortdir'),
+      // 'types' => $form_state->getValue('types'),
       'query' => $form_state->getValue('query'),
-      'folderid' => $current_folder->id,
+      // 'folderid' => $current_folder->id,
     ];
     // If the current folder is not zero then fetch information about
     // the sub folder being rendered.
@@ -335,6 +335,8 @@ class Acquiadam extends WidgetBase {
     }
     // If searching by keyword.
     if (!empty($params['query'])) {
+      // Format the query string as per the Widen API.
+      $params['query'] = 'filename:(' . $params['query'] . ')';
       // Fetch search results.
       $search_results = $this->acquiadam->searchAssets($params);
       // Override number of assets on current folder to make number of

@@ -127,7 +127,6 @@ class Client {
    */
   protected function getDefaultHeaders() {
     $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
-
     return [
       'User-Agent' => 'drupal/acquiadam ' . self::CLIENTVERSION,
       'Accept' => 'application/json',
@@ -629,14 +628,13 @@ class Client {
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/search',
+      $this->baseUrl . '/assets/search',
       [
         'headers' => $this->getDefaultHeaders(),
         'query' => $params,
       ]
     );
     $response = json_decode((string) $response->getBody());
-
     $results = [
       'total_count' => $response->total_count,
     ];
