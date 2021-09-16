@@ -119,19 +119,8 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       return FALSE;
     }
 
-    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('perform_sync_delete');
-    if ((empty($asset) || $asset->status == 'inactive') && $perform_delete && !$entity->isPublished()) {
-      $entity->delete();
-      $this->loggerChannel->warning(
-        'Deleted media entity @media_id with asset id @assetID.',
-        [
-          '@media_id' => $data['media_id'],
-          '@assetID' => $assetID,
-        ]
-      );
-      return TRUE;
-    }
-
+    // If the asset does not exist anymore in Acquia DAM, log the information
+    // for visibility.
     if (empty($asset)) {
       $this->loggerChannel->warning(
         'Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.',
