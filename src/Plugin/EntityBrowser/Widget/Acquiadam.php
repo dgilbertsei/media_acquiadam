@@ -3,7 +3,7 @@
 namespace Drupal\acquiadam\Plugin\EntityBrowser\Widget;
 
 use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Entity\Folder;
+use Drupal\acquiadam\Entity\category;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -208,22 +208,23 @@ class Acquiadam extends WidgetBase {
 
     // Attach the modal library.
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
-    // This form is submitted and rebuilt when a folder is clicked.
-    // The triggering element identifies which folder button was clicked.
+    // This form is submitted and rebuilt when a category is clicked.
+    // The triggering element identifies which category button was clicked.
     $trigger_elem = $form_state->getTriggeringElement();
-    // Initialize current_folder.
-    $current_folder = new Folder();
-    // Default current folder id to zero which represents the root folder.
-    $current_folder->id = 0;
-    // Default current folder parent id to zero which represents root folder.
-    $current_folder->parent = 0;
-    // Default current folder name to 'Home' which represents the root folder.
-    $current_folder->name = 'Home';
+
+    // Initialize current_category.
+    $current_category = new Category();
+    // Default current category id to zero which represents the root category.
+    $current_category->id = 0;
+    // Default current category parent id to zero which represents root category.
+    $current_category->parent = 0;
+    // Default current category name to 'Home' which represents the root category.
+    $current_category->name = 'Home';
     // Default current page to first page.
     $page = 0;
     // Number of assets to show per page.
     $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
-    // Initial breadcrumb array representing the root folder only.
+    // Initial breadcrumb array representing the root category only.
     $breadcrumbs = [
       '0' => 'Home',
     ];
@@ -236,9 +237,9 @@ class Acquiadam extends WidgetBase {
         // Set the page number to the value stored in the form state.
         $page = intval($widget['pager-container']['#page']);
       }
-      if (isset($widget['asset-container']) && is_numeric($widget['asset-container']['#acquiadam_folder_id'])) {
-        // Set current folder id to the value stored in the form state.
-        $current_folder->id = $widget['asset-container']['#acquiadam_folder_id'];
+      if (isset($widget['asset-container']) && is_numeric($widget['asset-container']['#acquiadam_category_id'])) {
+        // Set current category id to the value stored in the form state.
+        $current_category->id = $widget['asset-container']['#acquiadam_category_id'];
       }
       if (isset($widget['breadcrumb-container']) && is_array($widget['breadcrumb-container']['#breadcrumbs'])) {
         // Set the breadcrumbs to the value stored in the form state.
@@ -254,16 +255,17 @@ class Acquiadam extends WidgetBase {
     }
     // If the form has been submitted.
     if (isset($trigger_elem)) {
-      // If a folder button has been clicked.
-      if ($trigger_elem['#name'] == 'acquiadam_folder') {
-        // Set the current folder id to the id of the folder that was clicked.
-        $current_folder->id = intval($trigger_elem['#acquiadam_folder_id']);
-        // Reset page to zero if we have navigated to a new folder.
+      // If a category button has been clicked.
+      if ($trigger_elem['#name'] === 'acquiadam_category') {
+        // Set the current category id to the id of the category that was clicked.
+        $current_category->id = intval($trigger_elem['#acquiadam_category_id']);
+        $current_category->name = $trigger_elem['#value'];
+        // Reset page to zero if we have navigated to a new category.
         $page = 0;
       }
       // If a pager button has been clicked.
       if ($trigger_elem['#name'] == 'acquiadam_pager') {
-        // Set the current folder id to the id of the folder that was clicked.
+        // Set the current category id to the id of the category that was clicked.
         $page = intval($trigger_elem['#acquiadam_page']);
       }
       // If the filter/sort submit button has been clicked.
@@ -304,34 +306,39 @@ class Acquiadam extends WidgetBase {
       // 'sortdir' => $form_state->getValue('sortdir'),
       // 'types' => $form_state->getValue('types'),
       'query' => $form_state->getValue('query'),
-      // 'folderid' => $current_folder->id,
+      // 'category' => $current_category->name,
     ];
-    // If the current folder is not zero then fetch information about
-    // the sub folder being rendered.
-    if ($current_folder->id) {
-      // Fetch the folder object.
-      $current_folder = $this->acquiadam->getFolder($current_folder->id);
-      // Store the list of folders for rendering later.
-      $folders = $current_folder->folders;
-      // Fetch a list of assets for the folder.
-      $folder_assets = $this->acquiadam->getFolderAssets($current_folder->id, $params);
+    // If the current category is not zero then fetch information about
+    // the sub category being rendered.
+    if ($current_category->id) {
+      // Fetch the category object.
+      $current_category = $this->acquiadam->getcategory($current_category->name);
+      $categories = $current_category->categories ?: [];
 
-      // We need to override this because getFolder only counts active assets.
-      $current_folder->numassets = $folder_assets->total_count;
+      if (empty($categories)) {
+        // Fetch a list of assets for the current category.
+        $params['query_category'] = $current_category->name;
+        // @todo Find out how to list assets for the category
+        $category_assets = $this->acquiadam->getcategoryAssets($current_category->name, $params);
 
-      // If there is a filter applied for the file type.
-      if (!empty($params['types'])) {
-        // Override number of assets on current folder to make number of search
-        // results so pager works correctly.
-        $current_folder->numassets = $folder_assets->facets->types->{$params['types']};
+        // We need to override this because getcategory only counts active assets.
+        $current_category->numassets = $category_assets->total_count;
+
+        // If there is a filter applied for the file type.
+        if (!empty($params['types'])) {
+          // Override number of assets on current category to make number of search
+          // results so pager works correctly.
+          $current_category->numassets = $category_assets->facets->types->{$params['types']};
+        }
+        // Set items to array of assets in the current category.
+        $items = $category_assets->items;
+
       }
-      // Set items to array of assets in the current folder.
-      $items = $folder_assets->items;
     }
     else {
-      // The root folder is fetched differently because it can only
-      // contain subfolders (not assets)
-      $folders = $this->acquiadam->getTopLevelFolders();
+      // The root category is fetched differently because it can only
+      // contain subcategories (not assets)
+      $categories = $this->acquiadam->getTopLevelcategories();
     }
     // If searching by keyword.
     if (!empty($params['query'])) {
@@ -339,22 +346,22 @@ class Acquiadam extends WidgetBase {
       $params['query'] = 'filename:(' . $params['query'] . ')';
       // Fetch search results.
       $search_results = $this->acquiadam->searchAssets($params);
-      // Override number of assets on current folder to make number of
+      // Override number of assets on current category to make number of
       // search results so pager works correctly.
-      $current_folder->numassets = $search_results['total_count'];
+      // $current_category->numassets = $search_results['total_count'];
       // Set items to array of assets in the search result.
       $items = isset($search_results['assets']) ? $search_results['assets'] : [];
     }
     // Add the filter and sort options to the form.
     $form += $this->getFilterSort();
     // Add the breadcrumb to the form.
-    $form += $this->getBreadcrumb($current_folder, $breadcrumbs);
-    // Add container for assets (and folder buttons)
+    $form += $this->getBreadcrumb($current_category, $breadcrumbs);
+    // Add container for assets (and category buttons)
     $form['asset-container'] = [
       '#type' => 'container',
-      // Store the current folder id in the form so it can be retrieved
+      // Store the current category id in the form so it can be retrieved
       // from the form state.
-      '#acquiadam_folder_id' => $current_folder->id,
+      '#acquiadam_category_id' => $current_category->id,
       '#attributes' => [
         'class' => ['acquiadam-asset-browser'],
       ],
@@ -363,38 +370,38 @@ class Acquiadam extends WidgetBase {
     // Get module path to create URL for background images.
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
-    // If no search terms, display folders.
+    // If no search terms, display Widen Categories.
     if (empty($params['query'])) {
 
-      // Add folder buttons to form.
-      foreach ($folders as $folder) {
-        $form['asset-container']['folders'][$folder->name] = [
+      // Add category buttons to form.
+      foreach ($categories as $category) {
+        $form['asset-container']['categories'][$category->name] = [
           '#type' => 'container',
           '#attributes' => [
-            'class' => ['acquiadam-browser-folder-link'],
-            'style' => 'background-image:url("/' . $modulePath . '/img/folder.png")',
+            'class' => ['acquiadam-browser-category-link'],
+            'style' => 'background-image:url("/' . $modulePath . '/img/category.png")',
           ],
         ];
-        // Use folder thumbnail to generate inline style, if present.
+        // Use category thumbnail to generate inline style, if present.
         $backgroundImageStyle = '';
-        if (isset($folder->thumbnailurls) && !empty($folder->thumbnailurls[0]->url)) {
-          $backgroundImageStyle .= 'background-image:url("' . $folder->thumbnailurls[0]->url . '")';
+        if (isset($category->thumbnailurls) && !empty($category->thumbnailurls[0]->url)) {
+          $backgroundImageStyle .= 'background-image:url("' . $category->thumbnailurls[0]->url . '")';
         }
-        $form['asset-container']['folders'][$folder->name][$folder->id] = [
+        $form['asset-container']['categories'][$category->name][$category->id] = [
           '#type' => 'button',
-          '#value' => $folder->name,
-          '#name' => 'acquiadam_folder',
-          '#acquiadam_folder_id' => $folder->id,
-          '#acquiadam_parent_folder_id' => $current_folder->parent,
+          '#value' => $category->name,
+          '#name' => 'acquiadam_category',
+          '#acquiadam_category_id' => $category->id,
+          '#acquiadam_parent_category_id' => $current_category->parent,
           '#attributes' => [
-            'class' => ['acquiadam-folder-link-button'],
+            'class' => ['acquiadam-category-link-button'],
             'style' => $backgroundImageStyle,
           ],
         ];
-        $form['asset-container']['folders'][$folder->name]['title'] = [
+        $form['asset-container']['categories'][$category->name]['title'] = [
           '#type' => 'html_tag',
           '#tag' => 'p',
-          '#value' => $folder->name,
+          '#value' => $category->name,
         ];
       }
     }
@@ -404,9 +411,9 @@ class Acquiadam extends WidgetBase {
     $assets_status = [];
     // Add to the assets array.
     if (isset($items)) {
-      foreach ($items as $folder_item) {
-        $assets_status[$folder_item->id]['#disabled'] = $folder_item->status !== 'active';
-        $assets[$folder_item->id] = $this->layoutMediaEntity($folder_item);
+      foreach ($items as $category_item) {
+        $assets_status[$category_item->id]['#disabled'] = $category_item->status !== 'active';
+        $assets[$category_item->id] = $this->layoutMediaEntity($category_item);
       }
     }
     // Add assets to form.
@@ -424,12 +431,12 @@ class Acquiadam extends WidgetBase {
         ],
       ],
     ] + $assets_status;
-    // If the number of assets in the current folder is greater than
+    // If the number of assets in the current category is greater than
     // the number of assets to show per page.
-    if ($current_folder->numassets > $num_per_page) {
-      // Add the pager to the form.
-      $form['actions'] += $this->getPager($current_folder, $page, $num_per_page);
-    }
+    // if ($current_category->numassets > $num_per_page) {
+    //   // Add the pager to the form.
+    //   $form['actions'] += $this->getPager($current_category, $page, $num_per_page);
+    // }
     return $form;
   }
 
@@ -503,37 +510,37 @@ class Acquiadam extends WidgetBase {
   /**
    * {@inheritdoc}
    */
-  public function getBreadcrumb(Folder $current_folder, array $breadcrumbs = []) {
-    // If the folder being rendered is already in the breadcrumb trail
-    // and the breadcrumb trail is longer than 1 (i.e. root folder only)
-    if (array_key_exists($current_folder->id, $breadcrumbs) && count($breadcrumbs) > 1) {
-      // This indicates that the user has navigated "Up" the folder structure
+  public function getBreadcrumb(category $current_category, array $breadcrumbs = []) {
+    // If the category being rendered is already in the breadcrumb trail
+    // and the breadcrumb trail is longer than 1 (i.e. root category only)
+    if (array_key_exists($current_category->id, $breadcrumbs) && count($breadcrumbs) > 1) {
+      // This indicates that the user has navigated "Up" the category structure
       // 1 or more levels.
       do {
         // Go to the end of the breadcrumb array.
         end($breadcrumbs);
-        // Fetch the folder id of the last breadcrumb.
+        // Fetch the category id of the last breadcrumb.
         $id = key($breadcrumbs);
-        // If current folder id doesn't match the folder id of last breadcrumb.
-        if ($id != $current_folder->id && count($breadcrumbs) > 1) {
+        // If current category id doesn't match the category id of last breadcrumb.
+        if ($id != $current_category->id && count($breadcrumbs) > 1) {
           // Remove the last breadcrumb since the user has navigated "Up"
-          // at least 1 folder.
+          // at least 1 category.
           array_pop($breadcrumbs);
         }
-        // If the folder id of the last breadcrumb does not equal the current
-        // folder id then keep removing breadcrumbs from the end.
-      } while ($id != $current_folder->id && count($breadcrumbs) > 1);
+        // If the category id of the last breadcrumb does not equal the current
+        // category id then keep removing breadcrumbs from the end.
+      } while ($id != $current_category->id && count($breadcrumbs) > 1);
     }
-    // If the parent folder id of the current folder is in the breadcrumb trail
-    // then the user MIGHT have navigated down into a subfolder.
-    if (is_object($current_folder) && property_exists($current_folder, 'parent') && array_key_exists($current_folder->parent, $breadcrumbs)) {
+    // If the parent category id of the current category is in the breadcrumb trail
+    // then the user MIGHT have navigated down into a subcategory.
+    if (is_object($current_category) && property_exists($current_category, 'parent') && array_key_exists($current_category->parent, $breadcrumbs)) {
       // Go to the end of the breadcrumb array.
       end($breadcrumbs);
-      // If the last folder id in the breadcrumb equals the parent folder id of
-      // the current folder the the user HAS navigated down into a subfolder.
-      if (key($breadcrumbs) == $current_folder->parent) {
-        // Add the current folder to the breadcrumb.
-        $breadcrumbs[$current_folder->id] = $current_folder->name;
+      // If the last category id in the breadcrumb equals the parent category id of
+      // the current category the the user HAS navigated down into a subcategory.
+      if (key($breadcrumbs) == $current_category->parent) {
+        // Add the current category to the breadcrumb.
+        $breadcrumbs[$current_category->id] = $current_category->name;
       }
     }
     // Reset the breadcrumb array so that it can be rendered in order.
@@ -543,20 +550,20 @@ class Acquiadam extends WidgetBase {
       '#type' => 'container',
       // Custom element property to store breadcrumbs array.
       // This is fetched from the form state every time the form is rebuilt
-      // due to navigating between folders.
+      // due to navigating between categories.
       '#breadcrumbs' => $breadcrumbs,
       '#attributes' => [
         'class' => ['breadcrumb acquiadam-browser-breadcrumb-container'],
       ],
     ];
     // Add the breadcrumb buttons to the form.
-    foreach ($breadcrumbs as $folder_id => $folder_name) {
-      $form['breadcrumb-container'][$folder_id] = [
+    foreach ($breadcrumbs as $category_id => $category_name) {
+      $form['breadcrumb-container'][$category_id] = [
         '#type' => 'button',
-        '#value' => $folder_name,
-        '#name' => 'acquiadam_folder',
-        '#acquiadam_folder_id' => $folder_id,
-        '#acquiadam_parent_folder_id' => $folder_name,
+        '#value' => $category_name,
+        '#name' => 'acquiadam_category',
+        '#acquiadam_category_id' => $category_id,
+        '#acquiadam_parent_category_id' => $category_name,
         '#prefix' => '<li>',
         '#suffix' => '</li>',
         '#attributes' => [
@@ -587,7 +594,7 @@ class Acquiadam extends WidgetBase {
     else {
       $thumbnail = '<span class="acquiadam-browser-empty">No preview available.</span>';
     }
-    $element = '<div class="acquiadam-asset-checkbox">' . $thumbnail . '<div class="acquiadam-asset-details"><a href="/acquiadam/asset/' . $acquiadamAsset->id . '" class="use-ajax" data-dialog-type="modal"><img src="/' . $modulePath . '/img/ext-link.png" alt="Folder link" class="acquiadam-asset-browser-icon" /></a><p class="acquiadam-asset-filename">' . $assetName . '</p></div></div>';
+    $element = '<div class="acquiadam-asset-checkbox">' . $thumbnail . '<div class="acquiadam-asset-details"><a href="/acquiadam/asset/' . $acquiadamAsset->id . '" class="use-ajax" data-dialog-type="modal"><img src="/' . $modulePath . '/img/ext-link.png" alt="category link" class="acquiadam-asset-browser-icon" /></a><p class="acquiadam-asset-filename">' . $assetName . '</p></div></div>';
     return $element;
   }
 
@@ -596,7 +603,7 @@ class Acquiadam extends WidgetBase {
    *
    * Create a custom pager.
    */
-  public function getPager(Folder $current_folder, $page, $num_per_page) {
+  public function getPager(category $current_category, $page, $num_per_page) {
     // Add container for pager.
     $form['pager-container'] = [
       '#type' => 'container',
@@ -629,15 +636,15 @@ class Acquiadam extends WidgetBase {
         ],
       ];
     }
-    // Last available page based on number of assets in folder
+    // Last available page based on number of assets in category
     // divided by number of assets to show per page.
-    $last_page = floor(($current_folder->numassets - 1) / $num_per_page);
+    // $last_page = floor(($current_category->numassets - 1) / $num_per_page);
     // First page to show in the pager.
     // Try to put the button for the current page in the middle by starting at
     // the current page number minus 4.
     $start_page = max(0, $page - 4);
     // Last page to show in the pager.  Don't go beyond the last available page.
-    $end_page = min($start_page + 9, $last_page);
+    // $end_page = min($start_page + 9, $last_page);
     // Create buttons for pages from start to end.
     for ($i = $start_page; $i <= $end_page; $i++) {
       $form['pager-container']['page_' . $i] = [
