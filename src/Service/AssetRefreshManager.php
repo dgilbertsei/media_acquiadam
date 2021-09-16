@@ -3,7 +3,6 @@
 namespace Drupal\acquiadam\Service;
 
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
-use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -61,55 +60,12 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   protected $mediaStorage;
 
   /**
-   * The Drupal DateTime Service.
-   *
-   * @var \Drupal\Component\Datetime\TimeInterface
-   */
-  protected $time;
-
-  /**
-   * The maximum number of items to return in Notifications API response.
+   * The maximum number of items to return in search API response.
    *
    * @var int
    */
-  protected $requestLimit = 250;
+  protected $requestLimit = 100;
 
-  /**
-   * The default last read interval is 12 hours.
-   *
-   * @var int
-   */
-  protected $lastReadInterval = 43200;
-
-  /**
-   * Returns the list of notification actions to track.
-   *
-   * @return string[]
-   *   List of action (machine) names.
-   */
-  protected function getActionsToTrack(): array {
-    return [
-      'asset_version',
-      'asset_property',
-      'asset_delete',
-    ];
-  }
-
-  /**
-   * Returns the list of item types to track.
-   *
-   * @return string[]
-   *   List of item types (machine) names.
-   */
-  protected function getItemsTypesToTrack(): array {
-    return [
-      'asset',
-      'video',
-      'image',
-      'document',
-      'audio',
-    ];
-  }
 
   /**
    * AssetRefreshManager constructor.
@@ -124,19 +80,16 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   The Queue Factory Service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The EntityTypeManager service.
-   * @param \Drupal\Component\Datetime\TimeInterface $time
-   *   The Drupal DateTime Service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager, TimeInterface $time) {
+  public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager) {
     $this->acquiadam = $acquiadam;
     $this->state = $state;
     $this->logger = $logger_factory->get('acquiadam');
     $this->queue = $queue_factory->get($this->getQueueName());
     $this->mediaStorage = $entity_type_manager->getStorage('media');
-    $this->time = $time;
   }
 
   /**
@@ -148,8 +101,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
       $container->get('state'),
       $container->get('logger.factory'),
       $container->get('queue'),
-      $container->get('entity_type.manager'),
-      $container->get('datetime.time')
+      $container->get('entity_type.manager')
     );
   }
 
@@ -166,7 +118,6 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   public function updateQueue(array $asset_id_fields) {
     if (empty($asset_id_fields)) {
       // Nothing to process. Associated media bundles are not found.
-      $this->saveStartTime($this->getEndTime());
       return 0;
     }
 
@@ -177,7 +128,8 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
       return 0;
     }
 
-    // Add media entity ids to the queue.
+    // From the list of assets which have been updated in Acquia DAM, find the
+    // ones which are used into Drupal as media entities.
     $total = 0;
     $media_query = $this->mediaStorage->getQuery();
     foreach ($asset_id_fields as $bundle => $field) {
@@ -189,6 +141,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
     }
     $media_ids = $media_query->execute();
 
+    // Queue the media ids for later processing.
     foreach ($media_ids as $media_id) {
       $this->queue->createItem(['media_id' => $media_id]);
       $total++;
@@ -207,7 +160,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    */
   protected function getAssetIds(): array {
     try {
-      $page = $this->getNextPage() ? $this->getNextPage() : 1;
+      $page = $this->getNextPage() ?? 1;
       // Calculate the offset value as a number of previously processed items.
       $offset = $this->getRequestLimit() * ($page - 1);
 
@@ -268,7 +221,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Page index.
    */
   protected function getNextPage(): ?int {
-    return $this->state->get('acquiadam.notifications_next_page');
+    return $this->state->get('acquiadam.sync_next_page');
   }
 
   /**
@@ -278,14 +231,14 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   Page index.
    */
   protected function saveNextPage(int $page) {
-    $this->state->set('acquiadam.notifications_next_page', $page);
+    $this->state->set('acquiadam.sync_next_page', $page);
   }
 
   /**
    * Resets the "Next Page" value to the Drupal State.
    */
   protected function resetNextPage() {
-    $this->state->set('acquiadam.notifications_next_page', NULL);
+    $this->state->set('acquiadam.sync_next_page', NULL);
   }
 
 }

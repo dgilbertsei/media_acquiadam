@@ -48,25 +48,6 @@ interface AssetRefreshManagerInterface {
    * @return int
    *   The old limit that was set.
    */
-  public function setRequestLimit(int $newLimit = 250) : int;
-
-  /**
-   * Get the current request read interval.
-   *
-   * @return int
-   *   The current request read interval.
-   */
-  public function getLastReadInterval() : int;
-
-  /**
-   * Set the request read interval.
-   *
-   * @param int $lastReadInterval
-   *   The new request read interval value. Minimum of 1.
-   *
-   * @return int
-   *   The old request read interval.
-   */
-  public function setLastReadInterval(int $lastReadInterval = 43200) : int;
+  public function setRequestLimit(int $newLimit = 100) : int;
 
 }
