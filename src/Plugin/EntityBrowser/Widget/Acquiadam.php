@@ -401,7 +401,7 @@ class Acquiadam extends WidgetBase {
           'acquiadam/asset_browser',
         ],
       ],
-    ] + $assets_status;
+    ];
     // If the number of assets in the current category is greater than
     // the number of assets to show per page.
     // if ($current_category->numassets > $num_per_page) {
@@ -701,19 +701,19 @@ class Acquiadam extends WidgetBase {
       }
 
       // If the asset's file type does not match allowed file types.
-      foreach ($dam_assets as $asset) {
-        $filetype = $asset->filetype;
-        $type_is_supported = in_array($filetype, $supported_extensions);
+      // foreach ($dam_assets as $asset) {
+      //   // $filetype = $asset->filetype;
+      //   $type_is_supported = in_array($filetype, $supported_extensions);
 
-        if (!$type_is_supported) {
-          $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
-            '@filetype' => $filetype,
-            '@supported_types' => implode(', ', $supported_extensions),
-          ]);
-          // Set the error message on the form.
-          $form_state->setError($form['widget']['asset-container']['assets'], $message);
-        }
-      }
+      //   if (!$type_is_supported) {
+      //     $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
+      //       '@filetype' => $filetype,
+      //       '@supported_types' => implode(', ', $supported_extensions),
+      //     ]);
+      //     // Set the error message on the form.
+      //     $form_state->setError($form['widget']['asset-container']['assets'], $message);
+      //   }
+      // }
     }
   }
 
@@ -774,9 +774,15 @@ class Acquiadam extends WidgetBase {
         // This should be the current language code.
         'langcode' => $this->languageManager->getCurrentLanguage()->getId(),
         // This should map the asset status to the drupal entity status.
-        'status' => ($asset->status === 'active'),
+        /**
+         * @todo: find out if we can use status from Acquia Dam.
+         */
+        'status' => 1,
         // Set the entity name to the asset name.
-        'name' => $asset->name,
+        /**
+         * @todo: Once we use the `metadata info` in Asset we require to replace this with Display Name here.
+         */
+        'name' => $asset->filename,
         // Set the chosen source field for this entity to the asset id.
         $source_field => $asset->id,
       ];

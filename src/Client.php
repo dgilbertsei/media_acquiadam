@@ -588,15 +588,16 @@ class Client {
       return [];
     }
 
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/list?ids=' . implode(',',$assetIds),
-      ['headers' => $this->getDefaultHeaders()]
-    );
-    $response = json_decode((string) $response->getBody());
     $assets = [];
-    foreach ($response as $asset){
-      $assets[] = Asset::fromJson($asset);
+    foreach($assetIds as $assetId) {
+      $response = $this->client->request(
+        "GET",
+        $this->baseUrl . '/assets/' . $assetId, [
+          'headers' => $this->getDefaultHeaders()
+        ]
+      );
+      $response = json_decode((string) $response->getBody());
+      $assets[] = Asset::fromJson($response);
     }
     return $assets;
   }
