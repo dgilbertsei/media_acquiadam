@@ -121,7 +121,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
 
     // If the asset is expired/deleted in Acquia DAM and is unpublished in
     // Drupal, we delete it.
-    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('perform_sync_delete');
+    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('sync_perform_delete');
     if ((empty($asset) || !$asset->released_and_not_expired) && $perform_delete && !$entity->isPublished()) {
       $entity->delete();
       $this->loggerChannel->warning(

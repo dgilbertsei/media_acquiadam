@@ -8,6 +8,6 @@ size_limit: -1
 oauth:
   excluded_redirect_keys:
     - original_path
-perform_sync_delete: 0
+sync_perform_delete: 0
 num_images_per_page: 12
 samesite_cookie_disable: 0

@@ -163,11 +163,11 @@ class AcquiadamConfig extends ConfigFormBase {
       ],
       '#default_value' => $config->get('sync_method'),
     ];
-    $form['cron']['perform_sync_delete'] = [
+    $form['cron']['sync_perform_delete'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Delete inactive drupal dam assets.'),
-      '#default_value' => $config->get('perform_sync_delete'),
-      '#description' => $this->t('Deletes unpublished drupal media entities if DAM asset is not available.'),
+      '#title' => $this->t('Delete inactive Drupal\'s DAM assets.'),
+      '#default_value' => $config->get('sync_perform_delete'),
+      '#description' => $this->t('Deletes unpublished Drupal media entities if asset is not available in Acquia DAM.'),
     ];
 
     $form['image'] = [
@@ -253,7 +253,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('sync_method', $form_state->getValue('sync_method'))
       ->set('size_limit', $form_state->getValue('size_limit'))
-      ->set('perform_sync_delete', $form_state->getValue('perform_sync_delete'))
+      ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
       ->set('samesite_cookie_disable', $form_state->getValue('samesite_cookie_disable'))
       ->save();

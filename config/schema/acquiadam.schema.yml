@@ -34,7 +34,7 @@ acquiadam.settings:
           sequence:
             type: string
             label: 'Key'
-    perform_sync_delete:
+    sync_perform_delete:
       type: integer
       label: 'Delete inactive drupal dam assets'
     num_images_per_page:
