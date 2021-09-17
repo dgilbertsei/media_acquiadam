@@ -316,12 +316,12 @@ class Acquiadam extends WidgetBase {
       // If more subccategories are available and we should load them.
       // print $current_category->subcategories_count;
       if ($current_category->subcategories_count > 0) {
-            $categories = $current_category = $this->acquiadam->getcategory($current_category->name);
+            $categories = $current_category = $this->acquiadam->getCategoryByName($current_category->name);
       }
       else {
         $params['query'] = 'category:' . $current_category->name;
         // @todo Find out how to list assets for the category
-        $category_assets = $this->acquiadam->getcategoryAssets($current_category->name, $params);
+        $category_assets = $this->acquiadam->getAssetsByCategory($params);
 
         // If there is a filter applied for the file type.
         // if (!empty($params['types'])) {
@@ -369,7 +369,7 @@ class Acquiadam extends WidgetBase {
     // Get module path to create URL for background images.
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
-    // If no search terms, display Widen Categories.
+    // If no search terms, display Acquia DAM Categories.
     if (empty($params['query'])) {
 
       // Add category buttons to form.
@@ -812,11 +812,6 @@ class Acquiadam extends WidgetBase {
         'style' => 'background-image:url("/' . $modulePath . '/img/category.png")',
       ],
     ];
-    // Use category thumbnail to generate inline style, if present.
-    $backgroundImageStyle = '';
-    if (isset($category->thumbnailurls) && !empty($category->thumbnailurls[0]->url)) {
-      $backgroundImageStyle .= 'background-image:url("' . $category->thumbnailurls[0]->url . '")';
-    }
     $form['asset-container']['categories'][$category->name][$category->id] = [
       '#type' => 'button',
       '#value' => $category->name,
@@ -825,7 +820,6 @@ class Acquiadam extends WidgetBase {
       '#acquiadam_subcategory_count' => !empty($category->categories) ? 1 : 0,
       '#attributes' => [
         'class' => ['acquiadam-category-link-button'],
-        'style' => $backgroundImageStyle,
       ],
     ];
     $form['asset-container']['categories'][$category->name]['title'] = [

@@ -226,7 +226,7 @@ class Client {
    *
    * @return Category
    */
-  public function getCategory($categoryName) {
+  public function getCategoryByName($categoryName) {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -258,7 +258,7 @@ class Client {
 
     $categories = [];
     foreach ($categories_data->items as $category) {
-      $category->items = $this->getcategory($category->name);
+      $category->items = $this->getCategoryByName($category->name);
       $categories[] = Category::fromJson($category);
     }
 
@@ -543,7 +543,7 @@ class Client {
    *     - facets: Information about the assets returned.
    *     - items: an array of Asset objects.
    */
-  public function getCategoryAssets($categoryName, array $params = []) {
+  public function getAssetsByCategory(array $params = []) {
     $this->checkAuth();
     $response = $this->client->request(
       "GET",
