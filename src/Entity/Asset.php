@@ -54,6 +54,11 @@ class Asset implements EntityInterface, \JsonSerializable {
    */
   public $download_link;
 
+  /**
+   * @var array $thumbnails
+   */
+  public $thumbnails;
+
   public function getAllowedExpands() {
     return [
       'asset_properties',
@@ -85,6 +90,7 @@ class Asset implements EntityInterface, \JsonSerializable {
       'deleted_date',
       'released_and_not_expired',
       'download_link',
+      'thumbnails'
     ];
 
     // Copy all of the simple properties.
@@ -109,6 +115,7 @@ class Asset implements EntityInterface, \JsonSerializable {
       'deleted_date' => $this->deleted_date,
       'released_and_not_expired' => $this->released_and_not_expired,
       'download_link' => $this->download_link,
+      'thumbnails' => $this->thumbnails
     ];
 
     return $properties;

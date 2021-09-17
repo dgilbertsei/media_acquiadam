@@ -6,7 +6,7 @@
 namespace Drupal\acquiadam;
 
 use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Entity\Folder;
+use Drupal\acquiadam\Entity\Category;
 use Drupal\acquiadam\Entity\MiniFolder;
 use Drupal\acquiadam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
@@ -127,7 +127,6 @@ class Client {
    */
   protected function getDefaultHeaders() {
     $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
-
     return [
       'User-Agent' => 'drupal/acquiadam ' . self::CLIENTVERSION,
       'Accept' => 'application/json',
@@ -220,50 +219,51 @@ class Client {
   }*/
 
   /**
-   * Get a Folder given a Folder ID.
+   * Get a Category given a Category Name.
    *
-   * @param int $folderID
-   *   The Acquia DAM Folder ID.
+   * @param string $categoryName
+   *   The Acquia DAM Category Name.
    *
-   * @return Folder
+   * @return Category
    */
-  /*public function getFolder($folderID) {
+  public function getCategoryByName($categoryName) {
     $this->checkAuth();
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/folders/' . $folderID,
+      $this->baseUrl . '/categories/' . $categoryName,
       ['headers' => $this->getDefaultHeaders()]
     );
 
-    $folder = Folder::fromJson((string) $response->getBody());
+    $category = Category::fromJson((string) $response->getBody());
 
-    return $folder;
-  }*/
+    return $category;
+  }
 
   /**
-   * Get top level folders.
+   * Get top level categories.
    *
-   * @return Folder[]
+   * @return Category[]
    */
-  /*public function getTopLevelFolders() {
+  public function getTopLevelCategories() {
     $this->checkAuth();
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/folders/0',
+      $this->baseUrl . '/categories',
       ['headers' => $this->getDefaultHeaders()]
     );
 
-    $folder_data = json_decode($response->getBody());
+    $categories_data = json_decode($response->getBody());
 
-    $folders = [];
-    foreach ($folder_data as $folder) {
-      $folders[] = Folder::fromJson($folder);
+    $categories = [];
+    foreach ($categories_data->items as $category) {
+      $category->items = $this->getCategoryByName($category->name);
+      $categories[] = Category::fromJson($category);
     }
 
-    return $folders;
-  }*/
+    return $categories;
+  }
 
   /**
    * Get an Asset given an Asset ID.
@@ -526,18 +526,13 @@ class Client {
   }
 
   /**
-   * Get a list of Assets given a Folder ID.
+   * Get a list of Assets given a Category ID.
    *
-   * @param int $folderId
-   *   The Acquia DAM folder ID.
+   * @param int $categoryId
+   *   The Acquia DAM Category ID.
    *
    * @param array $params
    *   Additional query parameters for the request.
-   *     - sortby: The field to sort by. Options: filename, filesize, datecreated, datemodified. (Default=datecreated)
-   *     - sortdir: The direction to sort by. Options: asc, desc (Default=asc)
-   *     - limit: The number of items to return. Any int between 1 and 100. (Default=50)
-   *     - offset: The item number to start with. (Default=0)
-   *     - types: File type filter. Options: image, audiovideo, document, presentation, other. (Default=NULL)
    *
    * @return object
    *   Contains the following keys:
@@ -548,14 +543,11 @@ class Client {
    *     - facets: Information about the assets returned.
    *     - items: an array of Asset objects.
    */
-  public function getFolderAssets($folderId, array $params =[]) {
+  public function getAssetsByCategory(array $params = []) {
     $this->checkAuth();
-
-
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/folders/' . $folderId . '/assets',
-      [
+      $this->baseUrl . '/assets/search', [
         'headers' => $this->getDefaultHeaders(),
         'query' => $params,
       ]
@@ -596,15 +588,16 @@ class Client {
       return [];
     }
 
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/list?ids=' . implode(',',$assetIds),
-      ['headers' => $this->getDefaultHeaders()]
-    );
-    $response = json_decode((string) $response->getBody());
     $assets = [];
-    foreach ($response as $asset){
-      $assets[] = Asset::fromJson($asset);
+    foreach($assetIds as $assetId) {
+      $response = $this->client->request(
+        "GET",
+        $this->baseUrl . '/assets/' . $assetId, [
+          'headers' => $this->getDefaultHeaders()
+        ]
+      );
+      $response = json_decode((string) $response->getBody());
+      $assets[] = Asset::fromJson($response);
     }
     return $assets;
   }
@@ -629,14 +622,13 @@ class Client {
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/search',
+      $this->baseUrl . '/assets/search',
       [
         'headers' => $this->getDefaultHeaders(),
         'query' => $params,
       ]
     );
     $response = json_decode((string) $response->getBody());
-
     $results = [
       'total_count' => $response->total_count,
     ];
@@ -660,12 +652,14 @@ class Client {
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/assets/' . $assetID . '/download',
+      $this->baseUrl . '/assets/' . $assetID,
       [
         'headers' => $this->getDefaultHeaders(),
       ]
     );
-    return $response->getBody();
+    $response = json_decode((string) $response->getBody());
+    $downloadedAssetLink = $response->_links->download;
+    return $downloadedAssetLink;
   }
 
   /**
