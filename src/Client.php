@@ -258,6 +258,7 @@ class Client {
 
     $categories = [];
     foreach ($categories_data->items as $category) {
+      $category->items = $this->getcategory($category->name);
       $categories[] = Category::fromJson($category);
     }
 

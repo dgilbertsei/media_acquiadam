@@ -258,23 +258,24 @@ class Acquiadam extends WidgetBase {
       // If a category button has been clicked.
       if ($trigger_elem['#name'] === 'acquiadam_category') {
         // Set the current category id to the id of the category that was clicked.
-        $current_category->id = intval($trigger_elem['#acquiadam_category_id']);
+        $current_category->id = $trigger_elem['#acquiadam_category_id'];
         $current_category->name = $trigger_elem['#value'];
+        $current_category->subcategories_count = $trigger_elem['#acquiadam_subcategory_count'];
         // Reset page to zero if we have navigated to a new category.
         $page = 0;
       }
       // If a pager button has been clicked.
-      if ($trigger_elem['#name'] == 'acquiadam_pager') {
+      if ($trigger_elem['#name'] === 'acquiadam_pager') {
         // Set the current category id to the id of the category that was clicked.
         $page = intval($trigger_elem['#acquiadam_page']);
       }
       // If the filter/sort submit button has been clicked.
-      if ($trigger_elem['#name'] == 'filter_sort_submit') {
+      if ($trigger_elem['#name'] === 'filter_sort_submit') {
         // Reset page to zero.
         $page = 0;
       }
       // If the reset submit button has been clicked.
-      if ($trigger_elem['#name'] == 'filter_sort_reset') {
+      if ($trigger_elem['#name'] === 'filter_sort_reset') {
         // Fetch the user input.
         $user_input = $form_state->getUserInput();
         // Fetch clean values keys (system related, not user input).
@@ -310,26 +311,24 @@ class Acquiadam extends WidgetBase {
     ];
     // If the current category is not zero then fetch information about
     // the sub category being rendered.
-    if ($current_category->id) {
-      // Fetch the category object.
-      $current_category = $this->acquiadam->getcategory($current_category->name);
-      $categories = $current_category->categories ?: [];
 
-      if (empty($categories)) {
-        // Fetch a list of assets for the current category.
-        $params['query_category'] = $current_category->name;
+    if ($current_category->id) {
+      // If more subccategories are available and we should load them.
+      // print $current_category->subcategories_count;
+      if ($current_category->subcategories_count > 0) {
+            $categories = $current_category = $this->acquiadam->getcategory($current_category->name);
+      }
+      else {
+        $params['query'] = 'category:' . $current_category->name;
         // @todo Find out how to list assets for the category
         $category_assets = $this->acquiadam->getcategoryAssets($current_category->name, $params);
 
-        // We need to override this because getcategory only counts active assets.
-        $current_category->numassets = $category_assets->total_count;
-
         // If there is a filter applied for the file type.
-        if (!empty($params['types'])) {
-          // Override number of assets on current category to make number of search
-          // results so pager works correctly.
-          $current_category->numassets = $category_assets->facets->types->{$params['types']};
-        }
+        // if (!empty($params['types'])) {
+        //   // Override number of assets on current category to make number of search
+        //   // results so pager works correctly.
+        //   $current_category->numassets = $category_assets->facets->types->{$params['types']};
+        // }
         // Set items to array of assets in the current category.
         $items = $category_assets->items;
 
@@ -355,7 +354,7 @@ class Acquiadam extends WidgetBase {
     // Add the filter and sort options to the form.
     $form += $this->getFilterSort();
     // Add the breadcrumb to the form.
-    $form += $this->getBreadcrumb($current_category, $breadcrumbs);
+    // $form += $this->getBreadcrumb($current_category, $breadcrumbs);
     // Add container for assets (and category buttons)
     $form['asset-container'] = [
       '#type' => 'container',
@@ -375,34 +374,7 @@ class Acquiadam extends WidgetBase {
 
       // Add category buttons to form.
       foreach ($categories as $category) {
-        $form['asset-container']['categories'][$category->name] = [
-          '#type' => 'container',
-          '#attributes' => [
-            'class' => ['acquiadam-browser-category-link'],
-            'style' => 'background-image:url("/' . $modulePath . '/img/category.png")',
-          ],
-        ];
-        // Use category thumbnail to generate inline style, if present.
-        $backgroundImageStyle = '';
-        if (isset($category->thumbnailurls) && !empty($category->thumbnailurls[0]->url)) {
-          $backgroundImageStyle .= 'background-image:url("' . $category->thumbnailurls[0]->url . '")';
-        }
-        $form['asset-container']['categories'][$category->name][$category->id] = [
-          '#type' => 'button',
-          '#value' => $category->name,
-          '#name' => 'acquiadam_category',
-          '#acquiadam_category_id' => $category->id,
-          '#acquiadam_parent_category_id' => $current_category->parent,
-          '#attributes' => [
-            'class' => ['acquiadam-category-link-button'],
-            'style' => $backgroundImageStyle,
-          ],
-        ];
-        $form['asset-container']['categories'][$category->name]['title'] = [
-          '#type' => 'html_tag',
-          '#tag' => 'p',
-          '#value' => $category->name,
-        ];
+        $this->getCategoryFormElements($category, $modulePath, $form);
       }
     }
     // Assets are rendered as #options for a checkboxes element.
@@ -825,5 +797,39 @@ class Acquiadam extends WidgetBase {
     // Return the entities.
     return $entities;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getCategoryFormElements($category, $modulePath, &$form) {
+    $form['asset-container']['categories'][$category->name] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['acquiadam-browser-category-link'],
+        'style' => 'background-image:url("/' . $modulePath . '/img/category.png")',
+      ],
+    ];
+    // Use category thumbnail to generate inline style, if present.
+    $backgroundImageStyle = '';
+    if (isset($category->thumbnailurls) && !empty($category->thumbnailurls[0]->url)) {
+      $backgroundImageStyle .= 'background-image:url("' . $category->thumbnailurls[0]->url . '")';
+    }
+    $form['asset-container']['categories'][$category->name][$category->id] = [
+      '#type' => 'button',
+      '#value' => $category->name,
+      '#name' => 'acquiadam_category',
+      '#acquiadam_category_id' => $category->id,
+      '#acquiadam_subcategory_count' => !empty($category->categories) ? 1 : 0,
+      '#attributes' => [
+        'class' => ['acquiadam-category-link-button'],
+        'style' => $backgroundImageStyle,
+      ],
+    ];
+    $form['asset-container']['categories'][$category->name]['title'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => $category->name,
+    ];
+}
 
 }

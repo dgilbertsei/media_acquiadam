@@ -34,6 +34,16 @@ class Category implements EntityInterface, \JsonSerializable {
       $json = json_decode($json);
     }
 
+    $subCategories = [];
+    if (isset($json->total_count) && $json->total_count > 0) {
+      foreach ($json->items as $subcategory_data) {
+        $subCategories[] = Category::fromJson($subcategory_data);
+      }
+      return $subCategories;
+    }
+    else if (isset($json->total_count) && $json->total_count === 0) {
+      return $subCategories;
+    }
     $properties = [
       'id',
       'name',
@@ -47,14 +57,7 @@ class Category implements EntityInterface, \JsonSerializable {
       }
     }
 
-    // Add Categories objects.
-    $categories = [];
-    if (!empty($json->items)) {
-      foreach ($json->items as $category_data) {
-        $categories[] = Category::fromJson($category_data);
-      }
-    }
-    $category->categories = $categories;
+    $category->categories = isset($json->items) ? $json->items : [];
 
     return $category;
   }
