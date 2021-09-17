@@ -652,12 +652,14 @@ class Client {
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/assets/' . $assetID . '/download',
+      $this->baseUrl . '/assets/' . $assetID,
       [
         'headers' => $this->getDefaultHeaders(),
       ]
     );
-    return $response->getBody();
+    $response = json_decode((string) $response->getBody());
+    $downloadedAssetLink = $response->_links->download;
+    return $downloadedAssetLink;
   }
 
   /**
