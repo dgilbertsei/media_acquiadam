@@ -126,14 +126,6 @@ function acquiadam_field_formatter_info_alter(&$info) {
 }
 
 /**
- * Implements hook_entity_type_alter().
- */
-function acquiadam_entity_type_alter(array &$entity_types) {
-  /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
-  $entity_types['user']->setLinkTemplate('acquiadam-auth-form', '/user/{user}/acquiadam');
-}
-
-/**
  * Implements hook_preprocess_HOOK().
  *
  * Allow custom markup for acquiadam asset checkboxes.
@@ -222,25 +214,17 @@ function acquiadam_cron() {
   $cron_config = Drupal::configFactory()
     ->get('acquiadam.settings');
 
-  $interval = $cron_config->get('sync_interval');
-  // 3600 seconds = 1 hour.
-  $interval = !empty($interval) ? $interval : 3600;
-
-  // Rate limit so we're not syncing every minute even if cron is configured to.
-  $next_execution = Drupal::state()->get('acquiadam.next_sync');
-  $next_execution = !empty($next_execution) ? $next_execution : 0;
+  $interval = $cron_config->get('sync_interval') ?? 3600;
+  $last_execution = Drupal::state()->get('acquiadam.last_sync');
   $request_time = Drupal::time()->getRequestTime();
 
-  // -1 interval means run on every cron.
-  $process_queues = ($interval == -1 || $request_time >= $next_execution);
-  if (!$process_queues) {
+  // Check if we need to execute.
+  if ($interval !== -1 && $last_execution + $interval <= $request_time) {
     return;
   }
 
-  acquiadam_purge_expired_tokens();
-
-  if ($cron_config->get('notifications_sync')) {
-    acquiadam_refresh_asset_sync_notifications_queue();
+  if ($cron_config->get('sync_method') === 'updated_date') {
+    acquiadam_refresh_asset_sync_updated_date_queue();
   }
   else {
     acquiadam_refresh_asset_sync_queue();
@@ -252,16 +236,16 @@ function acquiadam_cron() {
   $logger = \Drupal::service('logger.factory')->get('acquiadam');
   $logger->info('Total items in the queue: @items.', ['@items' => $total_queue_items]);
 
-  Drupal::state()->set('acquiadam.next_sync', $request_time + $interval);
+  Drupal::state()->set('acquiadam.last_sync', $request_time);
 }
 
 /**
  * Adds media items to the asset sync queue for later processing.
  *
- * Uses the Notifications API to get affected asset ids. Determines which assets
+ * Uses the Search API to get affected asset ids. Determines which assets
  * where changed within the given period of time, and adds them to the queue.
  */
-function acquiadam_refresh_asset_sync_notifications_queue() {
+function acquiadam_refresh_asset_sync_updated_date_queue() {
   $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
   if (empty($asset_id_fields)) {
     return;
@@ -385,57 +369,6 @@ function acquiadam_get_active_media_ids(): array {
   }
 
   return $media_ids;
-}
-
-/**
- * Purge Acquia DAM authentication tokens for inactive Drupal users.
- */
-function acquiadam_purge_expired_tokens() {
-  $cookie_params = session_get_cookie_params();
-  // 2000000 is the Drupal default value for cookie lifetime (approx 23 days).
-  $lifetime = $cookie_params['lifetime'] ?: 2000000;
-
-  // The user data keys associated with DAM authentication.
-  $purgable_keys = [
-    'acquiadam_access_token',
-    'acquiadam_refresh_token',
-    'acquiadam_access_token_expiration',
-  ];
-
-  try {
-    $db = Drupal::database();
-
-    $expired_tokens_query = $db->select('users_data', 'ud_expired')
-      ->fields('ud_expired', ['uid'])
-      ->condition('ud_expired.module', 'acquiadam')
-      ->condition('ud_expired.name', 'acquiadam_access_token_expiration')
-      ->condition('ud_expired.value', \Drupal::time()->getRequestTime() - $lifetime, '<=');
-
-    // Select our UID list into a temporary table so we can delete without
-    // involving PHP. queryTemporary requires a string-based query at this time.
-    $temporary_table = $db->queryTemporary((string) $expired_tokens_query, $expired_tokens_query->getArguments());
-    $temporary_query = $db->select($temporary_table, 'tt')
-      ->fields('tt', ['uid']);
-
-    $deleted_count = $db->delete('users_data')
-      ->condition('module', 'acquiadam')
-      ->condition('name', $purgable_keys, 'IN')
-      ->condition('uid', $temporary_query, 'IN')
-      ->execute();
-
-    if ($deleted_count > 0) {
-      Drupal::logger('acquiadam')
-        ->info('Deleted @count records (approx. @estimate inactive users).', [
-          '@count' => $deleted_count,
-          '@estimate' => intval($deleted_count / count($purgable_keys)),
-        ]);
-    }
-  }
-  catch (Exception $x) {
-    Drupal::logger('acquiadam')
-      ->error('Unable to purge old authentication tokens.');
-    watchdog_exception('acquiadam', $x);
-  }
 }
 
 /**

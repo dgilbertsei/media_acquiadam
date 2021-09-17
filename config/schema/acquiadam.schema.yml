@@ -18,6 +18,9 @@ acquiadam.settings:
     sync_interval:
       type: integer
       label: 'Sync interval'
+    sync_method:
+      type: string
+      label: 'Sync method'
     size_limit:
       type: integer
       label: 'Size limit'
@@ -31,10 +34,7 @@ acquiadam.settings:
           sequence:
             type: string
             label: 'Key'
-    notifications_sync:
-      type: integer
-      label: 'Notifications sync'
-    perform_sync_delete:
+    sync_perform_delete:
       type: integer
       label: 'Delete inactive drupal dam assets'
     num_images_per_page:

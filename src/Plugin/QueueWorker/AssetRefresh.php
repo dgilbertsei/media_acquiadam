@@ -119,8 +119,10 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       return FALSE;
     }
 
-    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('perform_sync_delete');
-    if ((empty($asset) || $asset->status == 'inactive') && $perform_delete && !$entity->isPublished()) {
+    // If the asset is expired/deleted in Acquia DAM and is unpublished in
+    // Drupal, we delete it.
+    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('sync_perform_delete');
+    if ((empty($asset) || !$asset->released_and_not_expired) && $perform_delete && !$entity->isPublished()) {
       $entity->delete();
       $this->loggerChannel->warning(
         'Deleted media entity @media_id with asset id @assetID.',
@@ -132,6 +134,20 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       return TRUE;
     }
 
+    // If the asset is expired/deleted in Acquia DAM but is published in
+    // Drupal, we log it because we can't delete it.
+    if (!empty($asset) && !$asset->released_and_not_expired && $entity->isPublished()) {
+      $this->loggerChannel->warning(
+        'Unable to delete media entity @media_id because it is published. This warning will continue to appear until the media entity has been deleted or unpublished.',
+        [
+          '@media_id' => $data['media_id'],
+        ]
+      );
+      return FALSE;
+    }
+
+    // If the asset does not exist anymore in Acquia DAM, log the information
+    // for visibility.
     if (empty($asset)) {
       $this->loggerChannel->warning(
         'Unable to update media entity @media_id with information from asset @assetID because the asset was missing. This warning will continue to appear until the media entity has been deleted.',
