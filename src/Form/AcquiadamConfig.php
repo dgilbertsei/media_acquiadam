@@ -167,7 +167,7 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Delete inactive Drupal\'s DAM assets.'),
       '#default_value' => $config->get('sync_perform_delete'),
-      '#description' => $this->t('Deletes unpublished Drupal media entities if asset is not available in Acquia DAM.'),
+      '#description' => $this->t('Deletes unpublished Drupal media entities if asset is not available in Acquia DAM (deleted, archived, expired).'),
     ];
 
     $form['image'] = [
