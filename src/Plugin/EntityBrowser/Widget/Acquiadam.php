@@ -307,7 +307,7 @@ class Acquiadam extends WidgetBase {
       // 'sortdir' => $form_state->getValue('sortdir'),
       // 'types' => $form_state->getValue('types'),
       'query' => $form_state->getValue('query'),
-      // 'category' => $current_category->name,
+      'expand' => 'thumbnails',
     ];
     // If the current category is not zero then fetch information about
     // the sub category being rendered.
@@ -384,7 +384,6 @@ class Acquiadam extends WidgetBase {
     // Add to the assets array.
     if (isset($items)) {
       foreach ($items as $category_item) {
-        $assets_status[$category_item->id]['#disabled'] = $category_item->status !== 'active';
         $assets[$category_item->id] = $this->layoutMediaEntity($category_item);
       }
     }
@@ -557,11 +556,9 @@ class Acquiadam extends WidgetBase {
   public function layoutMediaEntity(Asset $acquiadamAsset) {
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
-    $assetName = $acquiadamAsset->status !== 'active' ?
-      "$acquiadamAsset->name ($acquiadamAsset->status)" :
-      $acquiadamAsset->name;
-    if (!empty($acquiadamAsset->thumbnailurls)) {
-      $thumbnail = '<div class="acquiadam-asset-thumb"><img src="' . $acquiadamAsset->thumbnailurls[2]->url . '" alt="' . $assetName . '" /></div>';
+    $assetName = $acquiadamAsset->filename;
+    if (!empty($acquiadamAsset->thumbnails)) {
+      $thumbnail = '<div class="acquiadam-asset-thumb"><img src="' . $acquiadamAsset->thumbnails->{"300px"}->url . '" alt="' . $assetName . '" /></div>';
     }
     else {
       $thumbnail = '<span class="acquiadam-browser-empty">No preview available.</span>';
