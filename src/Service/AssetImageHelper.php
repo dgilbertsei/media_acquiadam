@@ -104,35 +104,26 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The preview URL or FALSE if none available.
    */
   public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 1280) {
-
-    if (empty($asset->thumbnailurls[0]->url)) {
+    if (empty($asset->embeds)) {
       return FALSE;
     }
 
-    // Copy thumbnail array to variable to avoid a notice about indirect
+    // Copy embeds array to variable to avoid a notice about indirect
     // access.
-    $thumbnails = $asset->thumbnailurls;
+    $thumbnails = $asset->embeds;
 
-    // Default to first regardless of size.
-    $biggest_matching = $thumbnails[0]->url;
+    // Default to original regardless of size.
+    $matching = $thumbnails['original']->url;
 
-    foreach ($thumbnails as $thumbnail) {
-      if (!empty($thumbnail->url) && $thumbnailSize >= $thumbnail->size) {
-        // Certain types do not have a 1280 size available despite returning
-        // a URL. We either have to hard code mime types as they crop up, or
-        // check if the URL is accessible on our own. Other URL sizes do not
-        // appear to have this issue.
-        if (1280 == $thumbnail->size && $this->checkRemoteThumbnailStatusCode(
-            $thumbnail->url,
-            403
-          )) {
-          continue;
-        }
-        $biggest_matching = $thumbnail->url;
-      }
+    if ($thumbnailSize !== -1) {
+      $matching = str_replace(
+        ['{size}', '@{scale}x', '{quality}'],
+        [$thumbnailSize, '', '80'],
+        $thumbnails['templated']->url
+      );
     }
 
-    return $biggest_matching;
+    return $matching;
   }
 
   /**
