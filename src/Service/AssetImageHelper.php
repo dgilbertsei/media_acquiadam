@@ -138,12 +138,12 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The image URI to use or FALSE.
    */
   public function getThumbnail(Asset $asset, $file = FALSE) {
-    if (empty($file) || !$file instanceof FileInterface) {
+    if (empty($file) || !$file instanceof FileInterface || empty($asset->file_properties)) {
       return $this->getFallbackThumbnail();
     }
 
-    $mimetype = $this->getMimeTypeFromFileType($asset->filetype);
-    $is_image = 'image' == $mimetype['discrete'];
+    $mimetype = $this->getMimeTypeFromFileType(strtolower($asset->file_properties->format));
+    $is_image = 'image' == $asset->file_properties->format_type;
 
     $thumbnail = $is_image ?
       $this->getImageThumbnail($file) :
