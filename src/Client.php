@@ -581,7 +581,7 @@ class Client {
    *
    * @return array
    */
-  public function getAssetMultiple(array $assetIds) {
+  public function getAssetMultiple(array $assetIds, $expand = []) {
     $this->checkAuth();
 
     if (empty($assetIds)) {
@@ -590,14 +590,7 @@ class Client {
 
     $assets = [];
     foreach($assetIds as $assetId) {
-      $response = $this->client->request(
-        "GET",
-        $this->baseUrl . '/assets/' . $assetId, [
-          'headers' => $this->getDefaultHeaders()
-        ]
-      );
-      $response = json_decode((string) $response->getBody());
-      $assets[] = Asset::fromJson($response);
+      $assets[] = $this->getAsset($assetId, $expand);
     }
     return $assets;
   }
@@ -650,16 +643,8 @@ class Client {
   public function downloadAsset($assetID) {
     $this->checkAuth();
 
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/' . $assetID,
-      [
-        'headers' => $this->getDefaultHeaders(),
-      ]
-    );
-    $response = json_decode((string) $response->getBody());
-    $downloadedAssetLink = $response->_links->download;
-    return $downloadedAssetLink;
+    $response = $this->getAsset($assetID);
+    return $response->_links->download;
   }
 
   /**
