@@ -270,19 +270,21 @@ class Client {
    *
    * @param int $assetId
    *   The Acquia DAM Asset ID.
-   * @param array $expand
+   * @param array $expands
    *   The additional properties to be included.
    *
    * @return Asset
    */
-  public function getAsset($assetId, $expand = []) {
+  public function getAsset($assetId, $expands = []) {
     $this->checkAuth();
 
-    $expand = array_intersect($expand, Asset::getAllowedExpands());
+    $required_expands = Asset::getRequiredExpands();
+    $allowed_expands = Asset::getAllowedExpands();
+    $expands = array_intersect(array_unique($expands + $required_expands), $allowed_expands);
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode(',', $expand),
+      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
       ['headers' => $this->getDefaultHeaders()]
     );
 
