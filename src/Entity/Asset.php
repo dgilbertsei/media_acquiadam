@@ -59,7 +59,52 @@ class Asset implements EntityInterface, \JsonSerializable {
    */
   public $thumbnails;
 
-  public function getAllowedExpands() {
+  /**
+   * @var array $asset_properties
+   */
+  public $asset_properties;
+
+  /**
+   * @var array $embeds
+   */
+  public $embeds;
+
+  /**
+   * @var array $file_properties
+   */
+  public $file_properties;
+
+  /**
+   * @var array $metadata
+   */
+  public $metadata;
+
+  /**
+   * @var array $metadata_info
+   */
+  public $metadata_info;
+
+  /**
+   * @var array $metadata_vocabulary
+   */
+  public $metadata_vocabulary;
+
+  /**
+   * @var array $security
+   */
+  public $security;
+
+  /**
+   * @var array $expanded
+   */
+  public $expanded;
+
+  /**
+   * @var array $_links
+   */
+  public $_links;
+
+  public static function getAllowedExpands() {
     return [
       'asset_properties',
       'file_properties',
@@ -68,7 +113,15 @@ class Asset implements EntityInterface, \JsonSerializable {
       'metadata_vocabulary',
       'security',
       'status',
-      'thumbnails'
+      'thumbnails',
+      'embeds',
+    ];
+  }
+
+  public static function getRequiredExpands() {
+    return [
+      'file_properties',
+      'embeds'
     ];
   }
 
@@ -90,7 +143,16 @@ class Asset implements EntityInterface, \JsonSerializable {
       'deleted_date',
       'released_and_not_expired',
       'download_link',
-      'thumbnails'
+      'thumbnails',
+      'asset_properties',
+      'embeds',
+      'file_properties',
+      'metadata',
+      'metadata_info',
+      'metadata_vocabulary',
+      'security',
+      'expanded',
+      '_links',
     ];
 
     // Copy all of the simple properties.
@@ -115,7 +177,16 @@ class Asset implements EntityInterface, \JsonSerializable {
       'deleted_date' => $this->deleted_date,
       'released_and_not_expired' => $this->released_and_not_expired,
       'download_link' => $this->download_link,
-      'thumbnails' => $this->thumbnails
+      'thumbnails' => $this->thumbnails,
+      'asset_properties'=> $this->asset_properties,
+      'embeds' => $this->embeds,
+      'file_properties' => $this->file_properties,
+      'metadata' => $this->metadata,
+      'metadata_info' => $this->metadata_info,
+      'metadata_vocabulary' => $this->metadata_vocabulary,
+      'security' => $this->security,
+      'expanded' => $this->expanded,
+      '_links' => $this->_links,
     ];
 
     return $properties;
