@@ -127,22 +127,6 @@ class AssetImageHelper implements ContainerInjectionInterface {
   }
 
   /**
-   * Check if the remote URL matches the given status code.
-   *
-   * @param string $url
-   *   The URL to perform a HEAD request against.
-   * @param int $statusCode
-   *   The status code to look for. Defaults to 403.
-   *
-   * @return bool
-   *   TRUE if the status code was a match.
-   */
-  protected function checkRemoteThumbnailStatusCode($url, $statusCode = 403) {
-    $response = $this->httpClient->head($url);
-    return !empty($response) && $response->getStatusCode() == $statusCode;
-  }
-
-  /**
    * Get the thumbnail for the given asset.
    *
    * @param \Drupal\acquiadam\Entity\Asset $asset
