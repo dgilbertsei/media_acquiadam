@@ -270,19 +270,21 @@ class Client {
    *
    * @param int $assetId
    *   The Acquia DAM Asset ID.
-   * @param array $expand
+   * @param array $expands
    *   The additional properties to be included.
    *
    * @return Asset
    */
-  public function getAsset($assetId, $expand = []) {
+  public function getAsset($assetId, $expands = []) {
     $this->checkAuth();
 
-    $expand = array_intersect($expand, Asset::getAllowedExpands());
+    $required_expands = Asset::getRequiredExpands();
+    $allowed_expands = Asset::getAllowedExpands();
+    $expands = array_intersect(array_unique($expands + $required_expands), $allowed_expands);
 
     $response = $this->client->request(
       "GET",
-      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode(',', $expand),
+      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
       ['headers' => $this->getDefaultHeaders()]
     );
 
@@ -581,7 +583,7 @@ class Client {
    *
    * @return array
    */
-  public function getAssetMultiple(array $assetIds) {
+  public function getAssetMultiple(array $assetIds, $expand = []) {
     $this->checkAuth();
 
     if (empty($assetIds)) {
@@ -590,14 +592,7 @@ class Client {
 
     $assets = [];
     foreach($assetIds as $assetId) {
-      $response = $this->client->request(
-        "GET",
-        $this->baseUrl . '/assets/' . $assetId, [
-          'headers' => $this->getDefaultHeaders()
-        ]
-      );
-      $response = json_decode((string) $response->getBody());
-      $assets[] = Asset::fromJson($response);
+      $assets[] = $this->getAsset($assetId, $expand);
     }
     return $assets;
   }
@@ -650,16 +645,8 @@ class Client {
   public function downloadAsset($assetID) {
     $this->checkAuth();
 
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/' . $assetID,
-      [
-        'headers' => $this->getDefaultHeaders(),
-      ]
-    );
-    $response = json_decode((string) $response->getBody());
-    $downloadedAssetLink = $response->_links->download;
-    return $downloadedAssetLink;
+    $response = $this->getAsset($assetID);
+    return $response->_links->download;
   }
 
   /**

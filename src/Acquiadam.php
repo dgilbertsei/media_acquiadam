@@ -111,7 +111,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
         $this->staticAssetCache(
           'set',
           $assetId,
-          $this->acquiaDamClient->getAsset($assetId, $include_xmp) ?? FALSE
+          $this->acquiaDamClient->getAsset($assetId) ?? FALSE
         );
       }
     }

@@ -251,11 +251,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     // If the module was configured to enforce an image size limit then we need
     // to grab the nearest matching pre-created size.
     $mimetype = $this->assetImageHelper->getMimeTypeFromFileType(
-      $asset->filetype
+      strtolower($asset->file_properties->format)
     );
     $size_limit = $this->config->get('size_limit');
 
-    $is_image = 'image' == $mimetype['discrete'];
+    $is_image = 'image' == $asset->file_properties->format_type;
     $use_tn = !empty($size_limit) && -1 != $size_limit && $is_image;
 
     if ($use_tn) {

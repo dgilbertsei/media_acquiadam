@@ -104,51 +104,26 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The preview URL or FALSE if none available.
    */
   public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 1280) {
-
-    if (empty($asset->thumbnailurls[0]->url)) {
+    if (empty($asset->embeds)) {
       return FALSE;
     }
 
-    // Copy thumbnail array to variable to avoid a notice about indirect
+    // Copy embeds array to variable to avoid a notice about indirect
     // access.
-    $thumbnails = $asset->thumbnailurls;
+    $thumbnails = $asset->embeds;
 
-    // Default to first regardless of size.
-    $biggest_matching = $thumbnails[0]->url;
+    // Default to original regardless of size.
+    $matching = $thumbnails['original']->url;
 
-    foreach ($thumbnails as $thumbnail) {
-      if (!empty($thumbnail->url) && $thumbnailSize >= $thumbnail->size) {
-        // Certain types do not have a 1280 size available despite returning
-        // a URL. We either have to hard code mime types as they crop up, or
-        // check if the URL is accessible on our own. Other URL sizes do not
-        // appear to have this issue.
-        if (1280 == $thumbnail->size && $this->checkRemoteThumbnailStatusCode(
-            $thumbnail->url,
-            403
-          )) {
-          continue;
-        }
-        $biggest_matching = $thumbnail->url;
-      }
+    if ($thumbnailSize !== -1) {
+      $matching = str_replace(
+        ['{size}', '@{scale}x', '{quality}'],
+        [$thumbnailSize, '', '80'],
+        $thumbnails['templated']->url
+      );
     }
 
-    return $biggest_matching;
-  }
-
-  /**
-   * Check if the remote URL matches the given status code.
-   *
-   * @param string $url
-   *   The URL to perform a HEAD request against.
-   * @param int $statusCode
-   *   The status code to look for. Defaults to 403.
-   *
-   * @return bool
-   *   TRUE if the status code was a match.
-   */
-  protected function checkRemoteThumbnailStatusCode($url, $statusCode = 403) {
-    $response = $this->httpClient->head($url);
-    return !empty($response) && $response->getStatusCode() == $statusCode;
+    return $matching;
   }
 
   /**
@@ -163,12 +138,12 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The image URI to use or FALSE.
    */
   public function getThumbnail(Asset $asset, $file = FALSE) {
-    if (empty($file) || !$file instanceof FileInterface) {
+    if (empty($file) || !$file instanceof FileInterface || empty($asset->file_properties)) {
       return $this->getFallbackThumbnail();
     }
 
-    $mimetype = $this->getMimeTypeFromFileType($asset->filetype);
-    $is_image = 'image' == $mimetype['discrete'];
+    $mimetype = $this->getMimeTypeFromFileType(strtolower($asset->file_properties->format));
+    $is_image = 'image' == $asset->file_properties->format_type;
 
     $thumbnail = $is_image ?
       $this->getImageThumbnail($file) :
