@@ -36,6 +36,16 @@ interface AcquiadamAuthServiceInterface {
    */
   public static function generateAuthUrl($return_link);
 
+  /**
+   * Purge Acquia DAM authorization connection.
+   *
+   * @param string $access_token
+   *   Acquiadam user token.
+   *
+   * @return bool
+   *   Returns a boolean based on authorization.
+   */
+  public static function cancel($access_token);
 
   /**
    * Authenticates the user.
@@ -47,16 +57,5 @@ interface AcquiadamAuthServiceInterface {
    *   The response data of the authentication attempt.
    */
   public static function authenticate($auth_code);
-
-  /**
-   * Purge Acquia DAM authorization connection.
-   *
-   * @param string $access_token
-   *   Acquiadam user token.
-   *
-   * @return bool
-   *   Returns a boolean based on authorization.
-   */
-  public static function cancel($access_token);
 
 }
