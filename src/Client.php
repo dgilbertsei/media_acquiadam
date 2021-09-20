@@ -83,16 +83,17 @@ class Client {
    * anonymous user, check the generic token has been configured.
    */
   public function checkAuth() {
-    if (!$this->account->isAuthenticated() && empty($this->config->get('token'))) {
-      return FALSE;
+    if ($this->account->isAuthenticated()) {
+      $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+      if (isset($account['acquiadam_username']) && isset($account['acquiadam_token'])) {
+        return TRUE;
+      }
+    }
+    elseif (!$this->account->isAuthenticated() && PHP_SAPI === 'cli' && !empty($this->config->get('token'))) {
+      return TRUE;
     }
 
-    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
-    if (!isset($account['acquiadam_username']) || !isset($account['acquiadam_token'])) {
-      return FALSE;
-    }
-
-    return TRUE;
+    return FALSE;
   }
 
   /**
@@ -121,10 +122,15 @@ class Client {
    * @return array
    */
   protected function getDefaultHeaders() {
-    $token = $this->config->get('token');
+    $token = NULL;
     if ($this->account->isAuthenticated()) {
       $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
-      $token = $account['acquiadam_token'];
+      if (isset($account['acquiadam_token'])) {
+        $token = $account['acquiadam_token'];
+      }
+    }
+    elseif (!$this->account->isAuthenticated() && PHP_SAPI === 'cli' && !empty($this->config->get('token'))) {
+      $token = $this->config->get('token');
     }
 
     return [
