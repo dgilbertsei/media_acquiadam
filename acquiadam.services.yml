@@ -1,4 +1,7 @@
 services:
+  acquiadam.auth:
+    class: Drupal\acquiadam\acquiadamAuthService
+    arguments: [ ]
   acquiadam.client:
     class: Drupal\acquiadam\Client
     arguments: ['@http_client', '@user.data', '@current_user', '@config.factory']
