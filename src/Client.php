@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * @todo: Wildcat. Replace this client with the new service's client.
+ * Client for the Acquia DAM integration.
  */
 namespace Drupal\acquiadam;
 
@@ -11,39 +11,16 @@ use Drupal\acquiadam\Entity\MiniFolder;
 use Drupal\acquiadam\Entity\User;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\acquiadam\Exception\UploadAssetException;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserData;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
 
 /**
- * Overridden implementation of the CweagansClient.
- *
- * Adds support for refreshing OAuth sessions.
+ * Provides the integration with Acquia DAM.
  */
 class Client {
-
-  /**
-   * Contains the refresh token necessary to renew connections.
-   *
-   * @var string
-   */
-  protected $refreshToken;
-
-  /**
-   * Datastore for the active XMP fields.
-   *
-   * @var array
-   */
-  protected $activeXmpFields;
-
-  /**
-   * The version of this client. Used in User-Agent string for API requests.
-   *
-   * @var string
-   */
-  const CLIENTVERSION = "1.x-dev";
 
   /**
    * The Guzzle client to use for communication with the Acquia DAM API.
@@ -72,24 +49,45 @@ class Client {
   protected $account;
 
   /**
+   * Drupal config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * Acquia DAM config.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
    * @param UserData $user_data
    * @param \Drupal\Core\Session\AccountInterface $account
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    */
-  public function __construct(ClientInterface $client, UserData $user_data, AccountInterface $account) {
+  public function __construct(ClientInterface $client, UserData $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory) {
     $this->client = $client;
     $this->userData = $user_data;
     $this->account = $account;
+    $this->configFactory = $configFactory;
+    $this->config = $configFactory->get('acquiadam.settings');
   }
 
   /**
-   * Authenticates with the Acquia DAM service and retrieves an access token, or uses existing one.
+   * Check if the current user is authenticated on Acquia DAM. In case of
+   * anonymous user, check the generic token has been configured.
    */
   public function checkAuth() {
-    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+    if (!$this->account->isAuthenticated() && empty($this->config->get('token'))) {
+      return FALSE;
+    }
 
+    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
     if (!isset($account['acquiadam_username']) || !isset($account['acquiadam_token'])) {
       return FALSE;
     }
@@ -120,103 +118,21 @@ class Client {
   /**
    * Return an array of headers to add to every authenticated request.
    *
-   * Note that this should not be used for the initial authentication request, as
-   * it will attempt to add an access token that we don't have yet.
-   *
    * @return array
    */
   protected function getDefaultHeaders() {
-    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+    $token = $this->config->get('token');
+    if ($this->account->isAuthenticated()) {
+      $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+      $token = $account['acquiadam_token'];
+    }
+
     return [
-      'User-Agent' => 'drupal/acquiadam ' . self::CLIENTVERSION,
+      'User-Agent' => 'drupal/acquiadam',
       'Accept' => 'application/json',
-      'Authorization' => 'Bearer ' . $account['acquiadam_token'],
+      'Authorization' => 'Bearer ' . $token,
     ];
   }
-
-  /**
-   * Get a list of metadata.
-   *
-   * @return array
-   *   A list of active xmp metadata fields.
-   */
-  /*public function getActiveXmpFields() {
-    if (!is_null($this->activeXmpFields)) {
-      return $this->activeXmpFields;
-    }
-
-    try {
-      $this->checkAuth();
-    }
-    catch (\Exception $x) {
-      \Drupal::logger('acquiadam')->error(
-          'Unable to authenticate to retrieve xmp field data.'
-        );
-      $this->activeXmpFields = [];
-      return $this->activeXmpFields;
-    }
-
-    try {
-      $response = $this->client->request(
-        'GET',
-        $this->baseUrl . '/metadataschemas/xmp?full=1',
-        ['headers' => $this->getDefaultHeaders()]
-      );
-    }
-    catch (\Exception $x) {
-      \Drupal::logger('acquiadam')->error('Unable to get xmp field data.');
-      $this->activeXmpFields = [];
-      return $this->activeXmpFields;
-    }
-
-    $response = json_decode((string) $response->getBody());
-
-    $this->activeXmpFields = [];
-    foreach ($response->xmpschema as $field) {
-      if ($field->status == 'active') {
-        $this->activeXmpFields['xmp_' . strtolower($field->field)] = [
-          'name' => $field->name,
-          'label' => $field->label,
-          'type' => $field->type,
-        ];
-      }
-    }
-
-    return $this->activeXmpFields;
-  }*/
-
-  /**
-   * Get subscription details for the account.
-   *
-   * @todo Should this be an Entity?
-   *
-   * @return \stdClass
-   *   Returns a stdClass with the following properties:
-   *    - maxAdmins
-   *    - numAdmins
-   *    - maxContributors
-   *    - numContributors
-   *    - maxEndUsers
-   *    - maxUsers
-   *    - url
-   *    - username
-   *    - planDiskSpace
-   *    - activeUsers
-   *    - inactiveUsers
-   */
-  /*public function getAccountSubscriptionDetails() {
-    $this->checkAuth();
-
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/subscription',
-      ['headers' => $this->getDefaultHeaders()]
-    );
-
-    $account = json_decode($response->getBody());
-
-    return $account;
-  }*/
 
   /**
    * Get a Category given a Category Name.
@@ -328,98 +244,6 @@ class Client {
 
     return json_decode($response->getBody());
   }
-
-  /**
-   * Authenticates a user.
-   *
-   * @param array $data
-   *   An array of API parameters to pass. Defaults to password based
-   *   authentication information.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
-   */
-  /*public function authenticate(array $data = []) {
-
-    $url = $this->baseUrl . '/oauth2/token';
-    if (empty($data)) {
-      $data = [
-        'grant_type' => 'password',
-        'username' => $this->username,
-        'password' => $this->password,
-        'client_id' => $this->clientId,
-        'client_secret' => $this->clientSecret,
-      ];
-    }
-
-    // For error response body details:
-    // @see \Drupal\acquiadam\tests\ClientTest::testInvalidClient().
-    // @see \Drupal\acquiadam\tests\ClientTest::testInvalidGrant().
-    // For successful auth response body details:
-    // @see \Drupal\acquiadam\tests\ClientTest::testSuccessfulAuthentication().
-    try {
-      $response = $this->client->request(
-        "POST",
-        $url,
-        ['form_params' => $data]
-      );
-
-      // Body properties: access_token, expires_in, token_type, refresh_token.
-      $body = (string) $response->getBody();
-      $body = json_decode($body);
-
-      $this->accessToken = $body->access_token;
-      $this->accessTokenExpiry = time() + $body->expires_in;
-      // We should only get an initial refresh_token and reuse it after the
-      // first session. The access_token gets replaced instead of a new
-      // refresh_token.
-      $this->refreshToken = !empty($body->refresh_token) ?
-        $body->refresh_token : $this->refreshToken;
-    }
-    catch (ClientException $e) {
-      // For bad auth, the Acquia DAM API has been observed to return either
-      // 400 or 403, so handle those via InvalidCredentialsException.
-      $status_code = $e->getResponse()->getStatusCode();
-      if ($status_code == 400 || $status_code == 403) {
-        $body = (string) $e->getResponse()->getBody();
-        $body = json_decode($body);
-
-        throw new InvalidCredentialsException(
-          $body->error_description . ' (' . $body->error . ').'
-        );
-      }
-      else {
-        // We've received an error status other than 400 or 403; log it
-        // and move on.
-        \Drupal::logger('acquiadam')->error(
-          'Unable to authenticate. DAM API client returned a @code exception code with the following message: %message',
-          [
-            '@code' => $status_code,
-            '%message' => $e->getMessage(),
-          ]
-        );
-      }
-    }
-  }*/
-
-  /**
-   * Set the internal auth token.
-   *
-   * {@inheritdoc}
-   *
-   * @param string $token
-   *   The token to set.
-   * @param int $token_expiry
-   *   The time when the token expires.
-   * @param string $refresh_token
-   *   The refresh token to set.
-   */
-  /*public function setToken($token, $token_expiry, $refresh_token = NULL) {
-    $this->manualToken = TRUE;
-    $this->accessToken = $token;
-    $this->accessTokenExpiry = $token_expiry;
-    $this->refreshToken = $refresh_token;
-  }*/
 
   /**
    * Uploads file to Acquia DAM AWS S3.

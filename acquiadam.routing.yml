@@ -6,13 +6,6 @@ acquiadam.config:
   requirements:
     _permission: 'administer site configuration'
 
-acquiadam.user_auth:
-  path: '/user/acquiadam/auth'
-  defaults:
-    _controller: '\Drupal\acquiadam\Controller\AcquiadamAuthController::authenticate'
-  requirements:
-    _access: 'TRUE'
-
 acquiadam.asset_details:
   path: 'acquiadam/asset/{assetId}'
   defaults:
