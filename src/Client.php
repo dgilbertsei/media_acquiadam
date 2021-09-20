@@ -639,14 +639,16 @@ class Client {
    * @param int $assetID
    *   Asset ID to be fetched
    *
-   * @return string
+   * @return string $file_content
    *   Contents of the file as a string
    */
   public function downloadAsset($assetID) {
     $this->checkAuth();
 
     $response = $this->getAsset($assetID);
-    return $response->_links->download;
+    $file_content = file_get_contents(str_replace('&download=true', '', $response->embeds->original->url));
+
+    return $file_content;
   }
 
   /**

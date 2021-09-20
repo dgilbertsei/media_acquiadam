@@ -113,13 +113,13 @@ class AssetImageHelper implements ContainerInjectionInterface {
     $thumbnails = $asset->embeds;
 
     // Default to original regardless of size.
-    $matching = $thumbnails['original']->url;
+    $matching = $thumbnails->original->url;
 
     if ($thumbnailSize !== -1) {
       $matching = str_replace(
         ['{size}', '@{scale}x', '{quality}'],
         [$thumbnailSize, '', '80'],
-        $thumbnails['templated']->url
+        $thumbnails->templated->url
       );
     }
 

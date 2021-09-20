@@ -277,7 +277,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $destination_path = $this->getNewDestinationByUri(
         $destination_folder,
         $largest_tn,
-        $asset->name
+        $asset->filename
       );
     }
     else {
