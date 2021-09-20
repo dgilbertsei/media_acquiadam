@@ -34,13 +34,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   protected $acquiadam;
 
   /**
-   * Array of DAM XMP fields keyed by field (prefixed with "xmp_").
-   *
-   * @var array
-   */
-  protected $xmpMetadataFields = [];
-
-  /**
    * AssetImageHelper constructor.
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
@@ -64,48 +57,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   }
 
   /**
-   * Set the available XMP metadata fields.
-   *
-   * <code>
-   * [
-   *   'xmp_caption' => [
-   *     'name' => 'Caption/Abstract',
-   *     'label' => 'Caption/Description',
-   *     'type' => 'textarea',
-   *   ],
-   *   'xmp_byline' => [
-   *     'name' => 'By-line',
-   *     'label' => 'Photographer',
-   *     'type' => 'text',
-   *   ],
-   * ]
-   * </code>
-   *
-   * @param array $fields
-   *   Sets the available XMP metadata fields.
-   */
-  public function setMetadataXmpFields(array $fields = []) {
-    $this->xmpMetadataFields = $fields;
-  }
-
-  /**
-   * Get the available XMP metadata fields.
-   *
-   * Also check if the xmpMetadatafiels are not set call the acquiadam.
-   *
-   * @return array
-   *   The xmpMetadataFields array.
-   */
-  public function getMetadataXmpFields() {
-    if (is_null($this->xmpMetadataFields)) {
-      $this->setMetadataXmpFields(
-        $this->acquiadam->getActiveXmpFields()
-      );
-    }
-    return $this->xmpMetadataFields;
-  }
-
-  /**
    * Get the available metadata attribute labels.
    *
    * @return array
@@ -113,38 +64,21 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    */
   public function getMetadataAttributeLabels() {
     $fields = [
-      'colorspace' => $this->t('Color space'),
-      'datecaptured' => $this->t('Date captured'),
-      'datecreated' => $this->t('Date created'),
-      'datemodified' => $this->t('Date modified'),
-      'datecaptured_date' => $this->t('Date captured (Date)'),
-      'datecreated_date' => $this->t('Date created (Date)'),
-      'datemodified_date' => $this->t('Date modified (Date)'),
-      'datecaptured_unix' => $this->t('Date captured (Timestamp)'),
-      'datecreated_unix' => $this->t('Date created (Timestamp)'),
-      'datemodified_unix' => $this->t('Date modified (Timestamp)'),
+      'external_id' => $this->t('External ID'),
+      'filename' => $this->t('Filename'),
+      'created_date' => $this->t('Created date'),
+      'last_update_date' => $this->t('Last update date'),
+      'file_upload_date' => $this->t('File upload date'),
+      'deleted_date' => $this->t('Deleted date'),
+      'released_and_not_expired' => $this->t('Released and not expired'),
+      'format' => $this->t('Format'),
       'description' => $this->t('Description'),
       'file' => $this->t('File'),
-      'filename' => $this->t('Filename'),
       'filesize' => $this->t('Filesize'),
-      'filetype' => $this->t('Filetype'),
-      'folderID' => $this->t('Folder ID'),
       'height' => $this->t('Height'),
-      'status' => $this->t('Active state'),
-      'type' => $this->t('Type'),
-      'type_id' => $this->t('Type ID'),
-      'id' => $this->t('Asset ID'),
-      'version' => $this->t('Version'),
       'width' => $this->t('Width'),
+      'type' => $this->t('Type'),
     ];
-
-    // Add additional XMP fields to fields array.
-    $xmpMetadataFields = $this->getMetadataXmpFields();
-    if (!empty($xmpMetadataFields)) {
-      foreach ($xmpMetadataFields as $xmp_id => $xmp_field) {
-        $fields[$xmp_id] = $xmp_field['label'];
-      }
-    }
 
     return $fields;
   }
@@ -161,83 +95,37 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *   Result will vary based on the metadata item.
    */
   public function getMetadataFromAsset(Asset $asset, $name) {
-
-    // Return values of XMP metadata.
-    $xmpMetadataFields = $this->getMetadataXmpFields();
-    if (array_key_exists($name, $xmpMetadataFields)) {
-      // Strip 'xmp_' prefix to retrieve matching asset xmp metadata.
-      $xmp_field = substr($name, 4);
-
-      return isset($asset->xmp_metadata[$xmp_field]['value']) ?
-        $asset->xmp_metadata[$xmp_field]['value'] : NULL;
-    }
-
     switch ($name) {
-      case 'folderID':
-        return isset($asset->folder->id) ? $asset->folder->id : NULL;
+      case 'description':
+        return isset($asset->metadata->fields->description) ?? $asset->metadata->fields->description;
 
-      case 'status':
-        return isset($asset->status) ? intval($asset->status == 'active') :
-          NULL;
+      case 'filesize':
+        return isset($asset->file_properties->size_in_kbytes) ?? $asset->file_properties->size_in_kbytes;
+
+      case 'height':
+        return isset($asset->file_properties->image_properties->height) ?? $asset->file_properties->image_properties->height;
+
+      case 'width':
+        return isset($asset->file_properties->image_properties->width) ?? $asset->file_properties->image_properties->width;
 
       case 'type':
-        if (isset($asset->type_id)) {
-          $type_mapping = [
-            1 => 'Image',
-            2 => 'Video',
-            3 => 'Document',
-            4 => 'Presentation',
-            5 => 'Other',
-          ];
-
-          return $type_mapping[$asset->type_id] ?: NULL;
-        }
-        return NULL;
-
-      case 'datecaptured_date':
-      case 'datecreated_date':
-      case 'datemodified_date':
-        $date_property_mapping = [
-          'datecaptured_date' => 'datecapturedUnix',
-          'datecreated_date' => 'date_created_unix',
-          'datemodified_date' => 'date_modified_unix',
-        ];
-        $date_property = $date_property_mapping[$name];
-        if (!empty($asset->{$date_property})) {
-          // html_datetime includes the timezone so we must use a custom format.
-          return $this->dateFormatter->format(
-            $asset->{$date_property},
-            'custom',
-            'Y-m-d\TH:i:s'
-          );
-        }
-        return NULL;
+        return (isset($asset->metadata->field->assettype)) ?? reset($asset->metadata->field->assettype);
 
       default:
         // The key should be the local property name and the value should be the
         // DAM provided property name.
         $property_name_mapping = [
-          'colorspace' => 'colorspace',
-          'datecaptured' => 'datecaptured',
-          'datecreated' => 'datecreated',
-          'datemodified' => 'datemodified',
-          'datecaptured_unix' => 'datecapturedUnix',
-          'datecreated_unix' => 'date_created_unix',
-          'datemodified_unix' => 'date_modified_unix',
-          'description' => 'description',
+          'external_id' => 'external_id',
           'filename' => 'filename',
-          'filesize' => 'filesize',
-          'filetype' => 'filetype',
-          'height' => 'height',
-          'id' => 'id',
-          'type_id' => 'type_id',
-          'version' => 'version',
-          'width' => 'width',
+          'created_date' => 'created_date',
+          'last_update_date' => 'last_update_date',
+          'file_upload_date' => 'file_upload_date',
+          'deleted_date' => 'deleted_date',
+          'released_and_not_expired' => 'released_and_not_expired',
         ];
         if (array_key_exists($name, $property_name_mapping)) {
           $property_name = $property_name_mapping[$name];
-          return isset($asset->{$property_name}) ? $asset->{$property_name} :
-            NULL;
+          return isset($asset->{$property_name}) ?? $asset->{$property_name};
         }
     }
 

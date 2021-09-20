@@ -22,7 +22,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   id = "acquiadam_asset",
  *   label = @Translation("Acquia DAM asset"),
  *   description = @Translation("Provides business logic and metadata for
- *   assets stored on Acquia DAM."), allowed_field_types = {"string"},
+ *   assets stored on Acquia DAM."),
+ *   allowed_field_types = {"string"},
  * )
  */
 class AcquiadamAsset extends MediaSourceBase {
