@@ -6,6 +6,9 @@ acquiadam.settings:
     domain:
       type: string
       label: 'Acquia DAM domain'
+    token:
+      type: string
+      label: 'Acquia DAM authentication token'
     search_endpoint:
       type: string
       label: 'Search endpoint'
