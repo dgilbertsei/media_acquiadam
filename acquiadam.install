@@ -24,7 +24,7 @@ function acquiadam_schema() {
         'default' => '',
         'type' => 'varchar_ascii',
         'not null' => TRUE,
-        'length' => 35
+        'length' => 128
       ],
       'name' => [
         'description' => 'The identifier of the data.',
