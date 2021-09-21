@@ -97,7 +97,7 @@ class MediaEntityHelper {
       $file = $this->assetFileHelper->createNewFile($asset, $destination_folder);
 
       if ($file) {
-        $this->assetData->set($asset->id, 'version', $asset->version);
+        $this->assetData->set($asset->id, 'file_upload_date', strtotime($asset->file_upload_date));
       }
     }
 
