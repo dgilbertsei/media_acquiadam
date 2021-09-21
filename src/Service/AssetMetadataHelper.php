@@ -71,13 +71,22 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
       'file_upload_date' => $this->t('File upload date'),
       'deleted_date' => $this->t('Deleted date'),
       'released_and_not_expired' => $this->t('Released and not expired'),
+      'expiration_date' => $this->t('Expiration date'),
+      'release_date' => $this->t('Release date'),
       'format' => $this->t('Format'),
       'description' => $this->t('Description'),
       'file' => $this->t('File'),
-      'filesize' => $this->t('Filesize'),
+      'filesize' => $this->t('Filesize (kb)'),
       'height' => $this->t('Height'),
       'width' => $this->t('Width'),
       'type' => $this->t('Type'),
+      'author' => $this->t('Author'),
+      'caption_abstract' => $this->t('Caption/Abstract'),
+      'keywords' => $this->t('Keywords'),
+      'popularity' => $this->t('Popularity'),
+      'user_right_details' => $this->t('User right details'),
+      'usage_rights' => $this->t('Usage rights'),
+      'duration' => $this->t('Duration'),
     ];
 
     return $fields;
@@ -95,21 +104,52 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *   Result will vary based on the metadata item.
    */
   public function getMetadataFromAsset(Asset $asset, $name) {
+    // Some properties are available either in image_properties or
+    // video_properties depending the asset type.
+    $additional_properties = isset($asset->file_properties->image_properties) ? 'image_properties' : 'video_properties';
+
     switch ($name) {
-      case 'description':
-        return isset($asset->metadata->fields->description) ? reset($asset->metadata->fields->description) : NULL;
+      case 'expiration_date':
+        return isset($asset->security->expiration_date) ? $asset->security->expiration_date : NULL;
+
+      case 'release_date':
+        return isset($asset->security->release_date) ? $asset->security->release_date : NULL;
+
+      case 'popularity':
+        return isset($asset->asset_properties->popularity) ? $asset->asset_properties->popularity : NULL;
 
       case 'filesize':
         return isset($asset->file_properties->size_in_kbytes) ? $asset->file_properties->size_in_kbytes : NULL;
 
       case 'height':
-        return isset($asset->file_properties->image_properties->height) ? $asset->file_properties->image_properties->height : NULL;
+        return isset($asset->file_properties->{$additional_properties}->height) ? $asset->file_properties->{$additional_properties}->height : NULL;
 
       case 'width':
-        return isset($asset->file_properties->image_properties->width) ? $asset->file_properties->image_properties->width : NULL;
+        return isset($asset->file_properties->{$additional_properties}->width) ? $asset->file_properties->{$additional_properties}->width : NULL;
+
+      case 'duration':
+        return isset($asset->file_properties->video_properties->duration) ? $asset->file_properties->video_properties->duration : NULL;
 
       case 'type':
-        return (isset($asset->metadata->field->assettype)) ? reset($asset->metadata->field->assettype) : NULL;
+        return (isset($asset->metadata->fields->assettype)) ? reset($asset->metadata->fields->assettype) : NULL;
+
+      case 'author':
+        return (isset($asset->metadata->fields->author)) ? reset($asset->metadata->fields->author) : NULL;
+
+      case 'description':
+        return isset($asset->metadata->fields->description) ? reset($asset->metadata->fields->description) : NULL;
+
+      case 'caption_abstract':
+        return isset($asset->metadata->fields->captionAbstract) ? reset($asset->metadata->fields->captionAbstract) : NULL;
+
+      case 'keywords':
+        return isset($asset->metadata->fields->keywords) ? reset($asset->metadata->fields->keywords) : NULL;
+
+      case 'user_right_details':
+        return isset($asset->metadata->fields->userrightdetails) ? reset($asset->metadata->fields->userrightdetails) : NULL;
+
+      case 'usage_rights':
+        return isset($asset->metadata->fields->usagerights) ? reset($asset->metadata->fields->usagerights) : NULL;
 
       default:
         // The key should be the local property name and the value should be the

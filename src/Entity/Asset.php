@@ -104,6 +104,11 @@ class Asset implements EntityInterface, \JsonSerializable {
    */
   public $_links;
 
+  /**
+   * A list of allowed values for the expand query attribute.
+   *
+   * @return string[]
+   */
   public static function getAllowedExpands() {
     return [
       'asset_properties',
@@ -118,11 +123,18 @@ class Asset implements EntityInterface, \JsonSerializable {
     ];
   }
 
+  /**
+   * The default expand query attribute, mandatory for some later process as
+   * thumbnails or metadata.
+   *
+   * @return string[]
+   */
   public static function getRequiredExpands() {
     return [
       'file_properties',
       'metadata',
-      'embeds'
+      'embeds',
+      'security'
     ];
   }
 
