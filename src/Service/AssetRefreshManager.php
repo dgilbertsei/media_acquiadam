@@ -66,7 +66,6 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    */
   protected $requestLimit = 100;
 
-
   /**
    * AssetRefreshManager constructor.
    *
@@ -159,41 +158,35 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   List of unique asset ids.
    */
   protected function getAssetIds(): array {
-    try {
-      $page = $this->getNextPage() ?? 1;
-      // Calculate the offset value as a number of previously processed items.
-      $offset = $this->getRequestLimit() * ($page - 1);
+    $asset_ids = [];
+    $page = 0;
 
-      // @TODO: Deal with the timezone.
-      $date = date('Y-m-dTH:i:sZ', \Drupal::state()->get('acquiadam.last_sync'));
+    do {
+      try {
+        $page++;
+        // Calculate the offset value as a number of previously processed items.
+        $offset = $this->getRequestLimit() * ($page - 1);
 
-      $response = $this->acquiadam->searchAssets([
-        'limit' => $this->getRequestLimit(),
-        'offset' => $offset,
-        'query' => ["lastEditDate:[after $date]"],
-      ]);
-    }
-    catch (GuzzleException | InvalidCredentialsException $e) {
-      $this->logger->error('Failed to fetch asset ids: @message.',
-        ['@message' => $e->getMessage()]);
-      return [];
-    }
+        // @TODO: Deal with the timezone.
+        $date = date('Y-m-d\TH:i:s\Z', \Drupal::state()->get('acquiadam.last_sync'));
 
-    if (empty($response['items'])) {
-      $continue_fetch = FALSE;
-      $asset_ids = [];
-    }
-    else {
-      $continue_fetch = $response['total_count'] > $this->getRequestLimit() * $page;
-      $asset_ids = array_unique(array_map(function($item) { return $item['id']; }, $response['items']));
-    }
+        $response = $this->acquiadam->searchAssets([
+          'limit' => $this->getRequestLimit(),
+          'offset' => $offset,
+          'query' => ["lastEditDate:[after $date]"],
+        ]);
+      }
+      catch (GuzzleException | InvalidCredentialsException $e) {
+        $this->logger->error('Failed to fetch asset ids: @message.',
+          ['@message' => $e->getMessage()]);
+        return [];
+      }
 
-    if ($continue_fetch) {
-      $this->saveNextPage(++$page);
-      return $asset_ids;
-    }
+      foreach ($response['assets'] as $asset) {
+        $asset_ids[] = $asset->id;
+      }
 
-    $this->resetNextPage();
+    } while ($response['total_count'] > $this->getRequestLimit() * $page);
 
     return $asset_ids;
   }
@@ -212,33 +205,6 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
     $old_limit = $this->getRequestLimit();
     $this->requestLimit = max(1, $newLimit);
     return $old_limit;
-  }
-
-  /**
-   * Returns the "Next Page" Drupal State value.
-   *
-   * @return int|null
-   *   Page index.
-   */
-  protected function getNextPage(): ?int {
-    return $this->state->get('acquiadam.sync_next_page');
-  }
-
-  /**
-   * Saves the "Next Page" Drupal State value.
-   *
-   * @param int $page
-   *   Page index.
-   */
-  protected function saveNextPage(int $page) {
-    $this->state->set('acquiadam.sync_next_page', $page);
-  }
-
-  /**
-   * Resets the "Next Page" value to the Drupal State.
-   */
-  protected function resetNextPage() {
-    $this->state->set('acquiadam.sync_next_page', NULL);
   }
 
 }

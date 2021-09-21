@@ -215,11 +215,11 @@ function acquiadam_cron() {
     ->get('acquiadam.settings');
 
   $interval = $cron_config->get('sync_interval') ?? 3600;
-  $last_execution = Drupal::state()->get('acquiadam.last_sync');
+  $last_execution = Drupal::state()->get('acquiadam.last_sync') ?? 0;
   $request_time = Drupal::time()->getRequestTime();
 
   // Check if we need to execute.
-  if ($interval !== -1 && $last_execution + $interval <= $request_time) {
+  if ($interval !== -1 && $last_execution + $interval >= $request_time) {
     return;
   }
 
