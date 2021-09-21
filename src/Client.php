@@ -63,6 +63,13 @@ class Client {
   protected $config;
 
   /**
+   * The version of this client. Used in User-Agent string for API requests.
+   *
+   * @var string
+   */
+  const CLIENTVERSION = "2.x-alpha";
+
+  /**
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
@@ -134,7 +141,7 @@ class Client {
     }
 
     return [
-      'User-Agent' => 'drupal/acquiadam',
+      'User-Agent' => 'drupal/acquiadam ' . self::CLIENTVERSION,
       'Accept' => 'application/json',
       'Authorization' => 'Bearer ' . $token,
     ];
