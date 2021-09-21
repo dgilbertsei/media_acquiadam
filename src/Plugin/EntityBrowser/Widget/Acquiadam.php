@@ -785,6 +785,8 @@ class Acquiadam extends WidgetBase {
         'name' => $asset->filename,
         // Set the chosen source field for this entity to the asset id.
         $source_field => $asset->id,
+        'created' => strtotime($asset->created_date),
+        'changed' => strtotime($asset->last_update_date),
       ];
       // Create a new entity to represent the asset.
       $entity = $this->entityTypeManager->getStorage('media')

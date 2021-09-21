@@ -63,12 +63,9 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
    *   TRUE if the given asset is a different version than what has been stored.
    */
   public function isUpdatedAsset(Asset $asset, $saveUpdatedVersion = TRUE) {
-    // @TODO: WebDAM was using a version property which does not existing in
-    // Widen, we should use the updated date instead. For now, keep intval()
-    // as fallback, it will probably be often different.
-    $current_version = intval($this->get($asset->id, 'updated'));
-    $new_version = intval($asset->last_update_date);
-    return $new_version !== $current_version;
+    $latest_known_upload_date = $this->get($asset->id, 'file_upload_date');
+    $actual_upload_date = strtotime($asset->file_upload_date);
+    return $latest_known_upload_date !== $actual_upload_date;
   }
 
   /**
