@@ -97,19 +97,19 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public function getMetadataFromAsset(Asset $asset, $name) {
     switch ($name) {
       case 'description':
-        return isset($asset->metadata->fields->description) ?? $asset->metadata->fields->description;
+        return isset($asset->metadata->fields->description) ? reset($asset->metadata->fields->description) : NULL;
 
       case 'filesize':
-        return isset($asset->file_properties->size_in_kbytes) ?? $asset->file_properties->size_in_kbytes;
+        return isset($asset->file_properties->size_in_kbytes) ? $asset->file_properties->size_in_kbytes : NULL;
 
       case 'height':
-        return isset($asset->file_properties->image_properties->height) ?? $asset->file_properties->image_properties->height;
+        return isset($asset->file_properties->image_properties->height) ? $asset->file_properties->image_properties->height : NULL;
 
       case 'width':
-        return isset($asset->file_properties->image_properties->width) ?? $asset->file_properties->image_properties->width;
+        return isset($asset->file_properties->image_properties->width) ? $asset->file_properties->image_properties->width : NULL;
 
       case 'type':
-        return (isset($asset->metadata->field->assettype)) ?? reset($asset->metadata->field->assettype);
+        return (isset($asset->metadata->field->assettype)) ? reset($asset->metadata->field->assettype) : NULL;
 
       default:
         // The key should be the local property name and the value should be the
@@ -125,7 +125,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         ];
         if (array_key_exists($name, $property_name_mapping)) {
           $property_name = $property_name_mapping[$name];
-          return isset($asset->{$property_name}) ?? $asset->{$property_name};
+          return isset($asset->{$property_name}) ? $asset->{$property_name} : NULL;
         }
     }
 

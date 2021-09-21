@@ -121,6 +121,7 @@ class Asset implements EntityInterface, \JsonSerializable {
   public static function getRequiredExpands() {
     return [
       'file_properties',
+      'metadata',
       'embeds'
     ];
   }
