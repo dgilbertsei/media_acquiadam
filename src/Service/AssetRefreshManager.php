@@ -131,17 +131,20 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
     // ones which are used into Drupal as media entities.
     $total = 0;
     $media_query = $this->mediaStorage->getQuery();
+    $media_ids = [];
     foreach ($asset_id_fields as $bundle => $field) {
-      $media_query->condition(
-        $media_query->orConditionGroup()
+      $media_ids_partial = $media_query
           ->condition('bundle', $bundle)
           ->condition($field, $asset_ids, 'IN')
-      );
+          ->execute();
+
+      foreach ($media_ids_partial as $media_id) {
+        $media_ids[] = $media_id;
+      }
     }
-    $media_ids = $media_query->execute();
 
     // Queue the media ids for later processing.
-    foreach ($media_ids as $media_id) {
+    foreach (array_unique($media_ids) as $media_id) {
       $this->queue->createItem(['media_id' => $media_id]);
       $total++;
     }
@@ -173,7 +176,9 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         $response = $this->acquiadam->searchAssets([
           'limit' => $this->getRequestLimit(),
           'offset' => $offset,
-          'query' => ["lastEditDate:[after $date]"],
+          'query' => "lastEditDate:[after $date]",
+          'include_deleted' => 'true',
+          'include_archived' => 'true',
         ]);
       }
       catch (GuzzleException | InvalidCredentialsException $e) {
@@ -182,7 +187,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         return [];
       }
 
-      foreach ($response['assets'] as $asset) {
+      foreach ($response['assets'] ?? [] as $asset) {
         $asset_ids[] = $asset->id;
       }
 
