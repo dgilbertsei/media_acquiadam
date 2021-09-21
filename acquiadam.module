@@ -157,7 +157,7 @@ function acquiadam_media_presave(MediaInterface $entity) {
   }
 
   /** @var \Drupal\acquiadam\Service\AssetMediaFactory $asset_media_factory */
-  $asset_media_factory = Drupal::service('acquiadam.asset_media.factory');
+  $asset_media_factory = \Drupal::service('acquiadam.asset_media.factory');
   $media_helper = $asset_media_factory->get($entity);
 
   $assetID = $media_helper->getAssetId();
@@ -167,7 +167,7 @@ function acquiadam_media_presave(MediaInterface $entity) {
 
   $asset = $media_helper->getAsset();
   if (empty($asset)) {
-    Drupal::logger('acquiadam')
+    \Drupal::logger('acquiadam')
       ->warning('Unable to retrieve asset @assetID.', [
         '@assetID' => $assetID,
       ]);
@@ -193,14 +193,14 @@ function acquiadam_media_delete(MediaInterface $entity) {
   }
 
   /** @var \Drupal\acquiadam\Service\AssetMediaFactory $asset_media_factory */
-  $asset_media_factory = Drupal::service('acquiadam.asset_media.factory');
+  $asset_media_factory = \Drupal::service('acquiadam.asset_media.factory');
   $asset_id = $asset_media_factory->get($entity)->getAssetId();
   if (!empty($asset_id)) {
     $usages = $asset_media_factory->getAssetUsage($asset_id);
     // If usages is empty then that means no media entities are referencing the
     // asset ID and it should be safe to delete the stored data.
     if (empty($usages)) {
-      Drupal::service('acquiadam.asset_data')->delete($asset_id);
+      \Drupal::service('acquiadam.asset_data')->delete($asset_id);
     }
   }
 }
@@ -211,32 +211,31 @@ function acquiadam_media_delete(MediaInterface $entity) {
  * Refresh acquiadam metadata and sync to media entities.
  */
 function acquiadam_cron() {
-  $cron_config = Drupal::configFactory()
-    ->get('acquiadam.settings');
+  $config = \Drupal::configFactory()->get('acquiadam.settings');
 
-  $interval = $cron_config->get('sync_interval') ?? 3600;
-  $last_execution = Drupal::state()->get('acquiadam.last_sync') ?? 0;
-  $request_time = Drupal::time()->getRequestTime();
+  $interval = $config->get('sync_interval') ?? 3600;
+  $last_execution = \Drupal::state()->get('acquiadam.last_sync') ?? 0;
+  $request_time = \Drupal::time()->getRequestTime();
 
   // Check if we need to execute.
   if ($interval !== -1 && $last_execution + $interval >= $request_time) {
     return;
   }
 
-  if ($cron_config->get('sync_method') === 'updated_date') {
+  if ($config->get('sync_method') === 'updated_date') {
     acquiadam_refresh_asset_sync_updated_date_queue();
   }
   else {
     acquiadam_refresh_asset_sync_queue();
   }
 
-  $total_queue_items = Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
+  $total_queue_items = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
 
   /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
   $logger = \Drupal::service('logger.factory')->get('acquiadam');
   $logger->info('Total items in the queue: @items.', ['@items' => $total_queue_items]);
 
-  Drupal::state()->set('acquiadam.last_sync', $request_time);
+  \Drupal::state()->set('acquiadam.last_sync', $request_time);
 }
 
 /**
@@ -251,7 +250,7 @@ function acquiadam_refresh_asset_sync_updated_date_queue() {
     return;
   }
 
-  $queue = Drupal::queue('acquiadam_asset_refresh');
+  $queue = \Drupal::queue('acquiadam_asset_refresh');
   // We only want to re-queue everything when the queue is totally empty. This
   // should help minimize the number of duplicate syncs we perform on assets.
   if ($queue->numberOfItems() > 0) {
@@ -335,7 +334,7 @@ function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$
  *   The number of items currently in the queue.
  */
 function acquiadam_refresh_asset_sync_queue() {
-  $queue = Drupal::queue('acquiadam_asset_refresh');
+  $queue = \Drupal::queue('acquiadam_asset_refresh');
   // We only want to re-queue everything when the queue is totally empty. This
   // should help minimize the number of duplicate syncs we perform on assets.
   if ($queue->numberOfItems() > 0) {
@@ -363,7 +362,7 @@ function acquiadam_get_active_media_ids(): array {
 
   $media_ids = [];
   foreach ($asset_id_fields as $bundle => $field) {
-    $media_id_query = Drupal::entityQuery('media')
+    $media_id_query = \Drupal::entityQuery('media')
       ->condition('bundle', $bundle);
     $media_ids = array_merge($media_ids, $media_id_query->execute());
   }
@@ -378,7 +377,7 @@ function acquiadam_get_active_media_ids(): array {
  *   An array of media bundles and associated asset ID fields
  */
 function acquiadam_get_bundle_asset_id_fields() {
-  return Drupal::service('acquiadam.asset_media.factory')->getAssetIdFields();
+  return \Drupal::service('acquiadam.asset_media.factory')->getAssetIdFields();
 }
 
 /**
@@ -412,7 +411,7 @@ function acquiadam_views_data() {
  */
 function acquiadam_views_data_alter(array &$data) {
   // The default source_field defined in MediaSource plugin.
-  $source_field = Drupal::service('plugin.manager.media.source')
+  $source_field = \Drupal::service('plugin.manager.media.source')
     ->createInstance('acquiadam_asset')
     ->defaultConfiguration()['source_field'];
   // The source field table contains the media item's asset id.
