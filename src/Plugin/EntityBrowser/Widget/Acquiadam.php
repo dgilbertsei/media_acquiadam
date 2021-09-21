@@ -299,14 +299,20 @@ class Acquiadam extends WidgetBase {
     }
     // Offset used for pager.
     $offset = $num_per_page * $page;
+    // Sort By field along with sort order.
+    $sort_by = ($form_state->getValue('sortdir') == 'desc') ? '-' . $form_state->getValue('sortby') : $form_state->getValue('sortby');
+    // Filter By asset type.
+    $filter_type = $form_state->getValue('types') ? 'assettype:' . $form_state->getValue('types') : '';
+    // Search keyword.
+    $keyword = $form_state->getValue('query');
+    // Generate search query based on search keyword and search filter.
+    $search_query = trim($keyword . ' ' . $filter_type);
     // Parameters for searching, sorting, and filtering.
     $params = [
       'limit' => $num_per_page,
       'offset' => $offset,
-      // 'sort' => $form_state->getValue('sortby'),
-      // 'sortdir' => $form_state->getValue('sortdir'),
-      // 'types' => $form_state->getValue('types'),
-      'query' => $form_state->getValue('query'),
+      'sort' => $sort_by,
+      'query' => $search_query,
       'expand' => 'thumbnails',
     ];
     // If the current category is not zero then fetch information about
@@ -430,11 +436,11 @@ class Acquiadam extends WidgetBase {
       '#title' => 'Sort by',
       '#options' => [
         'filename' => 'File name',
-        'filesize' => 'File size',
-        'datecreated' => 'Date created',
-        'datemodified' => 'Date modified',
+        'size' => 'File size',
+        'created_date' => 'Date created',
+        'last_update_date' => 'Date modified',
       ],
-      '#default_value' => 'datecreated',
+      '#default_value' => 'created_date',
     ];
     // Add dropdown for sort direction.
     $form['filter-sort-container']['sortdir'] = [
@@ -450,9 +456,9 @@ class Acquiadam extends WidgetBase {
       '#options' => [
         '' => 'All',
         'image' => 'Image',
-        'audiovideo' => 'Audio/Video',
+        'video' => 'Video',
         'document' => 'Document',
-        'presentation' => 'Presentation',
+        'graphic' => 'Graphic',
         'other' => 'Other',
       ],
       '#default_value' => '',
