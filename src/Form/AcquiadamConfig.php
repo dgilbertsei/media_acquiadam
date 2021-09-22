@@ -130,6 +130,14 @@ class AcquiadamConfig extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
+    $form['authentication']['token'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Acquia DAM Token'),
+      '#default_value' => $config->get('token'),
+      '#description' => $this->t('This token will be used to authenticate on Acquia DAM API when there is no user context (cron, drush, ...).'),
+      '#required' => TRUE,
+    ];
+
     $form['cron'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Cron Settings'),
@@ -242,6 +250,8 @@ class AcquiadamConfig extends ConfigFormBase {
     else {
       return FALSE;
     }
+
+    // @TODO: Validate the token.
   }
 
   /**
@@ -250,6 +260,7 @@ class AcquiadamConfig extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('acquiadam.settings')
       ->set('domain', $this->domain)
+      ->set('token', $form_state->getValue('token'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('sync_method', $form_state->getValue('sync_method'))
       ->set('size_limit', $form_state->getValue('size_limit'))
@@ -429,38 +440,6 @@ class AcquiadamConfig extends ConfigFormBase {
       $this->state->set('acquiadam.notifications_endtime', NULL);
       $this->state->set('acquiadam.notifications_next_page', NULL);
     }
-  }
-
-  /**
-   * Gets a form value from stored config.
-   *
-   * @param string $field_name
-   *   The key of the field in the simple config.
-   *
-   * @return mixed
-   *   The value for the given form field, or NULL.
-   */
-  protected function getFormValueFromConfig($field_name) {
-    $config_name = $this->getEditableConfigNames();
-    $value = $this->config(reset($config_name))->get($field_name);
-    return $value;
-  }
-
-  /**
-   * Gets a form field value, either from the form or from config.
-   *
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   * @param string $field_name
-   *   The key of the field in config. (This may differ from form field key).
-   *
-   * @return mixed
-   *   The value for the given form field, or NULL.
-   */
-  protected function getFieldValue(FormStateInterface $form_state, $field_name) {
-    // If the user has entered a value use it, if not check config.
-    $value = $form_state->getValue($field_name) ?: $this->getFormValueFromConfig($field_name);
-    return $value;
   }
 
 }
