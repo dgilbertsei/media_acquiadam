@@ -241,6 +241,33 @@ class Client {
   }
 
   /**
+   * @param Category $category
+   * @return Category[]
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  public function getCategoryData(Category $category) {
+    $this->checkAuth();
+    $url = $this->baseUrl . '/categories';
+    if($category->categories_link){
+      $url = $category->categories_link;
+    } elseif (!empty($category->parts)) {
+      $cats = "";
+      foreach ($category->parts as $part) {
+        $cats .= "/" . $part;
+      }
+      $url .= $cats;
+    }
+
+    $response = $this->client->request(
+      "GET",
+      $url,
+      ['headers' => $this->getDefaultHeaders()]
+    );
+    $category = Category::fromJson((string) $response->getBody());
+    return $category;
+  }
+
+  /**
    * Get top level categories.
    *
    * @return Category[]
