@@ -316,50 +316,22 @@ class Acquiadam extends WidgetBase {
       'query' => $search_query,
       'expand' => 'thumbnails',
     ];
-    // Load the subcategories.
-    $categories = $this->acquiadam->getCategoryData($current_category);
-    // If the current category is set then fetch information about
-    // the sub category being rendered.
-    if ($current_category->name) {
-      // print $current_category->subcategories_count;
-      //if ($current_category->subcategories_count > 0) {
-          $params['query'] = 'category:' . $current_category->name;
-          $category_assets = $this->acquiadam->getAssetsByCategory($params);
-          $items = $category_assets->items;
-     // }
-//      else {
-//        $params['query'] = 'category:' . $current_category->name;
-//        // @todo Find out how to list assets for the category
-//        $category_assets = $this->acquiadam->getAssetsByCategory($params);
-//
-//        // If there is a filter applied for the file type.
-//        // if (!empty($params['types'])) {
-//        //   // Override number of assets on current category to make number of search
-//        //   // results so pager works correctly.
-//        //   $current_category->numassets = $category_assets->facets->types->{$params['types']};
-//        // }
-//        // Set items to array of assets in the current category.
-//        $items = $category_assets->items;
-//
-//      }
-    }
-//    else {
-//      // The root category is fetched differently because it can only
-//      // contain subcategories (not assets)
-//      $categories = $this->acquiadam->getTopLevelcategories();
-//    }
-    // If searching by keyword.
-    if (!empty($params['query'])) {
-      // Format the query string as per the Widen API.
-      $params['query'] = 'filename:(' . $params['query'] . ')';
-      // Fetch search results.
+
+    // load search results if filter is clicked.
+    if (isset($trigger_elem['#name']) && $trigger_elem['#name'] === 'filter_sort_submit') {
       $search_results = $this->acquiadam->searchAssets($params);
-      // Override number of assets on current category to make number of
-      // search results so pager works correctly.
-      // $current_category->numassets = $search_results['total_count'];
-      // Set items to array of assets in the search result.
       $items = isset($search_results['assets']) ? $search_results['assets'] : [];
     }
+    // load categories data.
+    else {
+      $categories = $this->acquiadam->getCategoryData($current_category);
+      if ($current_category->name) {
+        $params['query'] = 'category:' . $current_category->name;
+        $category_assets = $this->acquiadam->getAssetsByCategory($params);
+        $items = $category_assets->items;
+      }
+    }
+
     // Add the filter and sort options to the form.
     $form += $this->getFilterSort();
     // Add the breadcrumb to the form.
