@@ -220,10 +220,6 @@ class Acquiadam extends WidgetBase {
     $page = 0;
     // Number of assets to show per page.
     $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
-    // Initial breadcrumb array representing the root category only.
-//    $breadcrumbs = [
-//      '0' => 'Home',
-//    ];
     // If the form state contains the widget AND the reset button hadn't been
     // clicked then pull values for the current form state.
     if (isset($form_state->getCompleteForm()['widget']) && isset($trigger_elem) && $trigger_elem['#name'] != 'filter_sort_reset') {
@@ -238,7 +234,6 @@ class Acquiadam extends WidgetBase {
         $current_category->name = $widget['asset-container']['#acquiadam_category']['name'];
         $current_category->parts = $widget['asset-container']['#acquiadam_category']['parts'];
         $current_category->_links = $widget['asset-container']['#acquiadam_category']['_links'];
-        // $current_category->assets_link = $widget['asset-container']['#acquiadam_category']['assets_link'] ?? NULL;
         $current_category->categories = $widget['asset-container']['#acquiadam_category']['categories'];
       }
       if ($form_state->getValue('assets')) {
@@ -360,7 +355,6 @@ class Acquiadam extends WidgetBase {
     // Assets are rendered as #options for a checkboxes element.
     // Start with an empty array.
     $assets = [];
-    $assets_status = [];
     // Add to the assets array.
     if (isset($items)) {
       foreach ($items as $category_item) {
