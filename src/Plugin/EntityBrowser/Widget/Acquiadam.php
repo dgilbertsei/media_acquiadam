@@ -237,7 +237,7 @@ class Acquiadam extends WidgetBase {
         // Set current category to the value stored in the form state.
         $current_category->name = $widget['asset-container']['#acquiadam_category']['name'];
         $current_category->parts = $widget['asset-container']['#acquiadam_category']['parts'];
-        $current_category->categories_link = $widget['asset-container']['#acquiadam_category']['categories_link'];
+        $current_category->_links = $widget['asset-container']['#acquiadam_category']['_links'];
         // $current_category->assets_link = $widget['asset-container']['#acquiadam_category']['assets_link'] ?? NULL;
         $current_category->categories = $widget['asset-container']['#acquiadam_category']['categories'];
       }
@@ -256,7 +256,7 @@ class Acquiadam extends WidgetBase {
         // update the required information of selected category.
         $current_category->name = $trigger_elem['#acquiadam_category']['name'];
         $current_category->parts = $trigger_elem['#acquiadam_category']['parts'];
-        $current_category->categories_link = $trigger_elem['#acquiadam_category']['categories_link'];
+        $current_category->_links = $trigger_elem['#acquiadam_category']['_links'];
         // Reset page to zero if we have navigated to a new category.
         $page = 0;
       }
