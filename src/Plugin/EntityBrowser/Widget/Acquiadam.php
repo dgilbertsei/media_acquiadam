@@ -221,6 +221,12 @@ class Acquiadam extends WidgetBase {
     $page = 0;
     // Number of assets to show per page.
     $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
+    // Total number of assets.
+    $total_asset = 0;
+    // Initial breadcrumb array representing the root category only.
+    $breadcrumbs = [
+      '0' => 'Home',
+    ];
     // If the form state contains the widget AND the reset button hadn't been
     // clicked then pull values for the current form state.
     if (isset($form_state->getCompleteForm()['widget']) && isset($trigger_elem) && $trigger_elem['#name'] != 'filter_sort_reset') {
@@ -245,6 +251,10 @@ class Acquiadam extends WidgetBase {
         ];
       }
     }
+
+    // Use "listing" for category view or "search" for search view.
+    $page_type = "listing";
+
     // If the form has been submitted.
     if (isset($trigger_elem)) {
       // If a category button has been clicked.
@@ -263,11 +273,16 @@ class Acquiadam extends WidgetBase {
       }
       // If a pager button has been clicked.
       if ($trigger_elem['#name'] === 'acquiadam_pager') {
+        $page_type = $trigger_elem['#page_type'];
+        $current_category->name = $trigger_elem['#current_category']->name ?? NULL;
+        $current_category->parts = $trigger_elem['#current_category']->parts ?? [];
+        //$current_category->categories_link = $trigger_elem['#current_category']->categories_link ?? NULL;
         // Set the current category id to the id of the category that was clicked.
         $page = intval($trigger_elem['#acquiadam_page']);
       }
       // If the filter/sort submit button has been clicked.
       if ($trigger_elem['#name'] === 'filter_sort_submit') {
+        $page_type = "search";
         // Reset page to zero.
         $page = 0;
       }
@@ -312,19 +327,40 @@ class Acquiadam extends WidgetBase {
       'query' => $search_query,
       'expand' => 'thumbnails',
     ];
-
     // load search results if filter is clicked.
-    if (isset($trigger_elem['#name']) && $trigger_elem['#name'] === 'filter_sort_submit') {
+    if ($page_type == "search") {
       $search_results = $this->acquiadam->searchAssets($params);
       $items = isset($search_results['assets']) ? $search_results['assets'] : [];
+      // Total number of assets.
+      $total_asset = isset($search_results['total_count']) ? $search_results['total_count'] : 0;
     }
     // load categories data.
     else {
       $categories = $this->acquiadam->getCategoryData($current_category);
+      // Total number of categories.
+      $total_asset = $total_category = count($categories);
+      // Load assets only when not in root category.
       if ($current_category->name) {
+        $sub_category_offset = $page * $num_per_page;
+        // Update offset value if parent categoty contains both sub category and asset.
+        if ($total_category <= $offset) {
+          $params['offset'] = $offset - $total_category;
+        }
+        // Update Limit value if sub categories number is less than the number of items per page.
+        if ($total_category < $num_per_page) {
+          $params['limit'] = $num_per_page - $total_category;
+        }
+        // Reset limit value after all the categories are already displayed in previous page.
+        if ($offset > $total_category) {
+          $params['limit'] = $num_per_page;
+        }
         $params['query'] = 'category:' . $current_category->name;
         $category_assets = $this->acquiadam->getAssetsByCategory($params);
-        $items = $category_assets->items;
+        if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
+          $items = $category_assets->items;
+        }
+        // Total asset conatins both asset and subcategory(if any).
+        $total_asset += $category_assets->total_count;
       }
     }
 
@@ -347,10 +383,18 @@ class Acquiadam extends WidgetBase {
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
     // If no search terms, display Acquia DAM Categories.
-    if (!empty($categories)) {
+    if (!empty($categories) && ($offset < count($categories))) {
+      $initial = 0;
+      if ($page != 0) {
+        $offset = $num_per_page * $page;
+        $categories = array_slice($categories, $offset);
+      }
       // Add category buttons to form.
       foreach ($categories as $category) {
-        $this->getCategoryFormElements($category, $modulePath, $form);
+        if ($initial < $num_per_page) {
+          $this->getCategoryFormElements($category, $modulePath, $form);
+          $initial++;
+        }
       }
     }
     // Assets are rendered as #options for a checkboxes element.
@@ -379,10 +423,10 @@ class Acquiadam extends WidgetBase {
     ];
     // If the number of assets in the current category is greater than
     // the number of assets to show per page.
-    // if ($current_category->numassets > $num_per_page) {
-    //   // Add the pager to the form.
-    //   $form['actions'] += $this->getPager($current_category, $page, $num_per_page);
-    // }
+     if ($total_asset > $num_per_page) {
+       // Add the pager to the form.
+       $form['actions'] += $this->getPager($total_asset, $page, $num_per_page, $page_type, $current_category);
+     }
     return $form;
   }
 
@@ -526,7 +570,7 @@ class Acquiadam extends WidgetBase {
    *
    * Create a custom pager.
    */
-  public function getPager(category $current_category, $page, $num_per_page) {
+  public function getPager($total_count, $page, $num_per_page, $page_type = "listing", Category $category = NULL) {
     // Add container for pager.
     $form['pager-container'] = [
       '#type' => 'container',
@@ -543,6 +587,8 @@ class Acquiadam extends WidgetBase {
         '#type' => 'button',
         '#value' => '<<',
         '#name' => 'acquiadam_pager',
+        '#page_type' => $page_type,
+        '#current_category' => $category,
         '#acquiadam_page' => 0,
         '#attributes' => [
           'class' => ['page-button', 'page-first'],
@@ -553,7 +599,9 @@ class Acquiadam extends WidgetBase {
         '#type' => 'button',
         '#value' => '<',
         '#name' => 'acquiadam_pager',
+        '#page_type' => $page_type,
         '#acquiadam_page' => $page - 1,
+        '#current_category' => $category,
         '#attributes' => [
           'class' => ['page-button', 'page-previous'],
         ],
@@ -561,20 +609,22 @@ class Acquiadam extends WidgetBase {
     }
     // Last available page based on number of assets in category
     // divided by number of assets to show per page.
-    // $last_page = floor(($current_category->numassets - 1) / $num_per_page);
+     $last_page = floor(($total_count - 1) / $num_per_page);
     // First page to show in the pager.
     // Try to put the button for the current page in the middle by starting at
     // the current page number minus 4.
     $start_page = max(0, $page - 4);
     // Last page to show in the pager.  Don't go beyond the last available page.
-    // $end_page = min($start_page + 9, $last_page);
+    $end_page = min($start_page + 9, $last_page);
     // Create buttons for pages from start to end.
     for ($i = $start_page; $i <= $end_page; $i++) {
       $form['pager-container']['page_' . $i] = [
         '#type' => 'button',
         '#value' => $i + 1,
         '#name' => 'acquiadam_pager',
+        '#page_type' => $page_type,
         '#acquiadam_page' => $i,
+        '#current_category' => $category,
         '#attributes' => [
           'class' => [($i == $page ? 'page-current' : ''), 'page-button'],
         ],
@@ -587,6 +637,8 @@ class Acquiadam extends WidgetBase {
         '#type' => 'button',
         '#value' => '>',
         '#name' => 'acquiadam_pager',
+        '#current_category' => $category,
+        '#page_type' => $page_type,
         '#acquiadam_page' => $page + 1,
         '#attributes' => [
           'class' => ['page-button', 'page-next'],
@@ -597,7 +649,9 @@ class Acquiadam extends WidgetBase {
         '#type' => 'button',
         '#value' => '>>',
         '#name' => 'acquiadam_pager',
+        '#current_category' => $category,
         '#acquiadam_page' => $last_page,
+        '#page_type' => $page_type,
         '#attributes' => [
           'class' => ['page-button', 'page-last'],
         ],
