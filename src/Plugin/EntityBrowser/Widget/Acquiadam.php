@@ -184,6 +184,7 @@ class Acquiadam extends WidgetBase {
     if (empty($auth['valid_token'])) {
       $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
         '%authenticate' => Link::createFromRoute('authenticate', 'entity.user.edit_form', [
+          'user' => $this->user->id(),
           'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
             ->getRequestUri(),
         ])->toString(),
