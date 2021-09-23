@@ -170,6 +170,37 @@ class Client {
   }
 
   /**
+   * Load subcategories by Category link or parts(used in breadcrumb).
+   *
+   * @param Category $category
+   *   Category object.
+   * @return Category[]
+   *
+   */
+  public function getCategoryData(Category $category) {
+    $this->checkAuth();
+    $url = $this->baseUrl . '/categories';
+    // If category is not set, it will laod the root category.
+    if(isset($category->_links->categories)){
+      $url = $category->_links->categories;
+    } elseif (!empty($category->parts)) {
+      $cats = "";
+      foreach ($category->parts as $part) {
+        $cats .= "/" . $part;
+      }
+      $url .= $cats;
+    }
+
+    $response = $this->client->request(
+      "GET",
+      $url,
+      ['headers' => $this->getDefaultHeaders()]
+    );
+    $category = Category::fromJson((string) $response->getBody());
+    return $category;
+  }
+
+  /**
    * Get top level categories.
    *
    * @return Category[]

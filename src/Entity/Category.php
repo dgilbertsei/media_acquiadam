@@ -19,15 +19,25 @@ class Category implements EntityInterface, \JsonSerializable {
    */
   public $name;
 
-    /**
+  /**
    * @var string $path
    */
   public $path;
 
   /**
+   * @var array $parts
+   * Parts information, useful in rendering breadcrumbs.
+   */
+  public $parts = [];
+  /**
    * @var Category[] $categories
    */
   public $categories;
+
+  /**
+   * @var array $_links
+   */
+  public $_links;
 
   public static function fromJson($json) {
     if (is_string($json)) {
@@ -48,6 +58,8 @@ class Category implements EntityInterface, \JsonSerializable {
       'id',
       'name',
       'path',
+      'parts',
+      '_links'
     ];
 
     $category = new static();
@@ -68,6 +80,8 @@ class Category implements EntityInterface, \JsonSerializable {
       'type' => 'category',
       'name' => $this->name,
       'path' => $this->path,
+      'parts' => $this->parts,
+      '_links' => $this->_links
     ];
 
     if (!empty($this->categories)) {

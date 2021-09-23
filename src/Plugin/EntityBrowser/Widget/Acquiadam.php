@@ -165,8 +165,6 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public function getForm(array &$original_form, FormStateInterface $form_state, array $additional_widget_parameters) {
-    $config = $this->config->get('acquiadam.settings');
-
     $media_type_storage = $this->entityTypeManager->getStorage('media_type');
     /** @var \Drupal\media\MediaTypeInterface $media_type */
     if (!$this->configuration['media_type'] || !($media_type = $media_type_storage->load($this->configuration['media_type']))) {
@@ -205,6 +203,7 @@ class Acquiadam extends WidgetBase {
 
     // Start by inheriting parent form.
     $form = parent::getForm($original_form, $form_state, $additional_widget_parameters);
+    $config = $this->config->get('acquiadam.settings');
 
     // Attach the modal library.
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
@@ -214,20 +213,13 @@ class Acquiadam extends WidgetBase {
 
     // Initialize current_category.
     $current_category = new Category();
-    // Default current category id to zero which represents the root category.
-    $current_category->id = 0;
-    // Default current category parent id to zero which represents root category.
-    $current_category->parent = 0;
-    // Default current category name to 'Home' which represents the root category.
-    $current_category->name = 'Home';
+    // Default current category name to NULL which will be treated as root category.
+    $current_category->name = NULL;
+    $current_category->parts = [];
     // Default current page to first page.
     $page = 0;
     // Number of assets to show per page.
     $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
-    // Initial breadcrumb array representing the root category only.
-    $breadcrumbs = [
-      '0' => 'Home',
-    ];
     // If the form state contains the widget AND the reset button hadn't been
     // clicked then pull values for the current form state.
     if (isset($form_state->getCompleteForm()['widget']) && isset($trigger_elem) && $trigger_elem['#name'] != 'filter_sort_reset') {
@@ -237,13 +229,12 @@ class Acquiadam extends WidgetBase {
         // Set the page number to the value stored in the form state.
         $page = intval($widget['pager-container']['#page']);
       }
-      if (isset($widget['asset-container']) && is_numeric($widget['asset-container']['#acquiadam_category_id'])) {
-        // Set current category id to the value stored in the form state.
-        $current_category->id = $widget['asset-container']['#acquiadam_category_id'];
-      }
-      if (isset($widget['breadcrumb-container']) && is_array($widget['breadcrumb-container']['#breadcrumbs'])) {
-        // Set the breadcrumbs to the value stored in the form state.
-        $breadcrumbs = $widget['breadcrumb-container']['#breadcrumbs'];
+      if (isset($widget['asset-container']) && isset($widget['asset-container']['#acquiadam_category'])) {
+        // Set current category to the value stored in the form state.
+        $current_category->name = $widget['asset-container']['#acquiadam_category']['name'];
+        $current_category->parts = $widget['asset-container']['#acquiadam_category']['parts'];
+        $current_category->_links = $widget['asset-container']['#acquiadam_category']['_links'];
+        $current_category->categories = $widget['asset-container']['#acquiadam_category']['categories'];
       }
       if ($form_state->getValue('assets')) {
         $current_selections = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
@@ -257,12 +248,17 @@ class Acquiadam extends WidgetBase {
     if (isset($trigger_elem)) {
       // If a category button has been clicked.
       if ($trigger_elem['#name'] === 'acquiadam_category') {
-        // Set the current category id to the id of the category that was clicked.
-        $current_category->id = $trigger_elem['#acquiadam_category_id'];
-        $current_category->name = $trigger_elem['#value'];
-        $current_category->subcategories_count = $trigger_elem['#acquiadam_subcategory_count'];
+        // update the required information of selected category.
+        $current_category->name = $trigger_elem['#acquiadam_category']['name'];
+        $current_category->parts = $trigger_elem['#acquiadam_category']['parts'];
+        $current_category->_links = $trigger_elem['#acquiadam_category']['_links'];
         // Reset page to zero if we have navigated to a new category.
         $page = 0;
+      }
+      // Set the parts value from the breadcrumb button, so selected category can be loaded.
+      if($trigger_elem['#name'] === 'breadcrumb') {
+        $current_category->name = $trigger_elem["#value"];
+        $current_category->parts = $trigger_elem["#parts"];
       }
       // If a pager button has been clicked.
       if ($trigger_elem['#name'] === 'acquiadam_pager') {
@@ -315,52 +311,26 @@ class Acquiadam extends WidgetBase {
       'query' => $search_query,
       'expand' => 'thumbnails',
     ];
-    // If the current category is not zero then fetch information about
-    // the sub category being rendered.
 
-    if ($current_category->id) {
-      // If more subccategories are available and we should load them.
-      // print $current_category->subcategories_count;
-      if ($current_category->subcategories_count > 0) {
-            $categories = $current_category = $this->acquiadam->getCategoryByName($current_category->name);
-      }
-      else {
-        $params['query'] = 'category:' . $current_category->name;
-        // @todo Find out how to list assets for the category
-        $category_assets = $this->acquiadam->getAssetsByCategory($params);
-
-        // If there is a filter applied for the file type.
-        // if (!empty($params['types'])) {
-        //   // Override number of assets on current category to make number of search
-        //   // results so pager works correctly.
-        //   $current_category->numassets = $category_assets->facets->types->{$params['types']};
-        // }
-        // Set items to array of assets in the current category.
-        $items = $category_assets->items;
-
-      }
-    }
-    else {
-      // The root category is fetched differently because it can only
-      // contain subcategories (not assets)
-      $categories = $this->acquiadam->getTopLevelcategories();
-    }
-    // If searching by keyword.
-    if (!empty($params['query'])) {
-      // Format the query string as per the Widen API.
-      $params['query'] = 'filename:(' . $params['query'] . ')';
-      // Fetch search results.
+    // load search results if filter is clicked.
+    if (isset($trigger_elem['#name']) && $trigger_elem['#name'] === 'filter_sort_submit') {
       $search_results = $this->acquiadam->searchAssets($params);
-      // Override number of assets on current category to make number of
-      // search results so pager works correctly.
-      // $current_category->numassets = $search_results['total_count'];
-      // Set items to array of assets in the search result.
       $items = isset($search_results['assets']) ? $search_results['assets'] : [];
     }
+    // load categories data.
+    else {
+      $categories = $this->acquiadam->getCategoryData($current_category);
+      if ($current_category->name) {
+        $params['query'] = 'category:' . $current_category->name;
+        $category_assets = $this->acquiadam->getAssetsByCategory($params);
+        $items = $category_assets->items;
+      }
+    }
+
     // Add the filter and sort options to the form.
     $form += $this->getFilterSort();
     // Add the breadcrumb to the form.
-    // $form += $this->getBreadcrumb($current_category, $breadcrumbs);
+    $form += $this->getBreadcrumb($current_category);
     // Add container for assets (and category buttons)
     $form['asset-container'] = [
       '#type' => 'container',
@@ -376,8 +346,7 @@ class Acquiadam extends WidgetBase {
     $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
 
     // If no search terms, display Acquia DAM Categories.
-    if (empty($params['query'])) {
-
+    if (!empty($categories)) {
       // Add category buttons to form.
       foreach ($categories as $category) {
         $this->getCategoryFormElements($category, $modulePath, $form);
@@ -386,7 +355,6 @@ class Acquiadam extends WidgetBase {
     // Assets are rendered as #options for a checkboxes element.
     // Start with an empty array.
     $assets = [];
-    $assets_status = [];
     // Add to the assets array.
     if (isset($items)) {
       foreach ($items as $category_item) {
@@ -487,67 +455,46 @@ class Acquiadam extends WidgetBase {
   /**
    * {@inheritdoc}
    */
-  public function getBreadcrumb(category $current_category, array $breadcrumbs = []) {
-    // If the category being rendered is already in the breadcrumb trail
-    // and the breadcrumb trail is longer than 1 (i.e. root category only)
-    if (array_key_exists($current_category->id, $breadcrumbs) && count($breadcrumbs) > 1) {
-      // This indicates that the user has navigated "Up" the category structure
-      // 1 or more levels.
-      do {
-        // Go to the end of the breadcrumb array.
-        end($breadcrumbs);
-        // Fetch the category id of the last breadcrumb.
-        $id = key($breadcrumbs);
-        // If current category id doesn't match the category id of last breadcrumb.
-        if ($id != $current_category->id && count($breadcrumbs) > 1) {
-          // Remove the last breadcrumb since the user has navigated "Up"
-          // at least 1 category.
-          array_pop($breadcrumbs);
-        }
-        // If the category id of the last breadcrumb does not equal the current
-        // category id then keep removing breadcrumbs from the end.
-      } while ($id != $current_category->id && count($breadcrumbs) > 1);
-    }
-    // If the parent category id of the current category is in the breadcrumb trail
-    // then the user MIGHT have navigated down into a subcategory.
-    if (is_object($current_category) && property_exists($current_category, 'parent') && array_key_exists($current_category->parent, $breadcrumbs)) {
-      // Go to the end of the breadcrumb array.
-      end($breadcrumbs);
-      // If the last category id in the breadcrumb equals the parent category id of
-      // the current category the the user HAS navigated down into a subcategory.
-      if (key($breadcrumbs) == $current_category->parent) {
-        // Add the current category to the breadcrumb.
-        $breadcrumbs[$current_category->id] = $current_category->name;
-      }
-    }
-    // Reset the breadcrumb array so that it can be rendered in order.
-    reset($breadcrumbs);
+  public function getBreadcrumb(Category $category) {
+
     // Create a container for the breadcrumb.
     $form['breadcrumb-container'] = [
       '#type' => 'container',
-      // Custom element property to store breadcrumbs array.
-      // This is fetched from the form state every time the form is rebuilt
-      // due to navigating between categories.
-      '#breadcrumbs' => $breadcrumbs,
       '#attributes' => [
         'class' => ['breadcrumb acquiadam-browser-breadcrumb-container'],
       ],
     ];
+    //Placeholder to keep parts information for breadcrumbs.
+    $level = [];
+    // Add the home breadcrumb buttons to the form.
+    $form['breadcrumb-container'][0] = [
+      '#type' => 'button',
+      '#value' => "Home",
+      '#name' => 'breadcrumb',
+      '#parts' => $level,
+      '#prefix' => '<li>',
+      '#suffix' => '</li>',
+      '#attributes' => [
+        'class' => ['acquiadam-browser-breadcrumb'],
+      ],
+    ];
     // Add the breadcrumb buttons to the form.
-    foreach ($breadcrumbs as $category_id => $category_name) {
-      $form['breadcrumb-container'][$category_id] = [
-        '#type' => 'button',
-        '#value' => $category_name,
-        '#name' => 'acquiadam_category',
-        '#acquiadam_category_id' => $category_id,
-        '#acquiadam_parent_category_id' => $category_name,
-        '#prefix' => '<li>',
-        '#suffix' => '</li>',
-        '#attributes' => [
-          'class' => ['acquiadam-browser-breadcrumb'],
-        ],
-      ];
-    }
+      foreach ($category->parts as $key => $category_name) {
+        $level[] = $category_name;
+        $key++; //Increment it so doesn't overwrite the home.
+        $form['breadcrumb-container'][$key] = [
+          '#type' => 'button',
+          '#value' => $category_name,
+          '#name' => 'breadcrumb',
+          '#parts' => $level,
+          '#prefix' => '<li>',
+          '#suffix' => '</li>',
+          '#attributes' => [
+            'class' => ['acquiadam-browser-breadcrumb'],
+          ],
+        ];
+      }
+
     return $form;
   }
 
@@ -824,8 +771,7 @@ class Acquiadam extends WidgetBase {
       '#type' => 'button',
       '#value' => $category->name,
       '#name' => 'acquiadam_category',
-      '#acquiadam_category_id' => $category->id,
-      '#acquiadam_subcategory_count' => !empty($category->categories) ? 1 : 0,
+      '#acquiadam_category' => $category->jsonSerialize(),
       '#attributes' => [
         'class' => ['acquiadam-category-link-button'],
       ],
