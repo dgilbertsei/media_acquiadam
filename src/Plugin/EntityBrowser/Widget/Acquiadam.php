@@ -268,7 +268,7 @@ class Acquiadam extends WidgetBase {
       }
       // Set the parts value from the breadcrumb button, so selected category can be loaded.
       if($trigger_elem['#name'] === 'breadcrumb') {
-        $current_category->name = $trigger_elem["#value"];
+        $current_category->name = $trigger_elem["#category_name"];
         $current_category->parts = $trigger_elem["#parts"];
       }
       // If a pager button has been clicked.
@@ -340,7 +340,6 @@ class Acquiadam extends WidgetBase {
       // Total number of categories.
       $total_asset = $total_category = count($categories);
       // Load assets only when not in root category.
-      if ($current_category->name) {
         $sub_category_offset = $page * $num_per_page;
         // Update offset value if parent categoty contains both sub category and asset.
         if ($total_category <= $offset) {
@@ -354,14 +353,15 @@ class Acquiadam extends WidgetBase {
         if ($offset > $total_category) {
           $params['limit'] = $num_per_page;
         }
-        $params['query'] = 'category:' . $current_category->name;
+        if ($current_category->name) {
+          $params['query'] = 'category:' . $current_category->name;
+        }
         $category_assets = $this->acquiadam->getAssetsByCategory($params);
         if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
           $items = $category_assets->items;
         }
         // Total asset conatins both asset and subcategory(if any).
         $total_asset += $category_assets->total_count;
-      }
     }
 
     // Add the filter and sort options to the form.
@@ -516,6 +516,7 @@ class Acquiadam extends WidgetBase {
       '#type' => 'button',
       '#value' => "Home",
       '#name' => 'breadcrumb',
+      '#category_name' => NULL,
       '#parts' => $level,
       '#prefix' => '<li>',
       '#suffix' => '</li>',
@@ -530,6 +531,7 @@ class Acquiadam extends WidgetBase {
         $form['breadcrumb-container'][$key] = [
           '#type' => 'button',
           '#value' => $category_name,
+          '#category_name' => $category_name,
           '#name' => 'breadcrumb',
           '#parts' => $level,
           '#prefix' => '<li>',
