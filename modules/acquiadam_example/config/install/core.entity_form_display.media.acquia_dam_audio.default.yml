@@ -14,10 +14,11 @@ bundle: acquia_dam_audio
 mode: default
 content:
   field_acquiadam_asset_id:
-    type: number
+    type: string_textfield
     weight: 0
     region: content
     settings:
+      size: 60
       placeholder: ''
     third_party_settings: {  }
   path:

@@ -16,9 +16,10 @@ content:
   field_acquiadam_asset_id:
     weight: 0
     settings:
+      size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: number
+    type: string_textfield
     region: content
   path:
     type: path
