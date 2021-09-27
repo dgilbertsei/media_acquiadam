@@ -763,4 +763,23 @@ class Client {
     return json_decode((string) $response->getBody(), TRUE);
   }
 
+  /**
+   * Register integration link on Acquia DAM via API.
+   *
+   * @param array $data
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  function registerIntegrationLink($data) {
+    $this->checkAuth();
+
+    $response = $this->client->request(
+      'POST',
+      'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
+      [
+        'headers' => $this->getDefaultHeaders(),
+        RequestOptions::JSON => $data,
+      ]
+    );
+  }
+
 }

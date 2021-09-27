@@ -185,6 +185,37 @@ function acquiadam_media_presave(MediaInterface $entity) {
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_insert().
+ *
+ * Register integration link on Acquia DAM when media gets created.
+ */
+function acquiadam_media_insert(MediaInterface $entity) {
+  /** @var \Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset $source */
+  $source = $entity->getSource();
+  if ($source->getPluginId() !== 'acquiadam_asset') {
+    return;
+  }
+
+  /** @var \Drupal\acquiadam\Service\AssetMediaFactory $asset_media_factory */
+  $asset_media_factory = \Drupal::service('acquiadam.asset_media.factory');
+  $media_helper = $asset_media_factory->get($entity);
+
+  $assetID = $media_helper->getAssetId();
+  if (empty($assetID)) {
+    return;
+  }
+
+  $client = \Drupal::service('acquiadam.client');
+  $client->registerIntegrationLink([
+    'assetUuid' => $assetID,
+    'description' => "Acquia DAM module: Asset referenced from Media Entity {$entity->id()}",
+    'url' => \Drupal::request()->getSchemeAndHttpHost(),
+  ]);
+
+  return;
+}
+
+/**
  * Implements hook_ENTITY_TYPE_delete().
  */
 function acquiadam_media_delete(MediaInterface $entity) {
