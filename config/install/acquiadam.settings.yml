@@ -1,8 +1,8 @@
 domain:
 token:
 search_endpoint: 'https://api.widencollective.com/v2/integrations/url'
-client_registration: '167d00b8e36e37dc47d4fb9876192c003f6d8e0a.app.widen.com'
-client_hash: 'cc8af29607993c0f9590f4ee0775046a4dfc4eeb'
+client_registration: 'd2df039fd77de48986459e68823a3380.app.widen.com'
+client_hash: '9f2c7101ea3be48a9f98424f8d158afd1ef7daf4'
 sync_interval: 3600
 sync_method: "updated_date"
 size_limit: -1
