@@ -131,25 +131,25 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         return isset($asset->file_properties->video_properties->duration) ? $asset->file_properties->video_properties->duration : NULL;
 
       case 'type':
-        return (isset($asset->metadata->fields->assettype)) ? reset($asset->metadata->fields->assettype) : NULL;
+        return !empty($asset->metadata->fields->assettype) ? reset($asset->metadata->fields->assettype) : NULL;
 
       case 'author':
-        return (isset($asset->metadata->fields->author)) ? reset($asset->metadata->fields->author) : NULL;
+        return !empty($asset->metadata->fields->author) ? reset($asset->metadata->fields->author) : NULL;
 
       case 'description':
-        return isset($asset->metadata->fields->description) ? reset($asset->metadata->fields->description) : NULL;
+        return !empty($asset->metadata->fields->description) ? reset($asset->metadata->fields->description) : NULL;
 
       case 'caption_abstract':
-        return isset($asset->metadata->fields->captionAbstract) ? reset($asset->metadata->fields->captionAbstract) : NULL;
+        return !empty($asset->metadata->fields->captionAbstract) ? reset($asset->metadata->fields->captionAbstract) : NULL;
 
       case 'keywords':
-        return isset($asset->metadata->fields->keywords) ? reset($asset->metadata->fields->keywords) : NULL;
+        return !empty($asset->metadata->fields->keywords) ? reset($asset->metadata->fields->keywords) : NULL;
 
       case 'user_right_details':
-        return isset($asset->metadata->fields->userrightdetails) ? reset($asset->metadata->fields->userrightdetails) : NULL;
+        return !empty($asset->metadata->fields->userrightdetails) ? reset($asset->metadata->fields->userrightdetails) : NULL;
 
       case 'usage_rights':
-        return isset($asset->metadata->fields->usagerights) ? reset($asset->metadata->fields->usagerights) : NULL;
+        return !empty($asset->metadata->fields->usagerights) ? reset($asset->metadata->fields->usagerights) : NULL;
 
       default:
         // The key should be the local property name and the value should be the

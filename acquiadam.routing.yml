@@ -20,4 +20,3 @@ acquiadam.asset_details:
     _title_callback: '\Drupal\acquiadam\Controller\AcquiadamController:assetDetailsPageTitle'
   requirements:
     _user_is_logged_in: 'TRUE'
-    assetId: \d+
