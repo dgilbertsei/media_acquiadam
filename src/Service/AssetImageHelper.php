@@ -103,7 +103,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    * @return string|false
    *   The preview URL or FALSE if none available.
    */
-  public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 2080) {
+  public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 2048) {
     if (empty($asset->embeds)) {
       return FALSE;
     }
