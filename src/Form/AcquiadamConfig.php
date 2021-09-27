@@ -226,13 +226,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $form['entity_browser']['samesite_cookie_disable'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Disable SameSite Cookie Bypass'),
-      '#description' => $this->t('Checking this box will effectively disable authentication from working within the Entity Browser. See Acquia Documentation for more details.'),
-      '#default_value' => $config->get('samesite_cookie_disable') ?? 0,
-    ];
-
     return parent::buildForm($form, $form_state);
   }
 
@@ -266,7 +259,6 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
-      ->set('samesite_cookie_disable', $form_state->getValue('samesite_cookie_disable'))
       ->save();
 
     parent::submitForm($form, $form_state);
