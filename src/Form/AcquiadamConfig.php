@@ -184,15 +184,15 @@ class AcquiadamConfig extends ConfigFormBase {
       '#title' => $this->t('Image size limit'),
       '#description' => $this->t('Limit the source size used when importing image assets. The largest available size up to the selected will be used.'),
       '#options' => [
-        -1 => $this->t('Original size'),
         100 => 100,
         150 => 150,
         220 => 220,
         310 => 310,
         550 => 550,
         1280 => 1280,
+        2048 => 2048,
       ],
-      '#default_value' => empty($config->get('size_limit')) ? -1 : $config->get('size_limit'),
+      '#default_value' => empty($config->get('size_limit')) ? 2048 : $config->get('size_limit'),
     ];
 
     $form['manual_sync'] = [

@@ -248,35 +248,30 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   The remote asset contents or FALSE on failure.
    */
   protected function fetchRemoteAssetData(Asset $asset, $destination_folder, &$destination_path = NULL) {
-    // If the module was configured to enforce an image size limit then we need
-    // to grab the nearest matching pre-created size.
-    $mimetype = $this->assetImageHelper->getMimeTypeFromFileType(
-      strtolower($asset->file_properties->format)
-    );
-    $size_limit = $this->config->get('size_limit');
+    if ($asset->file_properties->format_type === 'image') {
+      // If the module was configured to enforce an image size limit then we need
+      // to grab the nearest matching pre-created size.
+      $size_limit = $this->config->get('size_limit');
 
-    $is_image = 'image' == $asset->file_properties->format_type;
-    $use_tn = !empty($size_limit) && -1 != $size_limit && $is_image;
+      $thumbnail_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, $size_limit);
 
-    if ($use_tn) {
-      $largest_tn = $this->assetImageHelper->getThumbnailUrlBySize(
-        $asset,
-        $size_limit
-      );
-      if (empty($largest_tn)) {
+      if (empty($thumbnail_url)) {
         $this->loggerChannel->warning(
-          'Unable to save file for asset ID @asset_id. Largest thumbnail not found.', [
+          'Unable to save file for asset ID @asset_id. Thumbnail for request size (@size px) has not been found.', [
             '@asset_id' => $asset->id,
+            '@size' => $size_limit,
           ]
         );
         return FALSE;
       }
-      $file_contents = $this->phpFileGetContents($largest_tn);
+
+      $file_contents = $this->phpFileGetContents($thumbnail_url);
+
       // The DAM can return a different filetype from the original asset type,
       // so we need to handle that scenario by updating the target filename.
       $destination_path = $this->getNewDestinationByUri(
         $destination_folder,
-        $largest_tn,
+        $thumbnail_url,
         $asset->filename
       );
     }

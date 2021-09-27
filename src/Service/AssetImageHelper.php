@@ -103,27 +103,18 @@ class AssetImageHelper implements ContainerInjectionInterface {
    * @return string|false
    *   The preview URL or FALSE if none available.
    */
-  public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 1280) {
+  public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 2080) {
     if (empty($asset->embeds)) {
       return FALSE;
     }
 
-    // Copy embeds array to variable to avoid a notice about indirect
-    // access.
-    $thumbnails = $asset->embeds;
-
-    // Default to original regardless of size.
-    $matching = $thumbnails->original->url;
-
-    if ($thumbnailSize !== -1) {
-      $matching = str_replace(
-        ['{size}', '@{scale}x', '{quality}'],
-        [$thumbnailSize, '', '80'],
-        $thumbnails->templated->url
-      );
-    }
-
-    return $matching;
+    // The asset embeds array provide a templated url which we need to alter
+    // to provide the expected size, scale and quality.
+    return str_replace(
+      ['{size}', '@{scale}x', '{quality}'],
+      [$thumbnailSize, '', '80'],
+      $asset->embeds->templated->url
+    );
   }
 
   /**
