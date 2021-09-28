@@ -1,0 +1,6 @@
+services:
+  acquiadam.commands:
+    class: \Drupal\acquiadam\Commands\AcquiadamCommands
+    arguments: ['@config.factory']
+    tags:
+      - { name: drush.command }
