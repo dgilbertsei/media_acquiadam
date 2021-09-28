@@ -266,14 +266,6 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       }
 
       $file_contents = $this->phpFileGetContents($thumbnail_url);
-
-      // The DAM can return a different filetype from the original asset type,
-      // so we need to handle that scenario by updating the target filename.
-      $destination_path = $this->getNewDestinationByUri(
-        $destination_folder,
-        $thumbnail_url,
-        $asset->filename
-      );
     }
     else {
       $file_contents = $this->acquiaDamClient->downloadAsset($asset->id);
