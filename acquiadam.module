@@ -212,11 +212,10 @@ function acquiadam_media_insert(MediaInterface $entity) {
     return;
   }
 
-  // Register the asset usage to Acquia DAM.
-  $client = \Drupal::service('acquiadam.client');
-  $client->registerIntegrationLink([
-    'assetUuid' => $assetID,
-    'description' => "Acquia DAM module: Asset referenced from Media Entity {$entity->id()}",
+  // Queue the registration of integration link for later process.
+  \Drupal::queue('acquiadam_integration_link_report')->createItem([
+    'mid' => $entity->id(),
+    'asset_uuid' => $assetID,
     'url' => \Drupal::request()->getSchemeAndHttpHost(),
   ]);
 }
