@@ -787,4 +787,62 @@ class Client {
     return $response;
   }
 
+  /**
+   * Get all the integration links which have been registered on Acquia DAM.
+   *
+   * @return array
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  function getIntegrationLinks() {
+    $this->checkAuth();
+
+    $response = $this->client->request(
+      'GET',
+      'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
+      [
+        'headers' => $this->getDefaultHeaders(),
+      ]
+    );
+
+    $response = json_decode((string) $response->getBody(), TRUE);
+
+    return $response->integrationLinks;
+  }
+
+  /**
+   * Get a specific integration link by its uuid.
+   *
+   * @param string $uuid
+   * @return mixed
+   */
+  function getIntegrationLink($uuid) {
+    foreach ($this->getIntegrationLinks() as $link) {
+      if ($link->uuid === $uuid) {
+        return $link;
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Get all the integration links which have been registered for a specific asset.
+   *
+   * @param string $asset_uuid
+   *
+   * @return array
+   */
+  function getAssetIntegrationLinks($asset_uuid) {
+    $links = [];
+
+    foreach ($this->getIntegrationLinks() as $link) {
+      if ($link->assetUuid === $asset_uuid) {
+        $links[] = $link;
+      }
+    }
+
+    return $links;
+  }
+
 }
