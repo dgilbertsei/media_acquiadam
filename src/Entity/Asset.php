@@ -105,11 +105,6 @@ class Asset implements EntityInterface, \JsonSerializable {
   public $_links;
 
   /**
-   * @var \Drupal\acquiadam\AcquiadamInterface|\Drupal\acquiadam\Client $acquiadam
-   */
-  protected $acquiadam;
-
-  /**
    * A list of allowed values for the expand query attribute.
    *
    * @return string[]
