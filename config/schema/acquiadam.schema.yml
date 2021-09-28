@@ -49,6 +49,9 @@ acquiadam.settings:
     samesite_cookie_disable:
       type: integer
       label: 'Disable SameSite Cookie Bypass'
+    report_asset_usage:
+      type: integer
+      label: 'Report asset usage'
 
 media.source.acquiadam_asset:
   type: media.source.field_aware

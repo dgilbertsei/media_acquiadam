@@ -767,6 +767,7 @@ class Client {
    * Register integration link on Acquia DAM via API.
    *
    * @param array $data
+   *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
   function registerIntegrationLink($data) {
@@ -780,6 +781,10 @@ class Client {
         RequestOptions::JSON => $data,
       ]
     );
+
+    $response = json_decode((string) $response->getBody(), TRUE);
+
+    return $response;
   }
 
 }
