@@ -6,6 +6,7 @@ client_hash: '9f2c7101ea3be48a9f98424f8d158afd1ef7daf4'
 sync_interval: 3600
 sync_method: "updated_date"
 size_limit: 2048
+image_quality: 80
 oauth:
   excluded_redirect_keys:
     - original_path

@@ -112,7 +112,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
     // to provide the expected size, scale and quality.
     return str_replace(
       ['{size}', '@{scale}x', '{quality}'],
-      [$thumbnailSize, '', '80'],
+      [$thumbnailSize, '', $this->configFactory->get('acquiadam.settings')->get('image_quality') ?? 80],
       $asset->embeds->templated->url
     );
   }

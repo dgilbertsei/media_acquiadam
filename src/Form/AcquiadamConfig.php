@@ -194,6 +194,15 @@ class AcquiadamConfig extends ConfigFormBase {
       ],
       '#default_value' => empty($config->get('size_limit')) ? 2048 : $config->get('size_limit'),
     ];
+    $form['image']['image_quality'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Image quality'),
+      '#description' => $this->t('Define the image quality for image manipulations. Ranges from 0 to 100. Higher values mean better image quality but bigger files.'),
+      '#min' => 0,
+      '#max' => 100,
+      '#default_value' => $config->get('image_quality') ?? 80,
+      '#field_suffix' => $this->t('%'),
+    ];
 
     $form['manual_sync'] = [
       '#type' => 'details',
@@ -266,6 +275,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('sync_method', $form_state->getValue('sync_method'))
       ->set('size_limit', $form_state->getValue('size_limit'))
+      ->set('image_quality', $form_state->getValue('image_quality'))
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
       ->set('report_asset_usage', $form_state->getValue('report_asset_usage'))

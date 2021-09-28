@@ -27,6 +27,9 @@ acquiadam.settings:
     size_limit:
       type: integer
       label: 'Size limit'
+    image_quality:
+      type: integer
+      label: 'Image quality'
     oauth:
       type: mapping
       label: 'Oauth'
