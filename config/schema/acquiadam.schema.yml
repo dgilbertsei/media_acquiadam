@@ -43,9 +43,9 @@ acquiadam.settings:
     sync_perform_delete:
       type: integer
       label: 'Delete inactive drupal dam assets'
-    num_images_per_page:
+    num_assets_per_page:
       type: integer
-      label: 'Number of images per page'
+      label: 'Number of assets per page'
     fallback_thumbnail:
       type: uri
       label: 'Fallback thumbnail'

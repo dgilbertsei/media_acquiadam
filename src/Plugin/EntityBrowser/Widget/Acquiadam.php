@@ -220,7 +220,7 @@ class Acquiadam extends WidgetBase {
     // Default current page to first page.
     $page = 0;
     // Number of assets to show per page.
-    $num_per_page = $config->get('num_images_per_page') ?? AcquiadamConfig::NUM_IMAGES_PER_PAGE;
+    $num_per_page = $config->get('num_assets_per_page') ?? AcquiadamConfig::NUM_ASSETS_PER_PAGE;
     // Total number of assets.
     $total_asset = 0;
     // Initial breadcrumb array representing the root category only.

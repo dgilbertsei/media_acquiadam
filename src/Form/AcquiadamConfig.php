@@ -23,7 +23,7 @@ class AcquiadamConfig extends ConfigFormBase {
 
   const BATCH_SIZE = 5;
 
-  const NUM_IMAGES_PER_PAGE = 12;
+  const NUM_ASSETS_PER_PAGE = 12;
 
   /**
    * The AcquiaDAM domain.
@@ -223,11 +223,11 @@ class AcquiadamConfig extends ConfigFormBase {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     ];
-    $form['entity_browser']['num_images_per_page'] = [
+    $form['entity_browser']['num_assets_per_page'] = [
       '#type' => 'number',
-      '#title' => $this->t('Number of images per page'),
-      '#default_value' => $config->get('num_images_per_page') ?? self::NUM_IMAGES_PER_PAGE,
-      '#description' => $this->t('Number of images to be shown per page in the entity browser can be set using this field. Default is set to 12 images.'),
+      '#title' => $this->t('Assets per page'),
+      '#default_value' => $config->get('num_assets_per_page') ?? self::NUM_ASSETS_PER_PAGE,
+      '#description' => $this->t('The number of assets to be shown per page in the entity browser can be set using this field. Default is set to 12 assets.'),
       '#required' => TRUE,
     ];
 
@@ -277,7 +277,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('image_quality', $form_state->getValue('image_quality'))
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
-      ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
+      ->set('num_assets_per_page', $form_state->getValue('num_assets_per_page'))
       ->set('report_asset_usage', $form_state->getValue('report_asset_usage'))
       ->save();
 
