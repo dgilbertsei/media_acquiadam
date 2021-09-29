@@ -11,5 +11,5 @@ oauth:
   excluded_redirect_keys:
     - original_path
 sync_perform_delete: 0
-num_images_per_page: 12
+num_assets_per_page: 12
 report_asset_usage: 1
