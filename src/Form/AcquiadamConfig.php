@@ -240,7 +240,7 @@ class AcquiadamConfig extends ConfigFormBase {
     $form['misc']['report_asset_usage'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Report asset usage'),
-      '#description' => $this->t('Report to Acquia DAM when a Media using an Acquia DAM\'s asset is created.'),
+      '#description' => $this->t('Report to Acquia DAM when a Media Entity using an Acquia DAM asset is created.'),
       '#default_value' => $config->get('report_asset_usage') ?? 1,
     ];
 
