@@ -841,18 +841,30 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
   function registerIntegrationLink($data) {
-    $this->checkAuth();
+    try {
+      $this->checkAuth();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to authenticate to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      return FALSE;
+    }
 
-    $response = $this->client->request(
-      'POST',
-      'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
-      [
-        'headers' => $this->getDefaultHeaders(),
-        RequestOptions::JSON => $data,
-      ]
-    );
+    try {
+      $response = $this->client->request(
+        'POST',
+        'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
+        [
+          'headers' => $this->getDefaultHeaders(),
+          RequestOptions::JSON => $data,
+        ]
+      );
 
-    $response = json_decode((string) $response->getBody(), TRUE);
+      $response = json_decode((string) $response->getBody(), TRUE);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      return FALSE;
+    }
 
     return $response;
   }
