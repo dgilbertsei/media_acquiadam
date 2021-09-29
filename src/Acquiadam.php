@@ -127,7 +127,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
         [
           '@assetID' => $assetId,
           '@code' => $x->getCode(),
-          '@message' => $x->getMessage(),
+          '%message' => $x->getMessage(),
         ]
       );
     }
