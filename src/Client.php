@@ -833,4 +833,98 @@ class Client {
     return json_decode((string) $response->getBody(), TRUE);
   }
 
+  /**
+   * Register integration link on Acquia DAM via API.
+   *
+   * @param array $data
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  function registerIntegrationLink($data) {
+    try {
+      $this->checkAuth();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to authenticate to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      return FALSE;
+    }
+
+    try {
+      $response = $this->client->request(
+        'POST',
+        'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
+        [
+          'headers' => $this->getDefaultHeaders(),
+          RequestOptions::JSON => $data,
+        ]
+      );
+
+      $response = json_decode((string) $response->getBody(), TRUE);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      return FALSE;
+    }
+
+    return $response;
+  }
+
+  /**
+   * Get all the integration links which have been registered on Acquia DAM.
+   *
+   * @return array
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  function getIntegrationLinks() {
+    $this->checkAuth();
+
+    $response = $this->client->request(
+      'GET',
+      'https://' . $this->config->get('domain') . '/api/rest/integrationlink',
+      [
+        'headers' => $this->getDefaultHeaders(),
+      ]
+    );
+
+    $response = json_decode((string) $response->getBody(), TRUE);
+
+    return $response->integrationLinks;
+  }
+
+  /**
+   * Get a specific integration link by its uuid.
+   *
+   * @param string $uuid
+   * @return mixed
+   */
+  function getIntegrationLink($uuid) {
+    foreach ($this->getIntegrationLinks() as $link) {
+      if ($link->uuid === $uuid) {
+        return $link;
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Get all the integration links which have been registered for a specific asset.
+   *
+   * @param string $asset_uuid
+   *
+   * @return array
+   */
+  function getAssetIntegrationLinks($asset_uuid) {
+    $links = [];
+
+    foreach ($this->getIntegrationLinks() as $link) {
+      if ($link->assetUuid === $asset_uuid) {
+        $links[] = $link;
+      }
+    }
+
+    return $links;
+  }
+
 }

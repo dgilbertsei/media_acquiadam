@@ -121,7 +121,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'fieldset',
       '#title' => $this->t('Authentication details'),
     ];
-
     $form['authentication']['domain'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Acquia DAM Domain'),
@@ -129,7 +128,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#description' => $this->t('example: demo.acquiadam.com'),
       '#required' => TRUE,
     ];
-
     $form['authentication']['token'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Acquia DAM Token'),
@@ -142,7 +140,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'fieldset',
       '#title' => $this->t('Cron Settings'),
     ];
-
     $form['cron']['sync_interval'] = [
       '#type' => 'select',
       '#title' => $this->t('Asset refresh interval'),
@@ -182,7 +179,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'fieldset',
       '#title' => $this->t('Image configuration'),
     ];
-
     $form['image']['size_limit'] = [
       '#type' => 'select',
       '#title' => $this->t('Image size limit'),
@@ -211,19 +207,32 @@ class AcquiadamConfig extends ConfigFormBase {
       '#name' => 'perform_manual_sync',
       '#submit' => [[$this, 'performManualSync']],
     ];
+
     $form['entity_browser'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Acquia DAM entity browser settings'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     ];
-
     $form['entity_browser']['num_images_per_page'] = [
       '#type' => 'number',
       '#title' => $this->t('Number of images per page'),
       '#default_value' => $config->get('num_images_per_page') ?? self::NUM_IMAGES_PER_PAGE,
       '#description' => $this->t('Number of images to be shown per page in the entity browser can be set using this field. Default is set to 12 images.'),
       '#required' => TRUE,
+    ];
+
+    $form['misc'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Misc.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    ];
+    $form['misc']['report_asset_usage'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Report asset usage'),
+      '#description' => $this->t('Report to Acquia DAM when a Media using an Acquia DAM\'s asset is created.'),
+      '#default_value' => $config->get('report_asset_usage') ?? 1,
     ];
 
     return parent::buildForm($form, $form_state);
@@ -259,6 +268,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_images_per_page', $form_state->getValue('num_images_per_page'))
+      ->set('report_asset_usage', $form_state->getValue('report_asset_usage'))
       ->save();
 
     parent::submitForm($form, $form_state);

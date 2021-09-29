@@ -185,6 +185,42 @@ function acquiadam_media_presave(MediaInterface $entity) {
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_insert().
+ *
+ * Register integration link on Acquia DAM when media gets created.
+ */
+function acquiadam_media_insert(MediaInterface $entity) {
+  // Don't process if the config is set to not report asset usage.
+  $config = \Drupal::configFactory()->get('acquiadam.settings');
+  if (!$config->get('report_asset_usage')) {
+    return;
+  }
+
+  // Only process the media using the Acquia DAM source.
+  /** @var \Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset $source */
+  $source = $entity->getSource();
+  if ($source->getPluginId() !== 'acquiadam_asset') {
+    return;
+  }
+
+  // Only process the media which have an asset id (uuid).
+  /** @var \Drupal\acquiadam\Service\AssetMediaFactory $asset_media_factory */
+  $asset_media_factory = \Drupal::service('acquiadam.asset_media.factory');
+  $media_helper = $asset_media_factory->get($entity);
+  $assetID = $media_helper->getAssetId();
+  if (empty($assetID)) {
+    return;
+  }
+
+  // Queue the registration of integration link for later process.
+  \Drupal::queue('acquiadam_integration_link_report')->createItem([
+    'mid' => $entity->id(),
+    'asset_uuid' => $assetID,
+    'url' => \Drupal::request()->getSchemeAndHttpHost(),
+  ]);
+}
+
+/**
  * Implements hook_ENTITY_TYPE_delete().
  */
 function acquiadam_media_delete(MediaInterface $entity) {

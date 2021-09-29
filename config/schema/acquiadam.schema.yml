@@ -46,6 +46,9 @@ acquiadam.settings:
     fallback_thumbnail:
       type: uri
       label: 'Fallback thumbnail'
+    report_asset_usage:
+      type: integer
+      label: 'Report asset usage'
 
 media.source.acquiadam_asset:
   type: media.source.field_aware
