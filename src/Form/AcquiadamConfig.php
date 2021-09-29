@@ -227,7 +227,12 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'number',
       '#title' => $this->t('Assets per page'),
       '#default_value' => $config->get('num_assets_per_page') ?? self::NUM_ASSETS_PER_PAGE,
-      '#description' => $this->t('The number of assets to be shown per page in the entity browser can be set using this field. Default is set to 12 assets.'),
+      '#description' => $this->t(
+        'The number of assets to be shown per page in the entity browser can be set using this field. Default is set to @num_assets_per_page assets.',
+        [
+          '@num_assets_per_page' => self::NUM_ASSETS_PER_PAGE,
+        ]
+      ),
       '#required' => TRUE,
     ];
 
