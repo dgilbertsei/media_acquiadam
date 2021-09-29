@@ -443,14 +443,14 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: 'Asset Link'
+          label: 'Details link'
           exclude: false
           alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
+            alter_text: true
+            text: 'Asset details'
+            make_link: true
+            path: 'acquiadam/asset/{{ field_acquiadam_asset_id__value }}'
+            absolute: true
             external: false
             replace_spaces: false
             path_case: none

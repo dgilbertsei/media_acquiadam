@@ -35,6 +35,13 @@ class Client {
   protected $baseUrl = "https://api.widencollective.com/v2";
 
   /**
+   * Datastore for the specific metadata fields.
+   *
+   * @var array
+   */
+  protected $specificMetadataFields;
+
+  /**
    * The user data factory service.
    *
    * @var \Drupal\user\UserData
@@ -710,6 +717,69 @@ class Client {
     $response = json_decode((string) $response->getBody(), TRUE);
 
     return $response;
+  }
+
+  /**
+   * Get a list of metadata.
+   *
+   * @return array
+   *   A list of metadata fields.
+   */
+  public function getSpecificMetadataFields() {
+    if (!empty($this->specificMetadataFields)) {
+      return $this->specificMetadataFields;
+    }
+
+    try {
+      $this->checkAuth();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to authenticate to retrieve metadata fields.');
+      $this->specificMetadataFields = [];
+      return $this->specificMetadataFields;
+    }
+
+    try {
+      $response = $this->client->request(
+        'GET',
+        'https://' . $this->config->get('domain') . '/api/rest/metadata/types',
+        [
+          'headers' => $this->getDefaultHeaders(),
+        ]
+      );
+
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('acquiadam')->error('Unable to retrieve metadata fields.');
+      $this->specificMetadataFields = [];
+      return $this->specificMetadataFields;
+    }
+
+    $response = json_decode((string) $response->getBody());
+
+    $this->specificMetadataFields = [];
+    foreach ($response->types as $type) {
+      foreach ($type->fields as $field) {
+        switch ($field->discriminator) {
+          case 'TextArea':
+            $type = 'text_long';
+            break;
+
+          case 'Date':
+            $type = 'datetime';
+            break;
+
+          default:
+            $type = 'string';
+        }
+        $this->specificMetadataFields[$field->displayKey] = [
+          'label' => $field->displayName,
+          'type' => $type
+        ];
+      }
+    }
+
+    return $this->specificMetadataFields;
   }
 
   /**

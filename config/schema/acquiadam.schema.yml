@@ -46,9 +46,6 @@ acquiadam.settings:
     fallback_thumbnail:
       type: uri
       label: 'Fallback thumbnail'
-    samesite_cookie_disable:
-      type: integer
-      label: 'Disable SameSite Cookie Bypass'
     report_asset_usage:
       type: integer
       label: 'Report asset usage'
