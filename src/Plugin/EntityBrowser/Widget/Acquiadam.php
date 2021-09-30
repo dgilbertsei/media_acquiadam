@@ -23,7 +23,7 @@ use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-
+use Drupal\acquiadam\AcquiadamAuthService;
 /**
  * Uses a view to provide entity listing in a browser's widget.
  *
@@ -182,12 +182,11 @@ class Acquiadam extends WidgetBase {
     // error message with invitation to authenticate via his user edit form.
     $auth = $this->acquiadam->getAuthState();
     if (empty($auth['valid_token'])) {
-      $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets.', [
-        '%authenticate' => Link::createFromRoute('authenticate', 'entity.user.edit_form', [
-          'user' => $this->user->id(),
-          'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
-            ->getRequestUri(),
-        ])->toString(),
+      $return_link = Url::fromRoute('acquiadam.user_auth', ['uid' => $this->user->id()], ['absolute' => TRUE])->toString();
+      $auth_url = AcquiadamAuthService::generateAuthUrl($return_link);
+      $auth_link = Url::fromUri($auth_url, ['attributes' => ['target' => '_blank']]);
+      $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets. after successful authentication close this modal and reopen it to browse Acquia DAM assets.', [
+        '%authenticate' => Link::fromTextAndUrl("Authenticate", $auth_link)->toString()
       ]);
 
       $form['message'] = [
