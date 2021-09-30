@@ -139,6 +139,30 @@ class Asset implements EntityInterface, \JsonSerializable {
   }
 
   /**
+   * Widen supported file formats.
+   *
+   * @return string[]
+   */
+  public static function getFileFormats() {
+    return [
+      0 => 'All',
+      'IMAGE' => 'Image',
+      'video' => 'Video',
+      'pdf' => 'PDF',
+      'AUDIO' => 'Audio',
+      'COMPRESSED_ARCHIVE' => 'Archive',
+      'EBOOK' => 'Ebook',
+      'GENERIC_BINARY' => 'Generic Binary',
+      'OFFICE' => 'Office',
+      'OPEN_OFFICE' => 'Open Office',
+      'INDESIGN' => 'Indesign',
+      'PROJECT_ARCHIVE' => 'Project Archive',
+      'SHOCKWAVE' => 'Shockwave',
+      'ZOOM' => 'Zoom',
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function fromJson($json) {

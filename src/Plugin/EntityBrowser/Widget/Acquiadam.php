@@ -313,7 +313,7 @@ class Acquiadam extends WidgetBase {
     // Sort By field along with sort order.
     $sort_by = ($form_state->getValue('sortdir') == 'desc') ? '-' . $form_state->getValue('sortby') : $form_state->getValue('sortby');
     // Filter By asset type.
-    $filter_type = $form_state->getValue('types') ? 'assettype:' . $form_state->getValue('types') : '';
+    $filter_type = $form_state->getValue('format_type') ? 'ft:' . $form_state->getValue('format_type') : '';
     // Search keyword.
     $keyword = $form_state->getValue('query');
     // Generate search query based on search keyword and search filter.
@@ -462,18 +462,11 @@ class Acquiadam extends WidgetBase {
       '#default_value' => 'asc',
     ];
     // Add dropdown for filtering on asset type.
-    $form['filter-sort-container']['types'] = [
+    $form['filter-sort-container']['format_type'] = [
       '#type' => 'select',
-      '#title' => 'File type',
-      '#options' => [
-        '' => 'All',
-        'image' => 'Image',
-        'video' => 'Video',
-        'document' => 'Document',
-        'graphic' => 'Graphic',
-        'other' => 'Other',
-      ],
-      '#default_value' => '',
+      '#title' => 'File format',
+      '#options' => Asset::getFileFormats(),
+      '#default_value' => 0,
     ];
     // Add textfield for keyword search.
     $form['filter-sort-container']['query'] = [
