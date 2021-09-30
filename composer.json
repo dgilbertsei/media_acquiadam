@@ -30,7 +30,12 @@
             "pre-commit": "vendor/bin/phpcs",
             "pre-push": "vendor/bin/phpcs"
         },
-        "phpcodesniffer-search-depth": 5
+        "phpcodesniffer-search-depth": 5,
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9"
+            }
+        }
     },
     "repositories": [
         {

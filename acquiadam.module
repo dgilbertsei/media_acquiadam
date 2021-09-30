@@ -258,6 +258,15 @@ function acquiadam_cron() {
     return;
   }
 
+  // We only want to re-queue medias when the queue is totally empty. This
+  // should help minimize the number of duplicate syncs we perform on assets.
+  $count = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
+  if ($count > 0) {
+    $logger = \Drupal::service('logger.factory')->get('acquiadam');
+    $logger->info('Cron execution have been cancelled because the queue @queue_name is not empty (@count items)..', ['@count' => $count]);
+    return;
+  }
+
   if ($config->get('sync_method') === 'updated_date') {
     acquiadam_refresh_asset_sync_updated_date_queue();
   }
@@ -265,11 +274,11 @@ function acquiadam_cron() {
     acquiadam_refresh_asset_sync_queue();
   }
 
-  $total_queue_items = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
+  $count = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
 
   /** @var \Drupal\Core\Logger\LoggerChannelInterface $logger */
   $logger = \Drupal::service('logger.factory')->get('acquiadam');
-  $logger->info('Total items in the queue: @items.', ['@items' => $total_queue_items]);
+  $logger->info('Total items in the queue: @count.', ['@count' => $count]);
 
   \Drupal::state()->set('acquiadam.last_sync', $request_time);
 }
@@ -279,23 +288,21 @@ function acquiadam_cron() {
  *
  * Uses the Search API to get affected asset ids. Determines which assets
  * where changed within the given period of time, and adds them to the queue.
+ *
+ * @return int
+ *   The number of items currently in the queue.
  */
 function acquiadam_refresh_asset_sync_updated_date_queue() {
   $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
   if (empty($asset_id_fields)) {
-    return;
-  }
-
-  $queue = \Drupal::queue('acquiadam_asset_refresh');
-  // We only want to re-queue everything when the queue is totally empty. This
-  // should help minimize the number of duplicate syncs we perform on assets.
-  if ($queue->numberOfItems() > 0) {
-    return;
+    return FALSE;
   }
 
   /** @var \Drupal\acquiadam\Service\AssetRefreshManagerInterface $asset_refresh_manager */
   $asset_refresh_manager = \Drupal::service('acquiadam.asset_refresh.manager');
   $asset_refresh_manager->updateQueue($asset_id_fields);
+
+  return \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
 }
 
 /**
@@ -371,11 +378,6 @@ function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$
  */
 function acquiadam_refresh_asset_sync_queue() {
   $queue = \Drupal::queue('acquiadam_asset_refresh');
-  // We only want to re-queue everything when the queue is totally empty. This
-  // should help minimize the number of duplicate syncs we perform on assets.
-  if ($queue->numberOfItems() > 0) {
-    return $queue->numberOfItems();
-  }
 
   foreach (acquiadam_get_active_media_ids() as $media_id) {
     $queue->createItem(['media_id' => $media_id]);

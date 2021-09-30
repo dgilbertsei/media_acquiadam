@@ -3,10 +3,13 @@
 namespace Drupal\acquiadam\Commands;
 
 use Consolidation\AnnotatedCommand\CommandData;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
 
 /**
  * Acquia DAM drush commands.
+ *
+ * @package Drupal\acquiadam\Commands
  */
 class AcquiadamCommands extends DrushCommands {
 
@@ -30,45 +33,65 @@ class AcquiadamCommands extends DrushCommands {
    *
    * @command acquiadam:sync
    * @aliases acquiadam-sync
-   * @param string|null method
-   * @param string|null date
+   * @option string method The synchronization methods. Valid values are "delta" (to sync assets which have been updated since a date) or "all" to synchronize all the medias. If not method is provided, the method configured on the cron settings will be used.
+   * @option string date In case the "delta" method is chosen, the assets which have been updated since that date will be synchronized. If no date is provided, the last synchronization date will be used. Valid format is YYYY-MM-DDTHH:MM:SS (2021-09-30T01:00:00 for example).
+   * @usage drush acquiadam:sync
+   * @usage drush acquiadam:sync --method=delta
+   * @usage drush acquiadam:sync --method=delta --date=2021-01-01T00:00:00
+   * @usage drush acquiadam:sync --method=all
    */
-  public function sync($method = '', $date = '') {
-    if (($method && $method === 'delta') || $this->config->get('sync_method') === 'updated_date') {
+  public function sync($options = ['method' => null, 'date' => null]) {
+    if (($options['method'] && $options['method'] === 'delta') || $this->config->get('sync_method') === 'updated_date') {
       $sync_timestamp = \Drupal::state()->get('acquiadam.last_sync');
       // If a specific date has been provided, we need to temporary replace the
       // acquiadam.last_sync state value as it is the one used by sub-processes.
-      if ($date) {
+      if ($options['date']) {
         $previous_last_sync = $sync_timestamp;
-        $sync_timestamp = strtotime($date);
+        $sync_timestamp = strtotime($options['date']);
         \Drupal::state()->set('acquiadam.last_sync', $sync_timestamp);
       }
+
+      $this->logger()->notice(dt('Fetching and queuing for synchronization the assets which have been updated since @date.', ['@date' => date('c', $sync_timestamp)]));
 
       acquiadam_refresh_asset_sync_updated_date_queue();
 
       // If a specific date has been provided, we need to revert the previous
       // state value.
-      if ($date) {
+      if ($options['date']) {
         \Drupal::state()->set('acquiadam.last_sync', $previous_last_sync);
       }
     }
     else {
+      $this->logger()->notice(dt("Queuing all the Acquia DAM's related media for synchronization."));
+
       acquiadam_refresh_asset_sync_queue();
     }
+
+    $total_queue_items = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
+    $this->logger()->success(dt('@total_queue_items medias have been queued for sync.', ['@total_queue_items' => $total_queue_items]));
   }
 
   /**
-   * @hook validate sync
+   * @hook validate acquiadam:sync
+   * @param \Consolidation\AnnotatedCommand\CommandData $commandData
+   * @throws \Exception
+   * @return void
    */
-  public function validate(CommandData $commandData)
-  {
+  public function validate(CommandData $commandData) {
     // Validate the method argument.
-    $method = $commandData->input()->getArgument('method');
+    $method = $commandData->input()->getOption('method');
     if ($method && !in_array($method, ['delta', 'all'])) {
       throw new \Exception(dt("Unknown sync method '!method' Available methods are 'delta' and 'all'.", ['!method' => $method]));
     }
 
-    // @TODO: Validate the date format.
-    // @TODO: Validate the date is in the past.
+    $date = $commandData->input()->getOption('date');
+    if ($date) {
+      if (strtotime($date) === FALSE) {
+        throw new \Exception(dt("The given date is not valid. Expected format: 2021-09-30T01:00:00."));
+      }
+      if (strtotime($date) >= time()) {
+        throw new \Exception(dt("The date must be in the past."));
+      }
+    }
   }
 }
