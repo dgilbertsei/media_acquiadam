@@ -187,6 +187,10 @@ class Acquiadam extends WidgetBase {
           'user' => $this->user->id(),
           'auth_finish_redirect' => $this->requestStack->getCurrentRequest()
             ->getRequestUri(),
+        ], [
+          'attributes' => [
+            'target' => '_blank',
+          ]
         ])->toString(),
       ]);
 
