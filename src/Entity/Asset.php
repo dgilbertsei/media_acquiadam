@@ -140,6 +140,7 @@ class Asset implements EntityInterface, \JsonSerializable {
 
   /**
    * Widen supported file formats.
+   * @TODO Get these values from Config.
    *
    * @return string[]
    */
