@@ -4,8 +4,11 @@ namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\Core\Utility\UnroutedUrlAssembler;
+use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
@@ -40,40 +43,36 @@ class AssetImageHelperTest extends UnitTestCase {
    */
   public function testGetThumbnailUrlBySize() {
     $asset = $this->getAssetData();
-    // @TODO will be updated with WDIM-45
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
 
     // Ensure that we get the smallest size when given something smaller than
     // set.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 50);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/50px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we can get an exact size.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 100);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/100px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest if available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 120);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/120px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest for larger sizes.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 350);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/350px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the  biggest if nothing was available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 1280);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/1280px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the biggest when nothing is specified.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset);
-    $this->assertEquals('https://embed.widencdn.net/img/laser/demoextid/1280px/theHumanRaceMakesSense.jpg?q=80&x.template=y',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
   }
 
@@ -224,12 +223,14 @@ class AssetImageHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $url_assembler = $this->createMock('Drupal\Core\Utility\UnroutedUrlAssemblerInterface');
     $this->container = new ContainerBuilder();
     $this->container->set('http_client', $http_client);
     $this->container->set('file_system', $file_system);
     $this->container->set('file.mime_type.guesser', $mime_type_guesser);
     $this->container->set('image.factory', $image_factory);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('unrouted_url_assembler', $url_assembler);
     \Drupal::setContainer($this->container);
 
     $this->assetImageHelper = $this->getMockedAssetImageHelper();

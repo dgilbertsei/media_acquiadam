@@ -2,16 +2,12 @@
 
 namespace Drupal\Tests\acquiadam\Unit;
 
-use Drupal\acquiadam\Client;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\acquiadam\Acquiadam;
 use Drupal\acquiadam\Service\AssetMetadataHelper;
-use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
-use Drupal\user\UserDataInterface;
-use GuzzleHttp\ClientInterface;
 
 /**
  * Tests integration of the AssetMetadataHelper service.
@@ -40,6 +36,12 @@ class AssetMetadataHelperTest extends UnitTestCase {
    * Test that all basic attributes are set and XMP metadata gets set.
    */
   public function testGetMetadataAttributeLabels() {
+    $this->assetMetadataHelper->setSpecificMetadataFields([
+      'author' => [
+        'label' => "author",
+        'type' => "string"
+      ]
+    ]);
     $attributes = $this->assetMetadataHelper->getMetadataAttributeLabels();
 
     $this->assertArrayHasKey('file_upload_date', $attributes);
@@ -56,7 +58,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertArrayHasKey('height', $attributes);
     $this->assertArrayHasKey('width', $attributes);
     $this->assertArrayHasKey('popularity', $attributes);
-
+    $this->assertArrayHasKey('author', $attributes);
     $this->assertArrayNotHasKey('missing_attribute', $attributes);
   }
 
@@ -65,8 +67,10 @@ class AssetMetadataHelperTest extends UnitTestCase {
    */
   public function testGetMetadataFromAsset() {
     $this->assetMetadataHelper->setSpecificMetadataFields([
-      'label' => "author",
-      'type' => "string"
+      'author' => [
+        'label' => "author",
+        'type' => "string"
+      ]
     ]);
 
     $this->assertEquals("demoextid",
@@ -75,16 +79,6 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertEquals('theHumanRaceMakesSense.jpg',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'filename'));
-
-    // Check special properties.
-//    $this->assertEquals(90754,
-//      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-//        'folderID'));
-//    $this->assertEquals('Image',
-//      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-//        'type'));
-//    $this->assertNull($this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-//      'status'));
 
     // Check date properties.
     $this->assertEquals('2021-09-24T18:31:02Z',
