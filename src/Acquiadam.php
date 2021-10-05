@@ -67,38 +67,11 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
       call_user_func_array($method_variable, $arguments) : NULL;
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getFlattenedFolderList($folder_id = NULL) {
-    $folder_data = [];
-
-    if (is_null($folder_id)) {
-      $folders = $this->acquiaDamClient->getTopLevelFolders();
-    }
-    else {
-      $folder = $this->acquiaDamClient->getFolder($folder_id);
-      $folders = !empty($folder->folders) ? $folder->folders : [];
-    }
-
-    foreach ($folders as $folder) {
-      $folder_data[$folder->id] = $folder->name;
-
-      $folder_list = $this->getFlattenedFolderList($folder->id);
-
-      foreach ($folder_list as $folder_id => $folder_name) {
-        $folder_data[$folder_id] = $folder_name;
-      }
-    }
-
-    return $folder_data;
-  }
 
   /**
    * {@inheritdoc}
    */
   public function getAsset($assetId, $include_xmp = FALSE) {
-
     $asset = $this->staticAssetCache('get', $assetId);
 
     // @BUG: XMP-less assets may bypass static caching.

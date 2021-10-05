@@ -2,12 +2,16 @@
 
 namespace Drupal\Tests\acquiadam\Unit;
 
+use Drupal\acquiadam\Client;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\acquiadam\Acquiadam;
 use Drupal\acquiadam\Service\AssetMetadataHelper;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
+use Drupal\user\UserDataInterface;
+use GuzzleHttp\ClientInterface;
 
 /**
  * Tests integration of the AssetMetadataHelper service.
@@ -33,139 +37,96 @@ class AssetMetadataHelperTest extends UnitTestCase {
   protected $assetMetadataHelper;
 
   /**
-   * Validate that we can set the available XMP metadata fields.
-   */
-  public function testSetMetadataXmpFields() {
-    $attributes = $this->assetMetadataHelper->getMetadataAttributeLabels();
-    $this->assertArrayNotHasKey('xmp_example_field', $attributes);
-
-    $this->assetMetadataHelper->setMetadataXmpFields([
-      'xmp_caption' => [
-        'name' => 'Caption/Abstract',
-        'label' => 'Caption/Description',
-        'type' => 'textarea',
-      ],
-      'xmp_byline' => [
-        'name' => 'By-line',
-        'label' => 'Photographer',
-        'type' => 'text',
-      ],
-    ]);
-
-    $attributes = $this->assetMetadataHelper->getMetadataAttributeLabels();
-    $this->assertArrayHasKey('xmp_byline', $attributes);
-    $this->assertArrayHasKey('xmp_caption', $attributes);
-  }
-
-  /**
    * Test that all basic attributes are set and XMP metadata gets set.
    */
   public function testGetMetadataAttributeLabels() {
     $attributes = $this->assetMetadataHelper->getMetadataAttributeLabels();
 
-    $this->assertArrayHasKey('colorspace', $attributes);
-    $this->assertArrayHasKey('datecaptured', $attributes);
-    $this->assertArrayHasKey('datecreated', $attributes);
-    $this->assertArrayHasKey('datemodified', $attributes);
-    $this->assertArrayHasKey('description', $attributes);
-    $this->assertArrayHasKey('file', $attributes);
+    $this->assertArrayHasKey('file_upload_date', $attributes);
+    $this->assertArrayHasKey('created_date', $attributes);
+    $this->assertArrayHasKey('last_update_date', $attributes);
     $this->assertArrayHasKey('filename', $attributes);
-    $this->assertArrayHasKey('filesize', $attributes);
-    $this->assertArrayHasKey('filetype', $attributes);
-    $this->assertArrayHasKey('folderID', $attributes);
+    $this->assertArrayHasKey('external_id', $attributes);
+    $this->assertArrayHasKey('deleted_date', $attributes);
+    $this->assertArrayHasKey('released_and_not_expired', $attributes);
+    $this->assertArrayHasKey('expiration_date', $attributes);
+    $this->assertArrayHasKey('release_date', $attributes);
+    $this->assertArrayHasKey('format', $attributes);
+    $this->assertArrayHasKey('file', $attributes);
     $this->assertArrayHasKey('height', $attributes);
-    $this->assertArrayHasKey('status', $attributes);
-    $this->assertArrayHasKey('type', $attributes);
-    $this->assertArrayHasKey('id', $attributes);
-    $this->assertArrayHasKey('version', $attributes);
     $this->assertArrayHasKey('width', $attributes);
+    $this->assertArrayHasKey('popularity', $attributes);
 
     $this->assertArrayNotHasKey('missing_attribute', $attributes);
-    $this->assertArrayNotHasKey('xmp_missing_xmp_1', $attributes);
   }
 
   /**
    * Validate that we can retrieve complicated metadata from assets.
    */
   public function testGetMetadataFromAsset() {
-    $this->assetMetadataHelper->setMetadataXmpFields([
-      'xmp_caption' => [
-        'name' => 'Caption/Abstract',
-        'label' => 'Caption/Description',
-        'type' => 'textarea',
-      ],
-      'xmp_byline' => [
-        'name' => 'By-line',
-        'label' => 'Photographer',
-        'type' => 'text',
-      ],
+    $this->assetMetadataHelper->setSpecificMetadataFields([
+      'label' => "author",
+      'type' => "string"
     ]);
 
-    // Check some regular properties.
-    $this->assertEquals(3455969,
+    $this->assertEquals("demoextid",
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'id'));
-    $this->assertEquals(4,
-      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'version'));
-    $this->assertEquals('XAAAZZZZZ.jpg',
+        'external_id'));
+    $this->assertEquals('theHumanRaceMakesSense.jpg',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'filename'));
 
     // Check special properties.
-    $this->assertEquals(90754,
-      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'folderID'));
-    $this->assertEquals('Image',
-      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'type'));
-    $this->assertNull($this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-      'status'));
+//    $this->assertEquals(90754,
+//      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+//        'folderID'));
+//    $this->assertEquals('Image',
+//      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+//        'type'));
+//    $this->assertNull($this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+//      'status'));
 
     // Check date properties.
-    $this->assertEquals('2017-03-22 18:34:43',
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecreated'));
-    $this->assertEquals('2017-03-22 18:36:33',
+        'created_date'));
+    $this->assertEquals('2021-09-27T12:21:21Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datemodified'));
-    $this->assertEquals('2013-03-19 14:16:49',
+        'last_update_date'));
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecaptured'));
+        'file_upload_date'));
 
-    $this->assertEquals('2017-03-22T18:34:43',
+    $this->assertEquals(NULL,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecreated_date'));
-    $this->assertEquals('2017-03-22T18:36:33',
+        'deleted_date'));
+    $this->assertEquals(TRUE,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datemodified_date'));
-    $this->assertEquals('2013-03-19T14:16:49',
+        'released_and_not_expired'));
+    $this->assertEquals(0,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecaptured_date'));
+        'popularity'));
 
-    $this->assertEquals(1490207683,
+    $this->assertEquals(85,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecreated_unix'));
-    $this->assertEquals(1490207793,
+        'size_in_kbytes'));
+    $this->assertEquals(650,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datemodified_unix'));
-    $this->assertEquals(1363702609,
+        'height'));
+    $this->assertEquals(650,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'datecaptured_unix'));
+        'width'));
 
-    // Check XMP properties.
-    $this->assertEquals('XMP Byline',
-      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'xmp_byline'));
-    $this->assertEquals('XMP Caption',
-      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
-        'xmp_caption'));
+    $this->assertEquals(NULL,
+    $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+      'author'));
+
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $date_formatter = $this->getMockBuilder(DateFormatterInterface::class)
@@ -183,9 +144,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
 
     $acquiadam_client = $this->getMockBuilder(Acquiadam::class)
       ->disableOriginalConstructor()
-      ->setMethods(['getActiveXmpFields'])
       ->getMock();
-    $acquiadam_client->method('getActiveXmpFields')->willReturn([]);
 
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',

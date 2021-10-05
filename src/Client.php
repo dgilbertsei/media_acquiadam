@@ -13,7 +13,7 @@ use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\acquiadam\Exception\UploadAssetException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\user\UserData;
+use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
 
@@ -44,7 +44,7 @@ class Client {
   /**
    * The user data factory service.
    *
-   * @var \Drupal\user\UserData
+   * @var \Drupal\user\UserDataInterface
    */
   protected $userData;
 
@@ -80,11 +80,11 @@ class Client {
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
-   * @param UserData $user_data
+   * @param UserDataInterface $user_data
    * @param \Drupal\Core\Session\AccountInterface $account
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    */
-  public function __construct(ClientInterface $client, UserData $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory) {
+  public function __construct(ClientInterface $client, UserDataInterface $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory) {
     $this->client = $client;
     $this->userData = $user_data;
     $this->account = $account;
