@@ -4,8 +4,12 @@ namespace Drupal\Tests\acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\Core\Url;
+use Drupal\Core\Utility\UnroutedUrlAssembler;
+use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
@@ -44,32 +48,32 @@ class AssetImageHelperTest extends UnitTestCase {
     // Ensure that we get the smallest size when given something smaller than
     // set.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 50);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/100th_sm_0UerYozlI3.jpg',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we can get an exact size.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 100);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/100th_sm_0UerYozlI3.jpg',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest if available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 120);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/100th_sm_0UerYozlI3.jpg',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest for larger sizes.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 350);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/310th_sm_0UerYozlI3.jpg',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the  biggest if nothing was available.
-    $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 12000);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/md_0UerYozlI3.jpg',
+    $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 1280);
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the biggest when nothing is specified.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset);
-    $this->assertEquals('http://subdomain.webdamdb.com/s/md_0UerYozlI3.jpg',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
   }
 
@@ -131,19 +135,19 @@ class AssetImageHelperTest extends UnitTestCase {
    * Validate that we can get proper mime types based on a file extension.
    */
   public function testGetMimeTypeFromFileType() {
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'image',
       'sub' => 'jpg',
     ],
       $this->assetImageHelper->getMimeTypeFromFileType('jpg'));
 
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'video',
       'sub' => 'quicktime',
     ],
       $this->assetImageHelper->getMimeTypeFromFileType('mov'));
 
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'application',
       'sub' => 'pdf',
     ],
@@ -187,7 +191,7 @@ class AssetImageHelperTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $http_client = $this->getMockBuilder(GuzzleClient::class)
@@ -220,12 +224,19 @@ class AssetImageHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $url_assembler = $this->getMockBuilder(UnroutedUrlAssemblerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $url_assembler->method('assemble')->willReturnCallback(function ($uri, $options) {
+      return Url::fromUri($uri, $options)->toString();
+    });
     $this->container = new ContainerBuilder();
     $this->container->set('http_client', $http_client);
     $this->container->set('file_system', $file_system);
     $this->container->set('file.mime_type.guesser', $mime_type_guesser);
     $this->container->set('image.factory', $image_factory);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('unrouted_url_assembler', $url_assembler);
     \Drupal::setContainer($this->container);
 
     $this->assetImageHelper = $this->getMockedAssetImageHelper();

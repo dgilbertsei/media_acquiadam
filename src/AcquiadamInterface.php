@@ -10,17 +10,6 @@ namespace Drupal\acquiadam;
 interface AcquiadamInterface {
 
   /**
-   * Get a list of folders keyed by ID.
-   *
-   * @param int $folder_id
-   *   The folder ID to recurse into. This is mostly for internal use.
-   *
-   * @return array
-   *   A list of folder names keyed by folder IDs.
-   */
-  public function getFlattenedFolderList($folder_id = NULL);
-
-  /**
    * Passes method calls through to the DAM client object.
    *
    * @param string $name

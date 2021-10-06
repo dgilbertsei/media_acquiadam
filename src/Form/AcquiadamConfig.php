@@ -10,7 +10,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\State\State;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\TransferException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -35,7 +35,7 @@ class AcquiadamConfig extends ConfigFormBase {
   /**
    * The Guzzle HTTP client service.
    *
-   * @var \GuzzleHttp\Client
+   * @var \GuzzleHttp\ClientInterface
    */
   protected $httpClient;
 
@@ -72,7 +72,7 @@ class AcquiadamConfig extends ConfigFormBase {
    *
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, Client $http_client, BatchBuilder $batch_builder, TimeInterface $time, QueueWorkerManagerInterface $queue_worker_manager, State $state) {
+  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client, BatchBuilder $batch_builder, TimeInterface $time, QueueWorkerManagerInterface $queue_worker_manager, State $state) {
     parent::__construct($config_factory);
     $this->httpClient = $http_client;
     $this->batchBuilder = $batch_builder;

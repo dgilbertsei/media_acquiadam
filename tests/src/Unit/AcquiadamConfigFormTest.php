@@ -10,12 +10,11 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Queue\QueueWorkerManager;
 use Drupal\Core\State\State;
-use Drupal\acquiadam\Client;
-use Drupal\acquiadam\ClientFactory;
 use Drupal\acquiadam\Form\AcquiadamConfig;
 use Drupal\acquiadam\Plugin\QueueWorker\AssetRefresh;
 use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
+use GuzzleHttp\ClientInterface;
 
 /**
  * Config form test.
@@ -75,30 +74,24 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $form = $this->acquiaDamConfig->buildForm([], new FormState());
 
     $this->assertArrayHasKey('authentication', $form);
-    $this->assertArrayHasKey('username', $form['authentication']);
-    $this->assertArrayHasKey('password', $form['authentication']);
-    $this->assertArrayHasKey('client_id', $form['authentication']);
-    $this->assertArrayHasKey('secret', $form['authentication']);
-
-    $this->assertEquals('WDusername',
-      $form['authentication']['username']['#default_value']);
-    $this->assertEquals('WDpassword',
-      $form['authentication']['password']['#default_value']);
-    $this->assertEquals('WDclient-id',
-      $form['authentication']['client_id']['#default_value']);
-    $this->assertEquals('WDsecret',
-      $form['authentication']['secret']['#default_value']);
-
+    $this->assertArrayHasKey('token', $form['authentication']);
     $this->assertArrayHasKey('cron', $form);
-    $this->assertEquals('14400',
-      $form['cron']['sync_interval']['#default_value']);
-    $this->assertEquals(1, $form['cron']['notifications_sync']['#default_value']);
-
+    $this->assertArrayHasKey('sync_interval', $form['cron']);
+    $this->assertArrayHasKey('sync_method', $form['cron']);
+    $this->assertArrayHasKey('sync_perform_delete', $form['cron']);
     $this->assertArrayHasKey('image', $form);
-    $this->assertEquals(1280, $form['image']['size_limit']['#default_value']);
-
+    $this->assertArrayHasKey('size_limit', $form['image']);
     $this->assertArrayHasKey('manual_sync', $form);
     $this->assertArrayHasKey('perform_manual_sync', $form['manual_sync']);
+
+    $this->assertEquals("demo/121someRandom1342test32st",
+      $form['authentication']['token']['#default_value']);
+    $this->assertEquals(3600,
+      $form['cron']['sync_interval']['#default_value']);
+    $this->assertEquals("updated_date",
+      $form['cron']['sync_method']['#default_value']);
+    $this->assertEquals(1, $form['cron']['sync_perform_delete']['#default_value']);
+    $this->assertEquals(1280, $form['image']['size_limit']['#default_value']);
   }
 
   /**
@@ -196,28 +189,12 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    // We need to override the DAM client so that we can fake authentication.
-    $dam_client = $this->getMockBuilder(Client::class)
+    $http_client = $this->getMockBuilder(ClientInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
-
-    // We do not actually care about validating anything at this point, but
-    // the validateForm method does a basic "does authentication work" check.
-    $dam_client->expects($this->any())
-      ->method('getAccountSubscriptionDetails')
-      ->willReturn([]);
-
-    // We need to make sure we get our mocked class instead of the original.
-    $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $acquiadam_client_factory->expects($this->any())
-      ->method('getWithCredentials')
-      ->willReturn($dam_client);
-
     $time = $this->getMockBuilder(Time::class)
       ->disableOriginalConstructor()
       ->getMock();
@@ -241,8 +218,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
-    $this->container->set('acquiadam.client_factory',
-      $acquiadam_client_factory);
+    $this->container->set('http_client', $http_client);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     $this->container->set('datetime.time', $time);
     $this->container->set('plugin.manager.queue_worker', $queue_worker_manager);
@@ -274,7 +250,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $config = $this->getMockBuilder(AcquiadamConfig::class)
       ->setConstructorArgs([
         $this->container->get('config.factory'),
-        $this->container->get('acquiadam.client_factory'),
+        $this->container->get('http_client'),
         new BatchBuilder(),
         $this->container->get('datetime.time'),
         $this->container->get('plugin.manager.queue_worker'),

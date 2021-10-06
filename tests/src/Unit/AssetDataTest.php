@@ -38,15 +38,15 @@ class AssetDataTest extends UnitTestCase {
    */
   public function testIsUpdatedAsset() {
     $asset = $this->getAssetData();
-    $this->assertTrue($this->acquiaAssetData->isUpdatedAsset($asset));
-    $asset->id = 3455970;
     $this->assertFalse($this->acquiaAssetData->isUpdatedAsset($asset));
+    $asset->file_upload_date = "2021-09-27T12:21:21Z";
+    $this->assertTrue($this->acquiaAssetData->isUpdatedAsset($asset));
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp() :void {
     parent::setUp();
 
     $connection = $this->getMockBuilder(Connection::class)
@@ -58,8 +58,8 @@ class AssetDataTest extends UnitTestCase {
       ->setMethods(['get', 'set'])
       ->getMock();
     $asset_data->method('get')->willReturnMap([
-      [3455969, 'version', 3],
-      [3455970, 'version', 4],
+      ["34asd3q2-e294-4908-bbd9-f43f433d2e23", 'file_upload_date', 1632508262],
+      ["34asd3q2-e294-4908-bbd9-f43f433d2e23", 'file_upload_date', 1632508262],
     ]);
 
     $this->acquiaAssetData = $asset_data;
