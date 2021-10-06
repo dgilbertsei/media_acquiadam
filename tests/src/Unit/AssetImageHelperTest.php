@@ -7,6 +7,7 @@ use Drupal\Core\File\FileSystem;
 use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\Core\Url;
 use Drupal\Core\Utility\UnroutedUrlAssembler;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
@@ -47,32 +48,32 @@ class AssetImageHelperTest extends UnitTestCase {
     // Ensure that we get the smallest size when given something smaller than
     // set.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 50);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we can get an exact size.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 100);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest if available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 120);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest for larger sizes.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 350);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the  biggest if nothing was available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 1280);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
 
     // Ensure we get the biggest when nothing is specified.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/GettyImages-1124452356.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
       $tn_url);
   }
 
@@ -223,7 +224,12 @@ class AssetImageHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $url_assembler = $this->createMock('Drupal\Core\Utility\UnroutedUrlAssemblerInterface');
+    $url_assembler = $this->getMockBuilder(UnroutedUrlAssemblerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $url_assembler->method('assemble')->willReturnCallback(function ($uri, $options) {
+      return Url::fromUri($uri, $options)->toString();
+    });
     $this->container = new ContainerBuilder();
     $this->container->set('http_client', $http_client);
     $this->container->set('file_system', $file_system);

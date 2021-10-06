@@ -83,30 +83,30 @@ trait AcquiadamAssetDataTrait {
         ],
         'embeds' => [
           '640px-landscape' => [
-            'url' => 'https://laser.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?w=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk',
-            'html' => '<img width="640" alt="theHumanRaceMakesSense.jpeg" src="https://laser.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?w=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk">',
-            'share' => 'https://laser.widen.net/view/thumbnail/demoextid/theHumanRaceMakesSense.jpg?t.format=web&u=lv0nkk&x.share=t',
+            'url' => 'https://demo.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?w=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk',
+            'html' => '<img width="640" alt="theHumanRaceMakesSense.jpeg" src="https://demo.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?w=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk">',
+            'share' => 'https://demo.widen.net/view/thumbnail/demoextid/theHumanRaceMakesSense.jpg?t.format=web&u=lv0nkk&x.share=t',
             'apps' => [
             ],
           ],
           '640px-portrait' => [
-            'url' => 'https://laser.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?h=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk',
-            'html' => '<img height="640" alt="theHumanRaceMakesSense.jpeg" src="https://laser.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?h=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk">',
-            'share' => 'https://laser.widen.net/view/thumbnail/demoextid/theHumanRaceMakesSense.jpg?t.format=web&u=lv0nkk&x.share=t',
+            'url' => 'https://demo.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?h=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk',
+            'html' => '<img height="640" alt="theHumanRaceMakesSense.jpeg" src="https://demo.widen.net/content/demoextid/jpeg/theHumanRaceMakesSense.jpeg?h=640&keep=c&crop=yes&color=cccccc&quality=80&u=lv0nkk">',
+            'share' => 'https://demo.widen.net/view/thumbnail/demoextid/theHumanRaceMakesSense.jpg?t.format=web&u=lv0nkk&x.share=t',
             'apps' => [
             ],
           ],
           'original' => [
-            'url' => 'https://laser.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true',
-            'html' => '<a href="https://laser.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true" target="_blank">theHumanRaceMakesSense.jpg</a>',
-            'share' => 'https://laser.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&x.share=t',
+            'url' => 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true',
+            'html' => '<a href="https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true" target="_blank">theHumanRaceMakesSense.jpg</a>',
+            'share' => 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&x.share=t',
             'apps' => [
             ],
           ],
           'templated' => [
-            'url' => 'https://embed.widencdn.net/img/laser/demoextid/{size}px@{scale}x/theHumanRaceMakesSense.jpg?q={quality}&x.template=y',
+            'url' => 'https://embed.widencdn.net/img/demo/demoextid/{size}px@{scale}x/theHumanRaceMakesSense.jpg?q={quality}&x.template=y',
             'html' => NULL,
-            'share' => 'https://embed.widencdn.net/img/laser/demoextid/{size}px@{scale}x/theHumanRaceMakesSense.jpg?q={quality}&x.template=y',
+            'share' => 'https://embed.widencdn.net/img/demo/demoextid/{size}px@{scale}x/theHumanRaceMakesSense.jpg?q={quality}&x.template=y',
             'apps' => [
             ],
           ],
