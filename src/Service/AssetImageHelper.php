@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
+use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use GuzzleHttp\ClientInterface;
@@ -107,14 +108,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
     if (empty($asset->embeds)) {
       return FALSE;
     }
+    // Check if file_properties are loaded with asset.
+    if(empty($asset->file_properties)) {
+      $dimension = "w";
+    } else {
+      $dimension = ($asset->file_properties->image_properties->aspect_ratio > 1) ? "w" : "h";
+    }
 
-    // The asset embeds array provide a templated url which we need to alter
-    // to provide the expected size, scale and quality.
-    return str_replace(
-      ['{size}', '@{scale}x', '{quality}'],
-      [$thumbnailSize, '', $this->configFactory->get('acquiadam.settings')->get('image_quality') ?? 80],
-      $asset->embeds->templated->url
-    );
+    $url = Url::fromUri($asset->embeds->original->url, ["query" => [
+      $dimension => $thumbnailSize,
+      "q" => $this->configFactory->get('acquiadam.settings')->get('image_quality') ?? 80
+    ]]);
+    $thumbnailUrl = str_replace("/original/", "/png/", $url->toString());
+    return $thumbnailUrl;
   }
 
   /**
