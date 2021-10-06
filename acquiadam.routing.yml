@@ -20,3 +20,11 @@ acquiadam.asset_details:
     _title_callback: '\Drupal\acquiadam\Controller\AcquiadamController:assetDetailsPageTitle'
   requirements:
     _user_is_logged_in: 'TRUE'
+
+acquiadam.migrate_assets:
+  path: '/admin/config/media/acquiadam/migrate-assets'
+  defaults:
+    _form: '\Drupal\acquiadam\Form\AcquiadamMigrateAssets'
+    _title: 'Migrate Assets'
+  requirements:
+    _permission: 'administer site configuration'

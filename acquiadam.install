@@ -9,50 +9,326 @@ use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Database\Database;
 
 /**
  * Implements hook_schema().
  */
 function acquiadam_schema() {
   $schema = [];
-
-  $schema['acquiadam_assets_data'] = [
-    'description' => 'Acquia DAM asset information.',
-    'fields' => [
-      'asset_id' => [
-        'description' => 'The asset ID.',
-        'default' => '',
-        'type' => 'varchar_ascii',
-        'not null' => TRUE,
-        'length' => 128
+  $db_schema = Database::getConnection()->schema();
+  // Create table if acquiadam_assets_data table is not exist.
+  if (!$db_schema->tableExists('acquiadam_assets_data')) {
+    $schema['acquiadam_assets_data'] = [
+      'description' => 'Acquia DAM asset information.',
+      'fields' => [
+        'asset_id' => [
+          'description' => 'The asset ID.',
+          'default' => '',
+          'type' => 'varchar_ascii',
+          'not null' => TRUE,
+          'length' => 128
+        ],
+        'name' => [
+          'description' => 'The identifier of the data.',
+          'type' => 'varchar_ascii',
+          'length' => 128,
+          'not null' => TRUE,
+          'default' => '',
+        ],
+        'value' => [
+          'description' => 'The value.',
+          'type' => 'blob',
+          'not null' => FALSE,
+          'size' => 'big',
+        ],
+        'serialized' => [
+          'description' => 'Whether value is serialized.',
+          'type' => 'int',
+          'size' => 'tiny',
+          'unsigned' => TRUE,
+          'default' => 0,
+        ],
       ],
-      'name' => [
-        'description' => 'The identifier of the data.',
-        'type' => 'varchar_ascii',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => '',
+      'primary key' => ['asset_id', 'name'],
+      'indexes' => [
+        'asset_id' => ['asset_id'],
+        'name' => ['name'],
       ],
-      'value' => [
-        'description' => 'The value.',
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-      ],
-      'serialized' => [
-        'description' => 'Whether value is serialized.',
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'default' => 0,
-      ],
-    ],
-    'primary key' => ['asset_id', 'name'],
-    'indexes' => [
-      'asset_id' => ['asset_id'],
-      'name' => ['name'],
-    ],
-  ];
+    ];
+  }
 
   return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function acquiadam_install() {
+  $legacy_module = 'media_acquiadam';
+  // If media_acquiadam module is enabled, we need to alter some of the
+  // existing table schema and media type bundle as a migration.
+  if (Drupal::service('module_handler')->moduleExists($legacy_module)) {
+    $custom_table = 'acquiadam_assets_data';
+    $table_rows = [];
+    $column_name = 'asset_id';
+    // Media_acquiadam was storing the 'asset_id' as a number. We are now
+    // storing it as a string given it is a uuid.
+    $column_schema = [
+      'description' => 'The asset ID.',
+      'default' => '',
+      'type' => 'varchar_ascii',
+      'not null' => TRUE,
+      'length' => 128,
+    ];
+    $database = Drupal::database();
+    // Get existing table data and change field type.
+    if ($database->schema()->tableExists($custom_table)) {
+      $table_rows = acquiadam_get_table_rows($custom_table);
+      // Change Asset ID collumn type in custom table.
+      $database->schema()->changeField($custom_table, $column_name, $column_name, $column_schema);
+    }
+
+    // Update the existing media types which are using 'acquiadam_asset' as the
+    // media source. We will need to edit the existing configuration to change
+    // the dependencies from 'media_acquiadam' to 'acquiadam'. Without this
+    // change, we can't disable the legacy 'media_acquiadam' module.
+    $media_bundles = Drupal::entityTypeManager()
+      ->getStorage('media_type')
+      ->loadByProperties(['source' => 'acquiadam_asset']);
+    if ($media_bundles) {
+      // Update media bundle source field type.
+      acquiadam_media_bundle_update_source_field($database);
+      foreach ($media_bundles as $bundle => $definition) {
+        // Update media type config dependencies.
+        acquiadam_entity_update_bundle_dependencies($bundle, 'media.type');
+        // Update media type form display.
+        acquiadam_entity_update_form_display($bundle, 'media');
+      }
+    }
+
+    // Update the existing entity browsers which are using 'acquiadam' as widget.
+    // plugin. We will need to edit the existing configuration to change the dependencies from
+    // 'media_acquiadam' to 'acquiadam'. Without this change, we can't disable the legacy
+    // 'media_acquiadam' module.
+    $entity_browsers = Drupal::entityTypeManager()->getStorage('entity_browser')->loadMultiple();
+    if ($entity_browsers) {
+      $acquiadam_entity_browser = [];
+      foreach($entity_browsers as $label => $definition) {
+        $widget_selector = $definition->getWidgetSelector();
+        $widget_ids = $definition->getWidgetSelector()->widget_ids;
+        // Fetch existing entity browser having acquiadam widget.
+        foreach ($widget_ids as $id => $name) {
+          if ($name === 'acquiadam') {
+            $acquiadam_entity_browser[] = $label;
+          }
+        }
+      }
+      // Update entity brosers config dependency.
+      if ($acquiadam_entity_browser) {
+        foreach ($acquiadam_entity_browser as $entity_browser) {
+          $update_entity_broser_dependecies =
+           acquiadam_entity_update_bundle_dependencies($entity_browser, 'entity_browser.browser');
+        }
+      }
+    }
+    // Uninstall media_acquiadam module.
+    Drupal::service('module_installer')->uninstall([$legacy_module]);
+    // Create table which was deleted in module uninstallation.
+    $new_schema = acquiadam_schema();
+    $database->schema()->createTable($custom_table, $new_schema[$custom_table]);
+    // Restore existing data in acquiadam_assets_data table.
+    if (!is_null($table_rows)) {
+      foreach ($table_rows as $row) {
+        $database->insert($custom_table)
+          ->fields((array) $row)
+          ->execute();
+      }
+    }
+    Drupal::messenger()->addStatus('Module Media: Acquia DAM has been uninstalled.');
+  }
+}
+
+
+/**
+ * Update entity bundle module dependecies.
+ *
+ * @param string $bundle
+ *   The entity type bundle name.
+ * @param string $config_prefix
+ *   The config object name prefix.
+ *
+ * @return bool $status
+ *   Update status.
+ */
+function acquiadam_entity_update_bundle_dependencies($bundle, $config_prefix) {
+  // Get config object of entity bundle.
+  $config = Drupal::service('config.factory')->getEditable($config_prefix . '.' . $bundle);
+  // Get config depedencies of entity bundle.
+  $config_dependency = $config->get('dependencies');
+  // Get config module dependencies of media bundle.
+  $module_dependency = isset($config_dependency['module']) ? $config_dependency['module'] : [];
+  if ($module_dependency) {
+    foreach ($module_dependency as $id => $name) {
+      // Update config module depencies if it contains old module as dependency.
+      if ($name === 'media_acquiadam') {
+        $module_dependency[$id] = 'acquiadam';
+        break;
+      }
+    }
+    // Update new module dependency in config object of entity bundle.
+    $config_dependency['module'] = $module_dependency;
+    $config->set('dependencies', $config_dependency);
+    $config->save();
+    Drupal::logger('acquiadam')->info('Module dependency has been updated for @bundle entity.', [
+      '@bundle' => $bundle,
+    ]);
+  }
+
+  return TRUE;
+}
+
+/**
+ * Update data type of media type source-field.
+ *
+ * @param object $database
+ *   The database object.
+ *
+ * @return bool $status
+ *   Update status.
+ */
+function acquiadam_media_bundle_update_source_field($database) {
+  $entity_type = 'media';
+  $field_name = 'field_acquiadam_asset_id';
+  $tables = ['media__field_acquiadam_asset_id', 'media_revision__field_acquiadam_asset_id'];
+  $current_rows = $current_revision_rows = $new_fields_list = [];
+  $field_storage = FieldStorageConfig::loadByName($entity_type, $field_name);
+  // If field storage is not exist return NULL.
+  if (is_null($field_storage)) {
+    return;
+  }
+
+  // Backup current rows from field and field revision table.
+  foreach ($tables as $table) {
+    if ($table === 'media__field_acquiadam_asset_id') {
+      $current_rows = acquiadam_get_table_rows($table);
+    }
+    else {
+      $current_revision_rows = acquiadam_get_table_rows($table);
+    }
+  }
+
+  // Use existing field config for new field.
+  foreach ($field_storage->getBundles() as $bundle => $label) {
+    $field = FieldConfig::loadByName($entity_type, $bundle, $field_name);
+    $new_field = $field->toArray();
+    $new_field['field_type'] = 'string';
+    $new_field['settings'] = [];
+    $new_fields_list[] = $new_field;
+  }
+
+  // Define new field storage.
+  $new_field_storage = $field_storage->toArray();
+  $new_field_storage['type'] = 'string';
+  $new_field_storage['settings'] = [
+    'max_length' => 255,
+    'is_ascii' => false,
+    'case_sensitive' => false,
+  ];
+  // Deleting field storage which will also delete bundles(fields).
+  $field_storage->delete();
+  // Purge the field data.
+  field_purge_batch(40);
+
+  // Create new field storage.
+  $new_field_storage = FieldStorageConfig::create($new_field_storage);
+  $new_field_storage->save();
+  // Create new fields.
+  foreach ($new_fields_list as $field) {
+    $field_config = FieldConfig::create($field);
+    $field_config->save();
+  }
+
+
+  // Restore existing data into field table and revision table if exist.
+  if ($current_rows || $current_revision_rows) {
+    foreach($tables as $table) {
+      if ($database->schema()->tableExists($table)) {
+        $existing_rows = ($table === 'media__field_acquiadam_asset_id') ? $current_rows : $current_revision_rows;
+        foreach ($existing_rows as $row) {
+          $database->insert($table)
+            ->fields((array) $row)
+            ->execute();
+        }
+      }
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Update media type form display.
+ *
+ * @param string $bundle
+ *   The media type bundle.
+ * @param string $entity_type_id
+ *   The entity type ID.
+ *
+ * @return bool $status
+ *   Update status.
+ */
+function acquiadam_entity_update_form_display($bundle, $entity_type_id) {
+  $display_repository = \Drupal::service('entity_display.repository');
+  // Get all the for diaply of specific entitytype ID.
+  $media_form_display = $display_repository->getFormModes($entity_type_id);
+  $form_dispaly = $media_form_display ? array_merge(['default'], array_keys($media_form_display)) : ['default'];
+  // Update asset id field type in form display.
+  if ($form_dispaly) {
+    foreach ($form_dispaly as $name) {
+      $display_name = $entity_type_id . '.' . $bundle . '.' . $name;
+      $entity_form_display = EntityFormDisplay::load($display_name);
+      if ($entity_form_display) {
+        // Get existing component region, third party settings and weight.
+        $existing_component = $entity_form_display->getComponent('field_acquiadam_asset_id');
+        $field_definition = [
+          'weight' => isset($existing_component['weight']) ? $existing_component['weight'] : 0,
+          'settings' => [
+            'size' => 60,
+            'placeholder' => '',
+          ],
+          'third_party_settings' => isset($existing_component['third_party_settings']) ? $existing_component['third_party_settings'] : [],
+          'type' => 'string_textfield',
+          'region' => isset($existing_component['region']) ? ($existing_component['region']) : 'content',
+        ];
+        // Update source field component in form display.
+        $entity_form_display->setComponent('field_acquiadam_asset_id', $field_definition);
+        $entity_form_display->save();
+      }
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Get existing rows from table.
+ *
+ * @param string $table
+ *   The table name
+ *
+ * @return array $rows
+ *   An array contain table rows.
+ */
+function acquiadam_get_table_rows(string $table) {
+  $rows = [];
+  $database = Drupal::database();
+
+  if ($database->schema()->tableExists($table)) {
+    $query = $database->select($table, 'n');
+    $query->fields('n');
+    $rows = $query->execute()->fetchAll();
+  }
+
+  return $rows;
 }
