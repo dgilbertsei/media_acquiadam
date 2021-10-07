@@ -2,8 +2,9 @@
 
 namespace Drupal\Tests\acquiadam\Unit;
 
+use Drupal\acquiadam\Acquiadam;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
-use Drupal\Component\Datetime\Time;
+use Drupal\acquiadam\Service\AssetRefreshManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -11,8 +12,6 @@ use Drupal\Core\Entity\Query\Null\Query;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\State;
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\Service\AssetRefreshManager;
 use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Exception\GuzzleException;
@@ -28,7 +27,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
   use AcquiadamLoggerFactoryTrait;
 
-  protected const LAST_READ_TIMESTAMP = 1550000000;
+  protected const LAST_EDITED_TIME = "lastEditDate:[after 1970-01-01T10:00:00Z]";
 
   protected const REQUEST_TIME = 1560000000;
 
@@ -91,21 +90,6 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * Tests a "no asset id fields provided" scenario.
    */
   public function testEmptyAssetIdFields() {
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
-    $this->state->method('get')
-      ->willReturnMap([
-        [
-          'acquiadam.notifications_endtime',
-          self::REQUEST_TIME,
-          self::REQUEST_TIME,
-        ],
-      ]);
-
-    $this->state->method('set')
-      ->with('acquiadam.notifications_starttime', self::REQUEST_TIME);
-
     $actual = $this->assetRefreshManager->updateQueue([]);
     $this->assertEquals(0, $actual);
   }
@@ -123,23 +107,6 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @dataProvider providerTestInterruptedFetch
    */
   public function testNoMatchingMediaEntityIds(array $request_query_options, array $response, array $expected_asset_ids) {
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
-    $this->state->method('get')
-      ->willReturnMap([
-        ['acquiadam.notifications_next_page', NULL, NULL],
-        [
-          'acquiadam.notifications_starttime',
-          NULL,
-          self::LAST_READ_TIMESTAMP,
-        ],
-        [
-          'acquiadam.notifications_endtime',
-          self::REQUEST_TIME,
-          self::REQUEST_TIME,
-        ],
-      ]);
 
     $this->setupApiResponseStub($request_query_options, $response);
 
@@ -178,29 +145,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @dataProvider providerTestNonInterruptedFetch
    */
   public function testNonInterruptedFetch(array $request_query_options, array $response, array $expected_asset_ids, int $expected_total) {
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
-    $this->state->method('get')
-      ->willReturnMap([
-        ['acquiadam.notifications_next_page', NULL, NULL],
-        ['acquiadam.notifications_starttime', NULL, NULL],
-        [
-          'acquiadam.notifications_endtime',
-          self::REQUEST_TIME,
-          self::REQUEST_TIME,
-        ],
-      ]);
-
     $this->setupApiResponseStub($request_query_options, $response);
     $this->setupMediaEntityExpectations($expected_asset_ids, $expected_total);
-
-    $this->state->method('set')
-      ->withConsecutive(
-        ['acquiadam.notifications_starttime', self::LAST_READ_TIMESTAMP],
-        ['acquiadam.notifications_starttime', self::REQUEST_TIME],
-        ['acquiadam.notifications_endtime', NULL],
-        ['acquiadam.notifications_next_page', NULL]);
 
     $actual = $this->assetRefreshManager->updateQueue($this->getAssetIdFieldsStub());
     $this->assertEquals($expected_total, $actual);
@@ -221,32 +167,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @dataProvider providerTestInterruptedFetch
    */
   public function testInterruptedFetch(array $request_query_options, array $response, array $expected_asset_ids, int $expected_total) {
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
-    $this->state->method('get')
-      ->willReturnMap([
-        ['acquiadam.notifications_next_page', NULL, NULL],
-        [
-          'acquiadam.notifications_starttime',
-          NULL,
-          self::LAST_READ_TIMESTAMP,
-        ],
-        [
-          'acquiadam.notifications_endtime',
-          self::REQUEST_TIME,
-          self::REQUEST_TIME,
-        ],
-        ['acquiadam.notifications_endtime', NULL, 1234],
-      ]);
-
     $this->setupApiResponseStub($request_query_options, $response);
     $this->setupMediaEntityExpectations($expected_asset_ids, $expected_total);
-
-    $this->state->method('set')
-      ->withConsecutive(
-        ['acquiadam.notifications_next_page', 2],
-        ['acquiadam.notifications_endtime', self::REQUEST_TIME]);
 
     $actual = $this->assetRefreshManager->updateQueue($this->getAssetIdFieldsStub());
     $this->assertEquals(3, $actual);
@@ -261,11 +183,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @dataProvider providerTestFailedApiRequest
    */
   public function testFailedApiRequest(\Throwable $exception_stub) {
-    $this->markTestSkipped(
-      'Test cases to be updated for AssetRefreshManager'
-    );
     $this->acquiadamClient
-      ->method('getNotifications')
+      ->method('searchAssets')
       ->will($this->throwException($exception_stub));
 
     $actual = $this->assetRefreshManager->updateQueue($this->getAssetIdFieldsStub());
@@ -279,148 +198,45 @@ class AssetRefreshManagerTest extends UnitTestCase {
    *   Test data (request query options, response, expected asset ids).
    */
   public function providerTestNonInterruptedFetch() {
+    // Asset Objects.
+    $asset_obj1 = new \StdClass();
+    $asset_obj1->id = '3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
+    $asset_obj2 = new \StdClass();
+    $asset_obj2->id = '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
+    $asset_obj3 = new \StdClass();
+    $asset_obj3->id = '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
     return [
       [
         [
           'limit' => 3,
           'offset' => 0,
-          'starttime' => self::LAST_READ_TIMESTAMP,
-          'endtime' => self::REQUEST_TIME,
+          'query' => self::LAST_EDITED_TIME,
+          'include_deleted' => 'true',
+          'include_archived' => 'true',
         ],
         [
-          'total' => 3,
-          'notifications' => [
-            [
-              'action' => 'asset_property',
-              'source' => [
-                'type' => 'asset',
-                'id' => 10,
-              ],
-            ],
-            [
-              'action' => 'asset_version',
-              'source' => [
-                'type' => 'asset',
-                'id' => 1000,
-              ],
-            ],
-            [
-              'action' => 'asset_delete',
-              'source' => [
-                'type' => 'folder',
-                'id' => 100,
-              ],
-              'subitems' => [
-                ['type' => 'asset', 'id' => 1],
-                ['type' => 'asset', 'id' => 2],
-                ['type' => 'asset', 'id' => 3],
-                ['type' => 'asset', 'id' => 4],
-              ],
-            ],
+          'total_count' => 3,
+          'assets' => [
+            $asset_obj1,
+            $asset_obj2,
+            $asset_obj3,
           ],
         ],
-        [10, 1000, 1, 2, 3, 4],
-        6,
-      ],
-      // Un-tracked action types.
-      [
-        [
-          'limit' => 3,
-          'offset' => 0,
-          'starttime' => self::LAST_READ_TIMESTAMP,
-          'endtime' => self::REQUEST_TIME,
-        ],
-        [
-          'total' => 3,
-          'notifications' => [
-            [
-              'action' => 'asset_property_foo',
-              'source' => [
-                'type' => 'asset',
-                'id' => 10,
-              ],
-            ],
-            [
-              'action' => 'asset_version_bar',
-              'source' => [
-                'type' => 'asset',
-                'id' => 1000,
-              ],
-            ],
-            [
-              'action' => 'asset_delete',
-              'source' => [
-                'type' => 'folder',
-                'id' => 100,
-              ],
-              'subitems' => [
-                ['type' => 'asset', 'id' => 1],
-                ['type' => 'asset', 'id' => 2],
-                ['type' => 'asset', 'id' => 3],
-                ['type' => 'asset', 'id' => 4],
-              ],
-            ],
-          ],
-        ],
-        [1, 2, 3, 4],
-        4,
-      ],
-      // Un-tracked item types.
-      [
-        [
-          'limit' => 3,
-          'offset' => 0,
-          'starttime' => self::LAST_READ_TIMESTAMP,
-          'endtime' => self::REQUEST_TIME,
-        ],
-        [
-          'total' => 3,
-          'notifications' => [
-            [
-              'action' => 'asset_property',
-              'source' => [
-                'type' => 'asset',
-                'id' => 10,
-              ],
-            ],
-            [
-              'action' => 'asset_version',
-              'source' => [
-                'type' => 'asset_foo',
-                'id' => 1000,
-              ],
-            ],
-            [
-              'action' => 'asset_delete',
-              'source' => [
-                'type' => 'folder',
-                'id' => 100,
-              ],
-              'subitems' => [
-                ['type' => 'image', 'id' => 1],
-                ['type' => 'asset_bar', 'id' => 2],
-                ['type_foo' => 'bar'],
-                ['type' => 'image', 'id' => 1],
-                ['type' => 'asset', 'id' => 3],
-                ['type' => 'asset', 'id' => 4],
-              ],
-            ],
-          ],
-        ],
-        [10, 1, 3, 4],
-        4,
+        ['3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+        3,
       ],
       // No results.
       [
         [
           'limit' => 3,
           'offset' => 0,
-          'starttime' => self::LAST_READ_TIMESTAMP,
-          'endtime' => self::REQUEST_TIME,
+          'query' => self::LAST_EDITED_TIME,
+          'include_deleted' => 'true',
+          'include_archived' => 'true',
         ],
         [
-          'total' => 0,
-          'notifications' => [],
+          'total_count' => 0,
+          'assets' => [],
         ],
         [],
         0,
@@ -435,41 +251,31 @@ class AssetRefreshManagerTest extends UnitTestCase {
    *   Test data (request query options, response, expected asset ids).
    */
   public function providerTestInterruptedFetch() {
+    // Asset Objects.
+    $asset_obj1 = new \StdClass();
+    $asset_obj1->id = '3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
+    $asset_obj2 = new \StdClass();
+    $asset_obj2->id = '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
+    $asset_obj3 = new \StdClass();
+    $asset_obj3->id = '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a';
     return [
       [
         [
           'limit' => 3,
           'offset' => 0,
-          'starttime' => self::LAST_READ_TIMESTAMP,
-          'endtime' => self::REQUEST_TIME,
+          'query' => self::LAST_EDITED_TIME,
+          'include_deleted' => 'true',
+          'include_archived' => 'true',
         ],
         [
-          'total' => 6,
-          'notifications' => [
-            [
-              'action' => 'asset_property',
-              'source' => [
-                'type' => 'asset',
-                'id' => 10,
-              ],
-            ],
-            [
-              'action' => 'asset_property',
-              'source' => [
-                'type' => 'asset',
-                'id' => 11,
-              ],
-            ],
-            [
-              'action' => 'asset_version',
-              'source' => [
-                'type' => 'asset',
-                'id' => 1000,
-              ],
-            ],
+          'total_count' => 3,
+          'assets' => [
+            $asset_obj1,
+            $asset_obj2,
+            $asset_obj3,
           ],
         ],
-        [10, 11, 1000],
+        ['3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
         3,
       ],
     ];
@@ -512,7 +318,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
   protected function setupApiResponseStub(array $request_query_options, array $response) {
     $this->acquiadamClient
       ->expects($this->any())
-      ->method('getNotifications')
+      ->method('searchAssets')
       ->with($request_query_options)
       ->willReturn($response);
   }
@@ -568,7 +374,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['getNotifications'])
+      ->setMethods(['searchAssets'])
       ->disableOriginalConstructor()
       ->getMock();
 
@@ -603,19 +409,11 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ['media', $entity_storage],
     ]);
 
-    /** @var \Drupal\Component\Datetime\Time|\PHPUnit\Framework\MockObject\MockObject $time */
-    $time = $this->getMockBuilder(Time::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $time->method('getRequestTime')
-      ->willReturn(self::REQUEST_TIME);
-
     $this->container = new ContainerBuilder();
     $this->container->set('state', $this->state);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
     $this->container->set('queue', $queue_factory);
     $this->container->set('entity_type.manager', $entity_type_manager);
-    $this->container->set('datetime.time', $time);
     $this->container->set('acquiadam.acquiadam', $this->acquiadamClient);
     \Drupal::setContainer($this->container);
 

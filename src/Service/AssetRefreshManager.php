@@ -2,13 +2,13 @@
 
 namespace Drupal\acquiadam\Service;
 
+use Drupal\acquiadam\AcquiadamInterface;
 use Drupal\acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\StateInterface;
-use Drupal\acquiadam\AcquiadamInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -134,9 +134,9 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
     $media_ids = [];
     foreach ($asset_id_fields as $bundle => $field) {
       $media_ids_partial = $media_query
-          ->condition('bundle', $bundle)
-          ->condition($field, $asset_ids, 'IN')
-          ->execute();
+        ->condition('bundle', $bundle)
+        ->condition($field, $asset_ids, 'IN')
+        ->execute();
 
       foreach ($media_ids_partial as $media_id) {
         $media_ids[] = $media_id;
@@ -191,7 +191,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         $asset_ids[] = $asset->id;
       }
 
-    } while ($response['total_count'] > $this->getRequestLimit() * $page);
+    } while (($response['total_count'] ?? 0) > $this->getRequestLimit() * $page);
 
     return $asset_ids;
   }
