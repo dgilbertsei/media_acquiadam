@@ -19,7 +19,8 @@ trait AcquiadamConfigTrait {
         'sync_interval' => 3600,
         'sync_method' => "updated_date",
         'sync_perform_delete' => 1,
-        'size_limit' => 1280
+        'size_limit' => 1280,
+        'report_asset_usage' => 1
       ],
       'system.file' => ['default_scheme' => 'public'],
       'media.settings' => ['icon_base_uri' => 'public://media-icons'],

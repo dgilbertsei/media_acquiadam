@@ -83,6 +83,8 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->assertArrayHasKey('size_limit', $form['image']);
     $this->assertArrayHasKey('manual_sync', $form);
     $this->assertArrayHasKey('perform_manual_sync', $form['manual_sync']);
+    $this->assertArrayHasKey('misc', $form);
+    $this->assertArrayHasKey('report_asset_usage', $form['misc']);
 
     $this->assertEquals("demo/121someRandom1342test32st",
       $form['authentication']['token']['#default_value']);
@@ -92,6 +94,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
       $form['cron']['sync_method']['#default_value']);
     $this->assertEquals(1, $form['cron']['sync_perform_delete']['#default_value']);
     $this->assertEquals(1280, $form['image']['size_limit']['#default_value']);
+    $this->assertEquals(1, $form['misc']['report_asset_usage']['#default_value']);
   }
 
   /**
