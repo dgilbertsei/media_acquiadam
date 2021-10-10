@@ -5,6 +5,7 @@ namespace Drupal\acquiadam\Commands;
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
+use Drupal\acquiadam\Form\AcquiadamMigrateAssets;
 
 /**
  * Acquia DAM drush commands.
@@ -26,6 +27,51 @@ class AcquiadamCommands extends DrushCommands {
   public function __construct(ConfigFactoryInterface $config_factory) {
     parent::__construct();
     $this->config = $config_factory->get('acquiadam.settings');
+  }
+
+  /**
+   * Migrate AcquiaDam assets from media_acquiadam to acquiadam.
+   *
+   * @command acquiadam:migrate
+   * @aliases acquiadam-migrate
+   *
+   * @param string $file The path to the migrate file.
+   * @option string $delimiter The CSV delimited.
+   */
+  public function migrate($file, $options = ['delimiter' => ';']) {
+    $data = AcquiadamMigrateAssets::getCsvData($file, $options['delimiter']);
+
+    $existing_entity_ids = acquiadam_get_active_media_ids();
+
+    $batch = [
+      'title' => dt('Synchronizing Assets...'),
+      'operations' => [
+        [
+          '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::syncMedia',
+          [
+            $existing_entity_ids,
+            $data,
+          ],
+        ],
+      ],
+      'finished' => '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::finishBatchOperation',
+    ];
+    batch_set($batch);
+  }
+
+  /**
+   * @hook validate acquiadam:migrate
+   * @param \Consolidation\AnnotatedCommand\CommandData $commandData
+   * @throws \Exception
+   * @return void
+   */
+  public function validateMigrate(CommandData $commandData) {
+    $file = $commandData->input()->getArgument('file');
+
+    if (!file_exists($file)) {
+      throw new \Exception(dt('Impossible to load the file.'));
+    }
+
   }
 
   /**
@@ -77,7 +123,7 @@ class AcquiadamCommands extends DrushCommands {
    * @throws \Exception
    * @return void
    */
-  public function validate(CommandData $commandData) {
+  public function validateSync(CommandData $commandData) {
     // Validate the method argument.
     $method = $commandData->input()->getOption('method');
     if ($method && !in_array($method, ['delta', 'all'])) {
