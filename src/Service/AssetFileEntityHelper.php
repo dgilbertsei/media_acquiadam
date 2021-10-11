@@ -193,26 +193,32 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *
    * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to save a new file for.
-   * @param string $destinationFolder
+   * @param string $destination_folder
    *   The path to save the asset into.
    *
    * @return bool|\Drupal\file\FileInterface
    *   The created file or FALSE on failure.
    */
-  public function createNewFile(Asset $asset, $destinationFolder) {
+  public function createNewFile(Asset $asset, $destination_folder) {
     // Ensure we can write to our destination directory.
-    if (!$this->fileSystem->prepareDirectory($destinationFolder, FileSystemInterface::CREATE_DIRECTORY)) {
+    if (!$this->fileSystem->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
       $this->loggerChannel->warning(
         'Unable to save file for asset ID @asset_id on directory @destination_folder.', [
           '@asset_id' => $asset->id,
-          '@destination_folder' => $destinationFolder,
+          '@destination_folder' => $destination_folder,
         ]
       );
       return FALSE;
     }
 
-    $destination_path = sprintf('%s/%s', $destinationFolder, $asset->filename);
-    $file_contents = $this->fetchRemoteAssetData($asset, $destinationFolder, $destination_path);
+    // By default, we use the filename attribute as the file name. However,
+    // because the actual file format may differ than the file name (specially
+    // for the images which are downloaded as png), we pass the filename
+    // as a parameter so it can be overridden.
+    $filename = $asset->filename;
+    $file_contents = $this->fetchRemoteAssetData($asset, $filename);
+
+    $destination_path = sprintf('%s/%s', $destination_folder, $filename);
 
     $existing = $this->assetMediaFactory->getFileEntity($asset->id);
 
@@ -238,16 +244,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *
    * @param \Drupal\acquiadam\Entity\Asset $asset
    *   The asset to fetch data for.
-   * @param string $destination_folder
-   *   The destination folder to save the asset to.
-   * @param string $destination_path
-   *   An optional variable that will contain the final path in case it was
-   *   adjusted.
+   * @param string filename
+   *   The filename as a reference so it can be overridden.
    *
    * @return false|string
    *   The remote asset contents or FALSE on failure.
    */
-  protected function fetchRemoteAssetData(Asset $asset, $destination_folder, &$destination_path = NULL) {
+  protected function fetchRemoteAssetData(Asset $asset, &$filename) {
     if ($asset->file_properties->format_type === 'image') {
       // If the module was configured to enforce an image size limit then we need
       // to grab the nearest matching pre-created size.
@@ -265,7 +268,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
         return FALSE;
       }
 
-      $file_contents = $this->phpFileGetContents($thumbnail_url);
+      $file_contents = $this->phpFileGetContents($thumbnail_url, $filename);
     }
     else {
       $file_contents = $this->acquiaDamClient->downloadAsset($asset->id);
@@ -281,12 +284,25 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *
    * @param string $uri
    *   The URI of the file to get the contents of.
+   * @param string filename
+   *   The filename as a reference so it can be overridden by the filename
+   *   returned by the headers.
    *
    * @return false|string
    *   The file data or FALSE on failure.
    */
-  protected function phpFileGetContents($uri) {
-    return file_get_contents($uri);
+  protected function phpFileGetContents($uri, &$filename) {
+    $content = file_get_contents($uri);
+
+    // Loop through the response headers to find one providing the filename to
+    // use instead of the default one.
+    foreach ($http_response_header as $header) {
+      preg_match('/filename="(.*)"/', $header, $matches);
+      if ($matches) {
+        $filename = $matches[1];
+      }
+    }
+    return $content;
   }
 
   /**
