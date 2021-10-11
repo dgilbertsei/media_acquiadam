@@ -19,21 +19,27 @@ class AcquiadamMigrateAssets {
    * @param mixed $context
    *   Context.
    */
-  public static function syncMedia(array $media_ids, array $sync_data, &$context) {
+  public static function syncMedia(array $sync_data, &$context) {
     $results = [];
     $message = \Drupal::translation()->translate('Syncing assets...');
-    foreach ($media_ids as $id) {
-      // Get Existing assets ID and entity ID.
-      $query = \Drupal::database()->select('media__field_acquiadam_asset_id', 'asset')
-        ->fields('asset', ['field_acquiadam_asset_id_value'])
-        ->condition('entity_id', $id);
-      $asset_id = $query->execute()->fetchField();
-      // If this asset ID is available in the csv file.
+
+    // Build an associative array of all the existing AcquiaDam media. The key
+    // is the asset id (from AcquiaDam), the value is the media id (Drupal).
+    $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
+    $ids = [];
+    foreach ($asset_id_fields as $bundle => $field) {
+      $query = \Drupal::database()->select('media__' . $field, 'asset')
+        ->fields('asset', ['entity_id', $field . '_value'])
+        ->condition('bundle', $bundle);
+      $ids = array_merge($ids, $query->execute()->fetchAllKeyed(1, 0));
+    }
+
+    foreach ($ids as $asset_id => $entity_id) {
       if (array_key_exists($asset_id, $sync_data)) {
-        // Update field and custom table asset ID value with updated Asset ID.
-        $results[] = self::updateTable($id, $asset_id, $sync_data[$asset_id]);
+        $results[] = self::updateTable($entity_id, $asset_id, $sync_data[$asset_id]);
       }
     }
+
     $context['message'] = $message;
     $context['results'] = $results;
   }

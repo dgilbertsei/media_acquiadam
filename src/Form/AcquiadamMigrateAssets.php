@@ -87,16 +87,16 @@ class AcquiadamMigrateAssets extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Get all media entity IDs having acquiadam_asset source.
-    $existing_entity_ids = acquiadam_get_active_media_ids();
     $sync_file_id = $form_state->getValue(['sync_file', 0]);
-    // Run migrate opeation if user uploads any csv and media entity is existing.
-    if ($sync_file_id && $existing_entity_ids) {
+    // Run migrate operation if user uploads any csv and media entity is existing.
+    if ($sync_file_id) {
       $file = $this->entityTypeManager->getStorage('file')->load($sync_file_id);
       $file->setPermanent();
       $file->save();
+
       // Get data from csv file.
       $data = $this->getCsvData($file->getFileUri(), ',');
+
       if ($data) {
         $batch = [
           'title' => $this->t('Synchronizing Assets...'),
@@ -104,7 +104,6 @@ class AcquiadamMigrateAssets extends FormBase {
             [
               '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::syncMedia',
               [
-                $existing_entity_ids,
                 $data,
               ],
             ],

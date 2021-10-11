@@ -39,24 +39,39 @@ class AcquiadamCommands extends DrushCommands {
    * @option string $delimiter The CSV delimited.
    */
   public function migrate($file, $options = ['delimiter' => ';']) {
-    $data = AcquiadamMigrateAssets::getCsvData($file, $options['delimiter']);
+    $csv_data = AcquiadamMigrateAssets::getCsvData($file, $options['delimiter']);
 
-    $existing_entity_ids = acquiadam_get_active_media_ids();
+    // Build an associative array of all the existing AcquiaDam medias. The
+    // key is the asset id (from AcquiaDam), the value is the media id (Drupal).
+    $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
+    $ids = [];
+    foreach ($asset_id_fields as $bundle => $field) {
+      $query = \Drupal::database()->select('media__' . $field, 'asset')
+        ->fields('asset', ['entity_id', $field . '_value'])
+        ->condition('bundle', $bundle);
+      $ids = array_merge($ids, $query->execute()->fetchAllKeyed(1, 0));
+    }
 
+    // Loop through all the AcquiaDam medias. If the asset id is present in
+    // the csv list, we add the info to the batch queue to update the media.
+    $operations = [];
+    foreach ($ids as $asset_id => $entity_id) {
+      if (array_key_exists($asset_id, $csv_data)) {
+        $operations[] = [
+          '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::updateTable',
+          [$entity_id, $asset_id, $csv_data[$asset_id]],
+        ];
+      }
+    }
+
+    // Prepare and start the batch.
     $batch = [
-      'title' => dt('Synchronizing Assets...'),
-      'operations' => [
-        [
-          '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::syncMedia',
-          [
-            $existing_entity_ids,
-            $data,
-          ],
-        ],
-      ],
+      'title' => dt('Migrating AcquiaDam medias'),
+      'operations' => $operations,
       'finished' => '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::finishBatchOperation',
     ];
     batch_set($batch);
+    drush_backend_batch_process();
   }
 
   /**
