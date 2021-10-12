@@ -87,62 +87,27 @@ class AcquiadamMigrateAssets extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $sync_file_id = $form_state->getValue(['sync_file', 0]);
-    // Run migrate operation if user uploads any csv and media entity is existing.
-    if ($sync_file_id) {
-      $file = $this->entityTypeManager->getStorage('file')->load($sync_file_id);
-      $file->setPermanent();
-      $file->save();
+    $file_id = $form_state->getValue(['sync_file', 0]);
 
-      // Get data from csv file.
-      $data = $this->getCsvData($file->getFileUri(), ',');
-
-      if ($data) {
-        $batch = [
-          'title' => $this->t('Synchronizing Assets...'),
-          'operations' => [
-            [
-              '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::syncMedia',
-              [
-                $data,
-              ],
-            ],
-          ],
-          'finished' => '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::finishBatchOperation',
-        ];
-        batch_set($batch);
-      }
-      else {
-        $this->messenger->addError('CSV file does not have any data');
-      }
-    }
-  }
-
-  /**
-   * Get Data from CSV file.
-   *
-   * @param string $filename
-   *   The CSV File.
-   * @param string $delimiter
-   *   The delimiter used to fetch data from csv.
-   *
-   * @return array
-   *   An array of data contains in csv file.
-   */
-  public function getCsvData(string $filename, string $delimiter) {
-    $data = [];
-    if (($handle = fopen($filename, 'r')) !== FALSE) {
-      $counter = 0;
-      while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-        $counter++;
-        if ($counter != 1) {
-          $data[trim($row[0])] = trim($row[1]);
-        }
-      }
-      fclose($handle);
+    // If we can't get the file which have been uploaded, display an error and
+    // stop the process.
+    if (!$file_id) {
+      $this->messenger->addError('CSV file does not have any data');
+      return;
     }
 
-    return $data;
+    // Mark the file as permanent so it does not get deleted.
+    $file = $this->entityTypeManager->getStorage('file')->load($file_id);
+    $file->setPermanent();
+    $file->save();
+
+    // Parse the csv to get an associative array. Key is the legacy asset_id,
+    // value is the new asset_id.
+    $legacy_ids_to_new_ids = _acquiadam_parse_migration_csv($file->getFileUri(), ',');
+
+    $batch = _acquiadam_build_migration_batch($legacy_ids_to_new_ids);
+
+    batch_set($batch);
   }
 
 }

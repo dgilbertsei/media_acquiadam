@@ -51,9 +51,8 @@ class AcquiadamMigrateAssets {
     $messenger = \Drupal::messenger();
     $translation = \Drupal::translation();
     if ($success) {
-      $message = $translation->formatPlural(
-        count($results),
-        'One media is sync.', '@count media is sync.'
+      $message = $translation->translate(
+        'Medias have been migrated.'
       );
       $messenger->addStatus($message);
       drupal_flush_all_caches();

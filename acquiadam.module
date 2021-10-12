@@ -500,3 +500,70 @@ function _acquiadam_parse_migration_csv($filename, $delimiter = ',') {
 
   return $data;
 }
+
+/**
+ * Helper function to get the list of Acquia Dam's medias entity ids keyed by
+ * their respective asset ids.
+ *
+ * @return array
+ */
+function acquiadam_get_active_media_ids_by_asset_ids() {
+  // Get the list of media bundle which are using the acquiadam media source.
+  // For each bundle, we get the asset_id field name.
+  $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
+
+  $ids = [];
+
+  // Build an associative array of all the existing AcquiaDam medias. The
+  // key is the legacy asset_id, the value is an array of entity (media) ids.
+  foreach ($asset_id_fields as $bundle => $field) {
+    $query = \Drupal::database()->select('media__' . $field, 'asset')
+      ->fields('asset', ['entity_id', $field . '_value'])
+      ->condition('bundle', $bundle);
+    $items = $query->execute()->fetchAll();
+
+    foreach ($items as $item) {
+      $ids[$item->{$field . '_value'}][] = $item->entity_id;
+    }
+  }
+
+  return $ids;
+}
+
+/**
+ * Helper function to build the batch list of operations to migrate the assets
+ * ids.
+ *
+ * @param $legacy_ids_to_new_ids
+ *   The array mapping the legacy asset_ids and the new asset_ids.
+ *
+ * @return array
+ *   The batch array.
+ */
+function _acquiadam_build_migration_batch($legacy_ids_to_new_ids) {
+  // Fetch a mapping btw legacy asset ids and their respective entity (media)
+  // ids.
+  $legacy_ids_to_entity_ids = acquiadam_get_active_media_ids_by_asset_ids();
+
+  // Loop through all the medias. If the asset id is present in
+  // the csv list, we add the info to the batch queue to update the media.
+  $operations = [];
+  foreach ($legacy_ids_to_entity_ids as $legacy_id => $entity_ids) {
+    if (array_key_exists($legacy_id, $legacy_ids_to_new_ids)) {
+      foreach ($entity_ids as $entity_id) {
+        $operations[] = [
+          '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::updateTable',
+          [$entity_id, $legacy_id, $legacy_ids_to_new_ids[$legacy_id]],
+        ];
+      }
+    }
+  }
+
+  $batch = [
+    'title' => t('Migrating AcquiaDam medias'),
+    'operations' => $operations,
+    'finished' => '\Drupal\acquiadam\Batch\AcquiadamMigrateAssets::finishBatchOperation',
+  ];
+
+  return $batch;
+}
