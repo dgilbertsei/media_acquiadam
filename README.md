@@ -1,6 +1,6 @@
 # Acquia DAM
 
-This module provides Acquia DAM integration for Media entitis (i.e. media type provider plugin). When an Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site. These media entities will be periodically synchronized with Acquia DAM via cron.
+This module provides Acquia DAM integration for Media entities (i.e. media type provider plugin). When an Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site. These media entities will be periodically synchronized with Acquia DAM via cron.
 
 ## Difference from Acquia DAM Classic
 
