@@ -38,11 +38,11 @@ class AcquiadamCommands extends DrushCommands {
    * @param string $file The path to the migrate file.
    * @option string $delimiter The CSV delimited.
    */
-  public function migrate($file, $options = ['delimiter' => ';']) {
-    $csv_data = AcquiadamMigrateAssets::getCsvData($file, $options['delimiter']);
+  public function migrate($file, $options = ['delimiter' => ',']) {
+    $csv_data = _acquiadam_parse_migration_csv($file, $options['delimiter']);
 
     // Build an associative array of all the existing AcquiaDam medias. The
-    // key is the asset id (from AcquiaDam), the value is the media id (Drupal).
+    // key is the legacy asset_id, the value is the media_id.
     $asset_id_fields = acquiadam_get_bundle_asset_id_fields();
     $ids = [];
     foreach ($asset_id_fields as $bundle => $field) {
