@@ -300,6 +300,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       preg_match('/filename="(.*)"/', $header, $matches);
       if ($matches) {
         $filename = $matches[1];
+        break;
       }
     }
     return $content;
