@@ -472,3 +472,31 @@ function acquiadam_views_data_alter(array &$data) {
     ],
   ];
 }
+
+/**
+ * Helper function to parse the migration CSV containing the association btw
+ * the legacy asset_ids and the new asset_ids to be updated in medias.
+ *
+ * @param $filename
+ *   The full path + filename of the migration file to process.
+ * @param string $delimiter
+ *   The csv delimiter.
+ * @return array
+ *   An associative array. Keys are the legacy asset_ids, values are the new
+ *   asset_ids.
+ */
+function _acquiadam_parse_migration_csv($filename, $delimiter = ',') {
+  $data = [];
+  if (($handle = fopen($filename, 'r')) !== FALSE) {
+    $counter = 0;
+    while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+      $counter++;
+      if ($counter != 1) {
+        $data[trim($row[0])] = trim($row[1]);
+      }
+    }
+    fclose($handle);
+  }
+
+  return $data;
+}
