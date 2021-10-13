@@ -6,7 +6,7 @@ This module provides Acquia DAM integration for Media entities (i.e. media type 
 
 The [Media: Acquia DAM module](https://www.drupal.org/project/media_acquiadam) provides similar functionality to this module for users of Acquia DAM Classic. It is important to ensure you use Media: Acquia DAM if you are a user of Acquia DAM Classic service and this module if you use the newer Acquia DAM service.
 
-## Module installation snd configuration
+## Module installation and configuration
 
 Download and install the acquiadam module and all dependencies. [See here for help with installing modules](https://www.drupal.org/docs/extending-drupal/installing-modules).
 
