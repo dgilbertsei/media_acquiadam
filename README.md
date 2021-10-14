@@ -2,6 +2,8 @@
 
 This module provides Acquia DAM integration for Media entities (i.e. media type provider plugin). When an Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site. These media entities will be periodically synchronized with Acquia DAM via cron.
 
+This guide provides an example for how to implement the acquiadam module on your Drupal site. See [https://docs.acquia.com/dam/integrate/drupal/]() **@todo: fixthislink** for additional documentation and guidance.
+
 ## Difference from Acquia DAM Classic
 
 The [Media: Acquia DAM module](https://www.drupal.org/project/media_acquiadam) provides similar functionality to this module for users of Acquia DAM Classic. It is important to ensure you use Media: Acquia DAM if you are a user of Acquia DAM Classic service and this module if you use the newer Acquia DAM service.
@@ -17,8 +19,8 @@ Configuration of the module generally encompasses 5 steps:
 1. [Complete the module configuration form](#global-configuration)
 2. [Ensure cron tasks are running](#cron-tasks)
 3. [Authenticate to the Acquia DAM service as a user](#authenticating-users)
-4. [Configuring Media types](#configure-media-types)
-5. (optional) [Setting up Entity Browser](#set-up-entity-browser) 
+4. [Configuring Media types](#configuring-media-types)
+5. (optional) [Setting up Entity Browser](#configure-an-entity-browser-for-acquia-dam) 
 
 ### Global configuration
 
@@ -52,6 +54,8 @@ The "Assets per page" field controls how many assets are displayed per page when
 #### Misc.
 
 The "Report asset usage" checkbox will send an [Integration Link](https://widenv1.docs.apiary.io/#reference/integration-links) to the DAM when a Media entity is created for an asset, allowing users of the DAM to see where assets are being used.
+
+Acquia DAM also includes an [Acquia DAM Usage Report](#acquia-dam-usage-report) submodule which displays asset usage information in Drupal.
 
 ### Cron Tasks
 
@@ -94,9 +98,7 @@ Selecting Acquia DAM Asset as the "Media Source" will also cause the form to dis
 
 **Note:** The media bundle must be saved before adding fields. More info on creating a media bundle can be found at: https://drupal-media.gitbooks.io/drupal8-guide/content/modules/media_entity/create_bundle.html
 
-The Acquia DAM service provides **@todo** words about meta data go here, hopefully with a link to documentation.
-
-The Acquia DAM module provides a form element which lists all the global attributes which are provided for assets, as well as client-configured metadata attributes. The Field Mapping fieldset when editing the Media type provide drop-downs for each attribute coming from the DAM service. Options within the drop downs are the fields configured within Drupal on the Media type. To map an attribute from the DAM service to a Drupal field, just select the Drupal field you want that DAM attribute to be written into. When Drupal syncs assets of that type with the DAM, the value for that attribute will populate the field in Drupal.
+The Acquia DAM service provides global asset attributes and customer [configurable metadata attributes](https://community.widen.com/collective/s/article/What-are-metadata-fields). The Acquia DAM module provides a form element which lists both these attribute types. The Field Mapping fieldset when editing the Media type provides drop-downs for each attribute coming from the DAM service. Options within the drop downs are the fields configured within Drupal on the Media type. To map an attribute from the DAM service to a Drupal field, just select the Drupal field you want that DAM attribute to be written into. When Drupal syncs assets of that type with the DAM, the value for that attribute will populate the field in Drupal.
 
 **Note:** By default, if you do not map the Publishing Status field in Drupal to a DAM attribute, the Media entities will be published on creation.
 
@@ -120,107 +122,37 @@ Acquia DAM Classic ID, Acquia DAM ID
 
 #### Migrating a multisite installation  
 
+**@todo: words on migrating a multisite.**
+
 ## Drush commands provided by Acquia DAM
-**@todo: List drush commands here**
 
+The following Drush commands are provided by the module. For detailed instructions on each, run `drush <command> --help`
 
-**@todo: Complete editing from here down**
+- <u>acquiadam:sync</u> - Synchronises assets in Drupal with those in the DAM, using either an `all` or `delta` option for which assets to sync.
 
-### Step-by-step configuration guide
+**@todo: add detail on the new drush command when PR 46 is reviewed and merged**
 
-This guide provides an example for how to implement the acquiadam module on your Drupal site. See [https://docs.acquia.com/dam/integrate/drupal/]() **@todo: fixthislink** for up to date information.
-
-### Quick start configuration guide
-
-
-
-#### Optional:
-
-
-
-Additional fields may be added to store the Acquia DAM asset metadata. Here is a list of metadata fields which can be mapped by the "Acquia DAM Asset" type provider and the recommended field type.
-
-- colorspace: Text -> Text (plain)
-- datecaptured: General -> String
-- datecaptured_date: General -> Date
-- datecaptured_unix: General -> Number (integer)
-- datecreated: General -> String
-- datecreated_date: General -> Date
-- datecreated_unix: General -> Number (integer)
-- datemodified: General -> String
-- datemodified_date: General -> Date
-- datemodified_unix: General -> Number (integer)
-- description: Text -> Text (plain)
-- filename: Text -> Text (plain)
-- filesize: Number -> Number (decimal)
-- filetype: Text -> Text (plain)
-- folderID: Number -> Number (integer)
-- height: Number -> Number (integer)
-- id: Number -> Number (integer)
-- status: General -> Boolean
-- type: Text -> Text (plain)
-- type_id: Number -> Number (integer)
-- version: Number -> Number (integer)
-- width: Number -> Number (integer)
-
-Additional XMP metadata field mapping options, depending on the fields enabled in Acquia DAM, will also be available (ex. city, state, customfield1 etc.)
-
-- NOTE: Do not use the "Timestamp" field type for capturing dates. It is not meant for general data storage and will not hold the synchronized metadata.
-
-Return to the media bundle configuration page and set the field mappings for the fields that you created. When a Acquia DAM asset is added to a piece of content, this module will create a media entity which provides a "local" copy of the asset to your site. When the media entity is created the Acquia DAM values will be mapped to the entity fields that you have configured. The mapped field values will be periodically synchronized with Acquia DAM via cron.
-
-#### Asset status
-
-If you want your site to reflect the Acquia DAM asset status you should map the "Status" field to "Publishing status" in the media bundle configuration. This will set the published value (i.e. status) on the media entity that gets created when a Acquia DAM asset is added to a piece of content. This module uses cron to periodically synchronize the mapped media entity field values with acquiadam.
-
-- NOTE: If you are using the asset expiration feature in Acquia DAM, be aware that that the published status will not get updated in Drupal until the next time that cron runs (after the asset has expired in Acquia DAM).
-- (2017-09-26) When an inactive asset is synchronized the entity status will show blank because of [this issue](https://www.drupal.org/node/2855630)
-
-#### Date created and date modified
-
-If you want your site to reflect the Acquia DAM values for when the asset was created or modified you should map the "Date created" field to the "Created" and the "Date modified" field to "Changed" in the media bundle configuration. This will set the "created" and "changed" values on the media entity that gets created when a Acquia DAM asset is added to a piece of content. This module uses cron to periodically synchronize the mapped media entity field values with Acquia DAM.
-
-
-
-#### Crop configuration
-If you are using the [Crop](https://www.drupal.org/project/crop) module on your site, you should map the "Crop configuration -> Image field" to the field that you created to store the Acquia DAM asset file.
-
-### Configure an Entity Browser for Acquia DAM
+## Configure an Entity Browser for Acquia DAM
 In order to use the Acquia DAM asset browser you will need to create a new entity browser or add a Acquia DAM widget to an existing entity browser (/admin/config/content/entity_browser).
 
 - NOTE: For more information on entity browser configuration please see the [Entity Browser](https://www.drupal.org/project/entity_browser) module and the [documentation](https://github.com/drupal-media/d8-guide/blob/master/modules/entity_browser/inline_entity_form.md) page on github
 - NOTE: When editing and/or creating an entity browser, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button.
 - NOTE: When using the "Modal" Display plugin you may want to disable the "Auto open entity browser" setting.
 
-### Add a media field
-In order to add a Acquia DAM asset to a piece of content you will need to add a media field to one of your content types.
-
-- NOTE: For more information on media fields please see the [Media Entity](https://www.drupal.org/project/media_entity) module and the [Drupal 8 Media Guide](https://drupal-media.gitbooks.io/drupal8-guide/content/modules/media_entity/intro.html)
-- NOTE: The default display mode for media fields will only show a the media entity label. If you are using a media field for images you will likely want to change this under the display settings (Manage Display).
-
-### WYSIWYG configuration
+## WYSIWYG configuration
 The media entity module provides a default embed button which can be configured at /admin/config/content/embed. It can be configured to use a specific entity browser and allow for different display modes.
 
 - NOTE: When choosing an entity browser to use for the media embed button, be aware that the "Modal" Display plugin is not compatible with the WYSIWYG media embed button. You may want to use the "iFrame" display plugin or create a separate Entity Browser to use with the media embed button
 
-### Acquia DAM Usage Report
-For a usage report, enable the acquiadam_report module. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
+## Acquia DAM Usage Report
+For a usage report, enable the acquiadam_report submodule. This report provides a count of media referenced by other entities (nodes, blocks, etc.) as well as links back to the Acquia DAM asset source.
 
 The usage report can be accessed beneath the Media tab at /admin/content/media or directly via /acquiadam/asset/report.
 
-This module depends on the entity_usage module for it's media use count and references. For configuration options, refer to the entity_usage documentation: https://www.drupal.org/docs/8/modules/entity-usage.
-
-- NOTE: Usage count currently includes revisions. A node, with versioning enabled and a media item attached to it, will display a use count for each revision that references the media item. Track the discussion and improvements to this behavior here: https://www.drupal.org/project/entity_usage/issues/2952210
-
-Project page: http://drupal.org/project/acquiadam
-
-## TODO Items
-@todo: Wildcat. Remove the lightning_acquiadam submodule.
+This module depends on the [Entity Usage](https://www.drupal.org/project/entity_usage) module for its media use count and references. For configuration options, refer to the entity_usage documentation.
 
 ## Notes
 
-- NOTE: Acquia DAM asset files are downloaded locally when they are added to a piece of content. Therefore you may want to [configure private file storage](https://www.drupal.org/docs/8/core/modules/file/overview) for your site in order to prevent direct access.
+- Acquia DAM asset files are downloaded locally when they are added to a piece of content. Therefore you may want to [configure private file storage](https://www.drupal.org/docs/8/core/modules/file/overview) for your site in order to prevent direct access.
 
-- NOTE: It is not recommended to "Enable display field" for the file field as this currently causes new entities to be "Not Published" by default regardless of the "Files displayed by default" setting.
-
-- NOTE: You must configure the list of allowed file types for this field which will be specific to this media bundle. Therefore you can create separate media bundles for different types of Acquia DAM assets (i.e. "Acquia DAM Images", "Acquia DAM Documents", "Acquia DAM videos", etc).
+- If you are using the [Crop](https://www.drupal.org/project/crop) module on your site, you should map the "Crop configuration -> Image field" to the field that you created to store the Acquia DAM asset file.
