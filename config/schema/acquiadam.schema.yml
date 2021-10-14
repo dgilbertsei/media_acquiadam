@@ -12,12 +12,12 @@ acquiadam.settings:
     search_endpoint:
       type: string
       label: 'Search endpoint'
-    client_registration:
+    client_id:
       type: string
-      label: 'Client registration'
-    client_hash:
+      label: 'Client id'
+    client_secret:
       type: string
-      label: 'Client hash'
+      label: 'Client secret'
     sync_interval:
       type: integer
       label: 'Sync interval'

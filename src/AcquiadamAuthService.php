@@ -58,9 +58,9 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
   public static function generateAuthUrl($return_link) {
     $config = self::getConfig();
     $acquiadam_domain = $config->get('domain');
-    $client_registration = $config->get('client_registration');
+    $client_id = $config->get('client_id');
 
-    return 'https://' . $acquiadam_domain . '/allowaccess?client_id=' . $client_registration . '&redirect_uri=' . $return_link;
+    return 'https://' . $acquiadam_domain . '/allowaccess?client_id=' . $client_id . '&redirect_uri=' . $return_link;
   }
 
   /**
@@ -120,13 +120,13 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
     ];
 
     $config = self::getConfig();
-    $client_registration = $config->get('client_registration');
-    $client_hash = $config->get('client_hash');
+    $client_id = $config->get('client_id');
+    $client_secret = $config->get('client_secret');
 
     // Initiate and process the response of the HTTP request.
     $response = \Drupal::httpClient()
       ->post($endpoint, [
-        'auth' => [$client_registration, $client_hash],
+        'auth' => [$client_id, $client_secret],
         'body' => json_encode($data),
         'headers' => [
           'Content-Type' => 'application/json',

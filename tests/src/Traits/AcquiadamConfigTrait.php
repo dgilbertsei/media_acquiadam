@@ -22,7 +22,7 @@ trait AcquiadamConfigTrait {
         'size_limit' => 1280,
         'report_asset_usage' => 1,
         'domain' => 'subdomain.widencollective.com',
-        'client_registration' => 'a3mf039fd77dw67886459q90098z0980.app.widen.com',
+        'client_id' => 'a3mf039fd77dw67886459q90098z0980.app.widen.com',
       ],
       'system.file' => ['default_scheme' => 'public'],
       'media.settings' => ['icon_base_uri' => 'public://media-icons'],
