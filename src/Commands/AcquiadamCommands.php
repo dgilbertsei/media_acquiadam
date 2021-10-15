@@ -30,7 +30,7 @@ class AcquiadamCommands extends DrushCommands {
   }
 
   /**
-   * Migrate AcquiaDam assets from media_acquiadam to acquiadam.
+   * Migrate Acquia DAM assets from media_acquiadam to acquiadam.
    *
    * @command acquiadam:migrate
    * @aliases acquiadam-migrate
@@ -42,7 +42,7 @@ class AcquiadamCommands extends DrushCommands {
     $legacy_ids_to_new_ids = _acquiadam_parse_migration_csv($file, $options['delimiter']);
 
     $batch = _acquiadam_build_migration_batch($legacy_ids_to_new_ids);
-    
+
     batch_set($batch);
     drush_backend_batch_process();
   }
