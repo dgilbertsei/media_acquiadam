@@ -161,7 +161,7 @@ class AcquiadamConfig extends ConfigFormBase {
     $form['cron']['sync_method'] = [
       '#type' => 'select',
       '#title' => $this->t('Synchronization method'),
-      '#description' => $this->t('- "Updated date" method will fetch the assets for which the updated_date attributes in Acquia DAM is more recent than latest synchronization.<br/>- "All" method will synchronize all the assets.<br/>If you identify miss synchronized asset, use the "all" method.'),
+      '#description' => $this->t('- "Updated date" method will fetch the assets for which the updated_date attributes in Acquia DAM is more recent than latest synchronization.<br/>- "All" method will synchronize all the assets.<br/>If you identify assets which were missed in the synchronization process, use the "all" method to force a complete synchronization.'),
       '#options' => [
         'updated_date' => $this->t('Updated date'),
         'all' => $this->t('All assets'),
