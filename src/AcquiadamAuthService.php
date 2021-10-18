@@ -59,8 +59,9 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
     $config = self::getConfig();
     $acquiadam_domain = $config->get('domain');
     $client_id = $config->get('client_id');
+    $auth_link = $acquiadam_domain ? "https://$acquiadam_domain/allowaccess?client_id=$client_id&redirect_uri=$return_link" : '';
 
-    return 'https://' . $acquiadam_domain . '/allowaccess?client_id=' . $client_id . '&redirect_uri=' . $return_link;
+    return $auth_link;
   }
 
   /**

@@ -184,10 +184,23 @@ class Acquiadam extends WidgetBase {
     if (empty($auth['valid_token'])) {
       $return_link = Url::fromRoute('acquiadam.user_auth', ['uid' => $this->user->id()], ['absolute' => TRUE])->toString();
       $auth_url = AcquiadamAuthService::generateAuthUrl($return_link);
-      $auth_link = Url::fromUri($auth_url, ['attributes' => ['target' => '_blank']]);
-      $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets. after successful authentication close this modal and reopen it to browse Acquia DAM assets.', [
-        '%authenticate' => Link::fromTextAndUrl("Authenticate", $auth_link)->toString()
-      ]);
+      if ($auth_url) {
+        $auth_link = Url::fromUri($auth_url, ['attributes' => ['target' => '_blank']]);
+        $message = $this->t('You are not authenticated. Please %authenticate to browse Acquia DAM assets. after successful authentication close this modal and reopen it to browse Acquia DAM assets.', [
+          '%authenticate' => Link::fromTextAndUrl("Authenticate", $auth_link)->toString(),
+        ]);
+      }
+      else {
+        // If Acquia Dam module is not configured yet, display an error message
+        // to configure the module first.
+        $message = $this->t('Acquia DAM module is not configured yet. Please contact your administrator to do so.');
+        // If user has permission then error message will include config form link.
+        if ($this->user->hasPermission('administer site configuration')) {
+          $message = $this->t('Acquia DAM module is not configured yet. Please %config it to start using Acquia DAM assets.', [
+            '%config' => Link::createFromRoute($this->t('configure'), 'acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
+          ]);
+        }
+      }
 
       $form['message'] = [
         '#theme' => 'asset_browser_message',
