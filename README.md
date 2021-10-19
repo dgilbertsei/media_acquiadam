@@ -123,15 +123,14 @@ Acquia DAM Classic ID, Acquia DAM ID
 
 #### Migrating a multisite installation  
 
-**@todo: words on migrating a multisite.**
+To support migrating a multisite installation, the module provides a Drush command (`acquiadam:migrate`) which takes as input the path of a file on the server containing a mapping CSV (as described [above](#migrating-from-acquia-dam-classic)). Using this command allows a site administrator to upload the mapping file once and run the migration command iteratively for each site in the multisite.
 
 ## Drush commands provided by Acquia DAM
 
 The following Drush commands are provided by the module. For detailed instructions on each, run `drush <command> --help`
 
+- <u>acquiadam:migrate</u> - Migrates Acquia DAM assets from Acquia DAM Classic (`media_acquiadam`) to Acquia DAM (`acquiadam`).
 - <u>acquiadam:sync</u> - Synchronises assets in Drupal with those in the DAM, using either an `all` or `delta` option for which assets to sync.
-
-**@todo: add detail on the new drush command when PR 46 is reviewed and merged**
 
 ## Configure an Entity Browser for Acquia DAM
 In order to use the Acquia DAM asset browser you will need to create a new entity browser or add a Acquia DAM widget to an existing entity browser (/admin/config/content/entity_browser).
