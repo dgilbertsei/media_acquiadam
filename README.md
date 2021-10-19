@@ -53,7 +53,7 @@ The "Assets per page" field controls how many assets are displayed per page when
 
 #### Misc.
 
-The "Report asset usage" checkbox will send an [Integration Link](https://widenv1.docs.apiary.io/#reference/integration-links) to the DAM when a Media entity is created for an asset, allowing users of the DAM to see where assets are being used.
+The "Report asset usage" checkbox will send an [Integration Link](https://widenv1.docs.apiary.io/#reference/integration-links) to the DAM when a Media entity is created for an asset, allowing users of the DAM to see which assets are being used in Drupal.
 
 Acquia DAM also includes an [Acquia DAM Usage Report](#acquia-dam-usage-report) submodule which displays asset usage information in Drupal.
 
