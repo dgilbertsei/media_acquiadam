@@ -422,6 +422,11 @@ class Client {
    */
   public function getAssetsByCategory(array $params = []) {
     $this->checkAuth();
+
+    $date = date('m/d/Y');
+    $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
+    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after '. $date . '])';
+
     $response = $this->client->request(
       "GET",
       $this->baseUrl . '/assets/search', [
@@ -489,6 +494,10 @@ class Client {
    */
   public function searchAssets(array $params) {
     $this->checkAuth();
+
+    $date = date('m/d/Y');
+    $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
+    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after '. $date . '])';
 
     $response = $this->client->request(
       "GET",
