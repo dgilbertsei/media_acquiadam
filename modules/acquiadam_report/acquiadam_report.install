@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Drupal install and update hooks.
+ */
+
+use Drupal\views\Entity\View;
+
+/**
+ * Implements hook_install().
+ */
+function acquiadam_report_install() {
+  // Enabled reporting view if config is already existing due to media_acquidam.
+  $view = View::load('acquia_dam_reporting');
+  if (is_object($view) && !$view->status()) {
+    $view->enable()->save();
+  }
+}

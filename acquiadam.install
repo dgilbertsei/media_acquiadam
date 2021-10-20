@@ -66,6 +66,10 @@ function acquiadam_schema() {
  */
 function acquiadam_install() {
   $legacy_module = 'media_acquiadam';
+  $legacy_sub_modules = [
+    'media_acquiadam_example' => 'Media: Acquia DAM - Example Configuration',
+    'media_acquiadam_report' => 'Media: Acquia DAM - Reporting',
+  ];
   // If media_acquiadam module is enabled, we need to alter some of the
   // existing table schema and media type bundle as a migration.
   if (Drupal::service('module_handler')->moduleExists($legacy_module)) {
@@ -132,6 +136,15 @@ function acquiadam_install() {
         }
       }
     }
+
+    // Uninstall legacy sub modules.
+    foreach ($legacy_sub_modules as $key => $label) {
+      if (Drupal::service('module_handler')->moduleExists($key)) {
+        Drupal::service('module_installer')->uninstall([$key]);
+        Drupal::messenger()->addStatus('Module ' . $label . ' has been uninstalled.');
+      }
+    }
+
     // Uninstall media_acquiadam module.
     Drupal::service('module_installer')->uninstall([$legacy_module]);
     // Create table which was deleted in module uninstallation.

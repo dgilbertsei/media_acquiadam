@@ -74,18 +74,6 @@ function acquiadam_example_requirements($phase) {
       'severity' => REQUIREMENT_WARNING,
     ];
   }
-  elseif ('install' === $phase) {
-    $config_factory = Drupal::configFactory();
-    if (!$config_factory->get('media.type.acquia_dam_asset')->isNew()) {
-      $requirements['acquiadam_example_noinstall'] = [
-        'title' => t('Acquia DAM'),
-        'description' => t(
-          'The Acquia DAM - Example Configuration module has already been installed once and cannot be installed again.'
-        ),
-        'severity' => REQUIREMENT_ERROR,
-      ];
-    }
-  }
 
   return $requirements;
 }
