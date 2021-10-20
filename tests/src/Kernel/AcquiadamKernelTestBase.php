@@ -2,11 +2,13 @@
 
 namespace Drupal\Tests\acquiadam\Kernel;
 
+use Drupal\acquiadam\AssetData;
+use Drupal\acquiadam\Client;
 use Drupal\acquiadam\Entity\Asset;
+use Drupal\acquiadam\Service\AssetFileEntityHelper;
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
-use Drupal\acquiadam\ClientFactory;
 use Drupal\acquiadam_test\TestClient;
 use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
 
@@ -24,7 +26,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'fallback_formatter',
     'file',
     'image',
@@ -41,9 +43,18 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   protected $testClient;
 
   /**
+   * Acquia DAM asset data service.
+   *
+   * Mocked to have a fixed set/get.
+   *
+   * @var \Drupal\acquiadam\AssetData|\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected $acquiaAssetData;
+
+  /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
 
     parent::setUp();
 
@@ -62,23 +73,63 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   protected function setTestClient() {
     $this->testClient = new TestClient();
 
-    $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
+    $acquiadam_client_factory = $this->getMockBuilder(Client::class)
       ->disableOriginalConstructor()
       ->getMock();
     $acquiadam_client_factory->expects($this->any())
-      ->method('get')
-      ->willReturn($this->testClient);
-
-    $this->container->set('acquiadam.client_factory',
+      ->method('getAsset')
+      ->willReturnCallback(function($assetId) {
+        return $this->testClient->getAsset($assetId);
+      });
+    $acquiadam_client_factory->expects($this->any())
+      ->method('getSpecificMetadataFields')
+      ->willReturn([
+        'author' => [
+          'label' => "author",
+          'type' => "string"
+        ]
+      ]);
+    $this->container->set('acquiadam.client',
       $acquiadam_client_factory);
 
+    $asset_data = $this->getMockBuilder(AssetData::class)
+      ->disableOriginalConstructor()
+      ->setMethods(['get', 'set', 'isUpdatedAsset'])
+      ->getMock();
+    $asset_data->expects($this->any())
+      ->method('get')->willReturn(function($assetId, $name) {
+      return $this->asset->${name};
+    });
+    $asset_data->expects($this->any())
+      ->method('isUpdatedAsset')->willReturn(TRUE);
+    $this->container->set('acquiadam.asset_data', $asset_data);
+    $this->acquiaAssetData = $asset_data;
+
+    $fileHelper = $this->getMockBuilder(AssetFileEntityHelper::class)
+      ->setConstructorArgs([
+        $this->container->get('entity_type.manager'),
+        $this->container->get('entity_field.manager'),
+        $this->container->get('config.factory'),
+        $this->container->get('file_system'),
+        $this->container->get('token'),
+        $this->container->get('acquiadam.asset_image.helper'),
+        $this->container->get('acquiadam.acquiadam'),
+        $this->container->get('acquiadam.asset_media.factory'),
+        $this->container->get('logger.factory'),
+      ])
+      ->setMethods([
+        'phpFileGetContents'
+      ])
+      ->getMock();
+    $fileHelper->expects($this->any())->method('phpFileGetContents')->willReturn('File contents');
+    $this->container->set('acquiadam.asset_file.helper', $fileHelper);
     \Drupal::setContainer($this->container);
   }
 
   /**
    * Creates a media entity with a given Asset ID.
    *
-   * @param int $asset_id
+   * @param string $asset_id
    *   The asset ID.
    * @param string $bundle
    *   The media entity.
@@ -88,14 +139,12 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  protected function createMedia(int $asset_id, string $bundle = self::DEFAULT_BUNDLE) {
+  protected function createMedia(string $asset_id, string $bundle = self::DEFAULT_BUNDLE) {
     $media = Media::create([
       'bundle' => $bundle,
       'field_acquiadam_asset_id' => $asset_id,
     ]);
-
     $media->save();
-
     return $media;
   }
 

@@ -144,13 +144,11 @@ trait AcquiadamAssetDataTrait {
    *   The updated asset.
    */
   protected function generateNewVersion(Asset $asset) {
-    $asset->version++;
-
+    $asset->file_upload_date = '2021-09-28T12:21:21Z';
     $filename_parts = explode('.', $asset->filename);
-    $asset->filename = $filename_parts[0] . '_version_' . $asset->version . '.' . $filename_parts[1];
+    $asset->filename = $filename_parts[0] . '_version_.' . $filename_parts[1];
 
     return $asset;
   }
-
 
 }

@@ -6,7 +6,7 @@ dependencies:
 id: media.field_acquiadam_asset_id
 field_name: field_acquiadam_asset_id
 entity_type: media
-type: integer
+type: string
 settings:
   unsigned: false
   size: normal

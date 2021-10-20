@@ -160,7 +160,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getMimeTypeFromFileType($fileType) {
     $fake_name = sprintf('public://nothing.%s', $fileType);
-    $mimetype = $this->mimeTypeGuesser->guess($fake_name);
+    $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
     if (empty($mimetype)) {
       return FALSE;
     }

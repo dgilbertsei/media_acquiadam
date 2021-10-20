@@ -42,16 +42,18 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    */
   protected $acquiadamReflectionClass;
 
+
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->sourceReflectionClass = new \ReflectionClass(AcquiadamAsset::class);
     $this->acquiadamReflectionClass = new \ReflectionClass(Acquiadam::class);
 
     $this->asset = $this->getAssetData();
+
 
     // Create file with same name as asset file to make sure asset file
     // replacement happens as expected.
@@ -68,13 +70,11 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests if field mappings work as expected.
    */
   public function testFieldMappings() {
-    $media_description = $this->media->get('field_acquiadam_asset_descrip')->getString();
     $media_file_uri = $this->getAssetFileEntity($this->media)->getFileUri();
     $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
 
-    $this->assertEqual($this->media->label(), $this->asset->filename, 'Media name mapped to asset filename as expected.');
-    $this->assertEqual($media_description, $this->asset->description, 'Media description mapped to asset description as expected.');
-    $this->assertEqual($media_file_uri, $expected_asset_uri, 'Media file URI mapped as expected.');
+    $this->assertEquals($this->media->label(), $this->asset->filename, 'Media name mapped to asset filename as expected.');
+    $this->assertEquals($media_file_uri, $expected_asset_uri, 'Media file URI mapped as expected.');
   }
 
   /**
@@ -82,19 +82,17 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    */
   public function testNewVersionUpdate() {
     /** @var \Drupal\acquiadam\AssetData $asset_data */
-    $asset_data = $this->container->get('acquiadam.asset_data');
+    $asset_data = $this->getAssetData();
 
     $this->saveNewVersion();
 
     $file = $this->getAssetFileEntity($this->media);
     $file_uri = $file->getFileUri();
     $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
-    $new_version = $asset_data->get($this->asset->id, 'version');
 
-    $this->assertEqual($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
-    $this->assertEqual($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
-    $this->assertEqual($file->label(), $this->asset->filename, 'File entity label updated as expected.');
-    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
+    $this->assertEquals($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
+    $this->assertEquals($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
+    $this->assertEquals($file->label(), $this->asset->filename, 'File entity label updated as expected.');
   }
 
   /**
@@ -108,26 +106,23 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     /** @var \Drupal\Core\File\FileSystem $file_system */
     $file_system = $this->container->get('file_system');
 
-    // Store old version to test if version remains unchanged.
-    $old_version = $asset_data->get($this->asset->id, 'version');
-
     // Makes directory read only so file save fails.
     $directory = $asset_file_helper->getDestinationFromEntity($this->media, 'field_acquiadam_asset_file');
     $file_system->chmod($directory, 0000);
 
     // Attempts to save new version of asset while directory isn't accessible.
     $this->saveNewVersion();
-    $new_version = $asset_data->get($this->asset->id, 'version');
+    $new_version = $this->acquiaAssetData->isUpdatedAsset($this->asset);
 
-    $this->assertEqual($old_version, $new_version, 'Asset version unchanged as expected.');
+    $this->assertEquals(TRUE, $new_version, 'Asset version unchanged as expected.');
 
     // Restore permissions to directory and resave entity.
     $file_system->chmod($directory, FileSystem::CHMOD_DIRECTORY);
     $this->reSaveMedia();
-    $new_version = $asset_data->get($this->asset->id, 'version');
+    $new_version = $this->acquiaAssetData->isUpdatedAsset($this->asset);
 
-    $this->assertNotEqual($old_version, $new_version, 'New version different from old version.');
-    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
+    $this->assertNotEquals(FALSE, $new_version, 'New version different from old version.');
+    $this->assertEquals(TRUE, $new_version, 'Asset version updated as expected.');
   }
 
   /**
@@ -136,7 +131,6 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * See DAM-157 for context.
    */
   public function testAssetFileIsCorrect() {
-
     // Store the unchanged FID and create a new revision.
     $expected_fid = $this->getAssetFileEntity($this->media)->id();
     $this->createNewMediaRevision();
@@ -144,7 +138,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     // Create other media entity to test if its asset file won't be referenced
     // by first media entity.
     $other_asset = $this->getAssetData([
-      'id' => 3455970,
+      'id' => '34asd3q2-e294-4908-bbd9-f43f433d2e33',
       'filename' => 'other_file.jpg',
     ]);
     $this->testClient->addAsset($other_asset);
@@ -157,10 +151,10 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
 
     // Re-loads FID to assert it's unchanged.
     $actual_fid = $this->getAssetFileEntity($this->media)->id();
-    $this->assertEqual($actual_fid, $expected_fid, 'First media entity still has reference to the expected file.');
+    $this->assertEquals($actual_fid, $expected_fid, 'First media entity still has reference to the expected file.');
 
     // Asserts second media file is still correct.
-    $this->assertEqual($other_file->getFileUri(), $this->getAssetUri($other_asset, $other_media), 'Second media entity still has the expected URI.');
+    $this->assertEquals($other_file->getFileUri(), $this->getAssetUri($other_asset, $other_media), 'Second media entity still has the expected URI.');
   }
 
   /**

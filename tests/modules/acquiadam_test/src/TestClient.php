@@ -17,46 +17,6 @@ class TestClient {
   protected $testAssets = [];
 
   /**
-   * Array with test notifications.
-   *
-   * @var array
-   */
-  protected $notifications = [];
-
-  /**
-   * Test data for Active XMP fields.
-   *
-   * @return array
-   *   An empty array.
-   */
-  public function getActiveXmpFields() {
-    return [];
-  }
-
-  /**
-   * Add a test notification.
-   *
-   * @param array $notification
-   *   The test notification to add.
-   */
-  public function addNotification(array $notification) {
-    $this->notifications[] = $notification;
-  }
-
-  /**
-   * Returns the notifications with the expected format.
-   *
-   * @return array
-   *   The notifications with the expected format.
-   */
-  public function getNotifications() {
-    return [
-      'total' => count($this->notifications),
-      'notifications' => $this->notifications,
-    ];
-  }
-
-  /**
    * Add or modify a test asset.
    *
    * @param \Drupal\acquiadam\Entity\Asset $asset
