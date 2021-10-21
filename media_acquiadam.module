@@ -383,7 +383,7 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
   // Check whether user is authenticated or not.
   $client = \Drupal::service('media_acquiadam.client');
   $user_authenticated = $client->checkAuth();
-  $return_link = Url::fromRoute('acquiadam.user_auth', ['uid' => $account->id()], ['absolute' => TRUE])->toString();
+  $return_link = Url::fromRoute('media_acquiadam.user_auth', ['uid' => $account->id()], ['absolute' => TRUE])->toString();
   // Fetch Auth URL.
   $auth_url = AcquiadamAuthService::generateAuthUrl($return_link);
   // Add a warning if module is not configured.
