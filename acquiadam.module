@@ -327,9 +327,12 @@ function acquiadam_form_media_form_alter(&$form, FormStateInterface &$form_state
  * Implements hook_form_FORM_ID_alter().
  */
 function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$form_state) {
+
   $message = '';
   $messenger = \Drupal::messenger();
   $account = \Drupal::currentUser();
+
+  $mapping_field_min_weight = 0;
   $form['#attached']['library'][] = 'acquiadam/asset_form';
 
   // Add a field mapping to the entity publishing status if one doesn't exist.
@@ -345,11 +348,21 @@ function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$
         $mappings[$key]['#weight'] -= 10;
       }
 
+      // Get the minimum weight of the mapping items.
+      if ($mapping_field_min_weight > $mappings[$key]['#weight']) {
+        $mapping_field_min_weight = $mappings[$key]['#weight'];
+      }
+
       $options = &$mappings[$key]['#options'];
       if (!isset($options['status'])) {
         $options['status'] = t('Publishing status');
       }
     }
+  }
+  // Assign minimum weight to the description, so it shows at the top of the
+  // other mapping fields.
+  if (isset($mappings['description']) && ($mapping_field_min_weight != 0)) {
+    $mappings['description']['#weight'] = $mapping_field_min_weight - 10;
   }
 
   // Insert headline before first XMP field in the fieldset.
