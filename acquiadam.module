@@ -327,6 +327,9 @@ function acquiadam_form_media_form_alter(&$form, FormStateInterface &$form_state
  * Implements hook_form_FORM_ID_alter().
  */
 function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$form_state) {
+  $message = '';
+  $messenger = \Drupal::messenger();
+  $account = \Drupal::currentUser();
   $form['#attached']['library'][] = 'acquiadam/asset_form';
 
   // Add a field mapping to the entity publishing status if one doesn't exist.
@@ -366,6 +369,34 @@ function acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterface &$
     ];
     array_splice($mappings, $offset, 0, $xmp_header);
   }
+  // Check whether user is authenticated or not.
+  $client = \Drupal::service('acquiadam.client');
+  $user_authenticated = $client->checkAuth();
+  $return_link = Url::fromRoute('acquiadam.user_auth', ['uid' => $account->id()], ['absolute' => TRUE])->toString();
+  // Fetch Auth URL.
+  $auth_url = AcquiadamAuthService::generateAuthUrl($return_link);
+  // Add a warning if module is not configured.
+  if (!$auth_url) {
+    // If Acquia Dam module is not configured yet, display an warning to
+    // Configure the module first.
+    $message = t('Acquia DAM module is not configured yet. Please contact your administrator to do so.');
+    if ($account->hasPermission('administer site configuration')) {
+      $message = t('Acquia DAM module is not configured yet. Please %config it to start using Acquia DAM assets.', [
+        '%config' => Link::createFromRoute(t('configure'), 'acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
+      ]);
+    }
+  }
+  // Add a warning user is not authenticated and module is not configured.
+  elseif (!$user_authenticated && $auth_url) {
+    $auth_link = Url::fromUri($auth_url, ['attributes' => ['target' => '_blank']]);
+    $message = t('You are not authenticated on Acquia DAM. Please %authenticate to see and map all metadata fields.', [
+      '%authenticate' => Link::fromTextAndUrl("Authenticate", $auth_link)->toString(),
+    ]);
+  }
+  if ($message) {
+    $messenger->addWarning($message);
+  }
+
 }
 
 /**
