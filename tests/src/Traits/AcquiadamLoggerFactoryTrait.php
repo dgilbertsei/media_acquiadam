@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Traits;
+namespace Drupal\Tests\media_acquiadam\Traits;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
@@ -25,7 +25,7 @@ trait AcquiadamLoggerFactoryTrait {
       ->disableOriginalConstructor()
       ->getMock();
     $logger_factory->method('get')
-      ->with('acquiadam')
+      ->with('media_acquiadam')
       ->willReturn($logger_channel);
 
     return $logger_factory;

@@ -3,14 +3,14 @@
  * @file
  * Client for the Acquia DAM integration.
  */
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
-use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Entity\Category;
-use Drupal\acquiadam\Entity\MiniFolder;
-use Drupal\acquiadam\Entity\User;
-use Drupal\acquiadam\Exception\InvalidCredentialsException;
-use Drupal\acquiadam\Exception\UploadAssetException;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Category;
+use Drupal\media_acquiadam\Entity\MiniFolder;
+use Drupal\media_acquiadam\Entity\User;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
+use Drupal\media_acquiadam\Exception\UploadAssetException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserDataInterface;
@@ -89,7 +89,7 @@ class Client {
     $this->userData = $user_data;
     $this->account = $account;
     $this->configFactory = $configFactory;
-    $this->config = $configFactory->get('acquiadam.settings');
+    $this->config = $configFactory->get('media_acquiadam.settings');
   }
 
   /**
@@ -98,7 +98,7 @@ class Client {
    */
   public function checkAuth() {
     if ($this->account->isAuthenticated()) {
-      $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+      $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
       if (isset($account['acquiadam_username']) && isset($account['acquiadam_token'])) {
         return TRUE;
       }
@@ -118,7 +118,7 @@ class Client {
   public function getAuthState() {
     $state = ['valid_token' => FALSE];
 
-    $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+    $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
     if (isset($account['acquiadam_username']) || isset($account['acquiadam_token'])) {
       $state = [
         'valid_token' => TRUE,
@@ -138,7 +138,7 @@ class Client {
   protected function getDefaultHeaders() {
     $token = NULL;
     if ($this->account->isAuthenticated()) {
-      $account = $this->userData->get('acquiadam', $this->account->id(), 'account');
+      $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
       if (isset($account['acquiadam_token'])) {
         $token = $account['acquiadam_token'];
       }
@@ -310,7 +310,7 @@ class Client {
    *   Response Status 100 / 200
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   protected function uploadPresigned($presignedUrl, $file_uri, $file_type) {
     $this->checkAuth();
@@ -583,7 +583,7 @@ class Client {
    *   An array of response data.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   public function queueAssetDownload($assetIDs, array $options) {
     $this->checkAuth();
@@ -629,7 +629,7 @@ class Client {
    *   An array of response data.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   public function downloadFromQueue($downloadKey) {
     $this->checkAuth();
@@ -668,11 +668,11 @@ class Client {
    *                             Values: '+3 min', '+15 min', '+2 hours',
    *                             '+1 day', '+2 weeks', 'no-expiration'.
    *
-   * @return \Drupal\acquiadam\Entity\Asset|bool
+   * @return \Drupal\media_acquiadam\Entity\Asset|bool
    *   An asset object on success, or FALSE on failure.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   public function editAsset($assetID, array $data) {
     $this->checkAuth();
@@ -707,7 +707,7 @@ class Client {
    *   The metadata of the asset.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   public function editAssetXmpMetadata($assetID, array $data) {
     $this->checkAuth();
@@ -743,7 +743,7 @@ class Client {
       $this->checkAuth();
     }
     catch (\Exception $e) {
-      \Drupal::logger('acquiadam')->error('Unable to authenticate to retrieve metadata fields.');
+      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to retrieve metadata fields.');
       $this->specificMetadataFields = [];
       return $this->specificMetadataFields;
     }
@@ -759,7 +759,7 @@ class Client {
 
     }
     catch (\Exception $e) {
-      \Drupal::logger('acquiadam')->error('Unable to retrieve metadata fields.');
+      \Drupal::logger('media_acquiadam')->error('Unable to retrieve metadata fields.');
       $this->specificMetadataFields = [];
       return $this->specificMetadataFields;
     }
@@ -813,7 +813,7 @@ class Client {
    *   - "notifications" - notification items.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\acquiadam\Exception\InvalidCredentialsException
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
   public function getNotifications(array $query_options = []): array {
     $this->checkAuth();
@@ -833,7 +833,7 @@ class Client {
       ]
     );
     if ($response->getStatusCode() == 429) {
-      \Drupal::logger('acquiadam')->error(
+      \Drupal::logger('media_acquiadam')->error(
         'Failed to fetch asset ids: Too Many Requests.'
       );
       return [];
@@ -854,7 +854,7 @@ class Client {
       $this->checkAuth();
     }
     catch (\Exception $e) {
-      \Drupal::logger('acquiadam')->error('Unable to authenticate to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
       return FALSE;
     }
 
@@ -871,7 +871,7 @@ class Client {
       $response = json_decode((string) $response->getBody(), TRUE);
     }
     catch (\Exception $e) {
-      \Drupal::logger('acquiadam')->error('Unable to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      \Drupal::logger('media_acquiadam')->error('Unable to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
       return FALSE;
     }
 

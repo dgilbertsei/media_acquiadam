@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\acquiadam\Controller;
+namespace Drupal\media_acquiadam\Controller;
 
-use Drupal\acquiadam\AcquiadamInterface;
-use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Service\AssetImageHelper;
-use Drupal\acquiadam\Service\AssetMetadataHelper;
+use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Service\AssetImageHelper;
+use Drupal\media_acquiadam\Service\AssetMetadataHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,14 +19,14 @@ class AcquiadamController extends ControllerBase {
   /**
    * A configured API object.
    *
-   * @var \Drupal\acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiadam;
 
   /**
    * The asset that we're going to render details for.
    *
-   * @var \Drupal\acquiadam\Entity\Asset
+   * @var \Drupal\media_acquiadam\Entity\Asset
    */
   protected $asset;
 
@@ -47,27 +47,27 @@ class AcquiadamController extends ControllerBase {
   /**
    * Acquia DAM asset image helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetImageHelper
+   * @var \Drupal\media_acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
    * Acquia DAM asset metadata helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetMetadataHelper
+   * @var \Drupal\media_acquiadam\Service\AssetMetadataHelper
    */
   protected $assetMetadataHelper;
 
   /**
    * AcquiadamController constructor.
    *
-   * @param \Drupal\acquiadam\AcquiadamInterface $acquiadam
+   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
    *   The Acquiadam Interface.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Drupal config factory.
-   * @param \Drupal\acquiadam\Service\AssetImageHelper $assetImageHelper
+   * @param \Drupal\media_acquiadam\Service\AssetImageHelper $assetImageHelper
    *   Acquia DAM asset image helper service.
-   * @param \Drupal\acquiadam\Service\AssetMetadataHelper $assetMetadataHelper
+   * @param \Drupal\media_acquiadam\Service\AssetMetadataHelper $assetMetadataHelper
    *   Acquia DAM asset metadata helper service.
    */
   public function __construct(AcquiadamInterface $acquiadam, ConfigFactoryInterface $configFactory, AssetImageHelper $assetImageHelper, AssetMetadataHelper $assetMetadataHelper) {
@@ -76,7 +76,7 @@ class AcquiadamController extends ControllerBase {
     $this->assetImageHelper = $assetImageHelper;
     $this->assetMetadataHelper = $assetMetadataHelper;
 
-    $this->config = $configFactory->get('acquiadam.settings');
+    $this->config = $configFactory->get('media_acquiadam.settings');
   }
 
   /**
@@ -84,10 +84,10 @@ class AcquiadamController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('acquiadam.acquiadam'),
+      $container->get('media_acquiadam.acquiadam'),
       $container->get('config.factory'),
-      $container->get('acquiadam.asset_image.helper'),
-      $container->get('acquiadam.asset_metadata.helper')
+      $container->get('media_acquiadam.asset_image.helper'),
+      $container->get('media_acquiadam.asset_metadata.helper')
     );
   }
 
@@ -114,7 +114,7 @@ class AcquiadamController extends ControllerBase {
    * @param int $assetId
    *   The asset ID for the asset to render details for.
    *
-   * @return \Drupal\acquiadam\Entity\Asset|false
+   * @return \Drupal\media_acquiadam\Entity\Asset|false
    *   The asset or FALSE on failure.
    */
   protected function getAsset($assetId) {
@@ -181,7 +181,7 @@ class AcquiadamController extends ControllerBase {
       '#asset_link' => "https://{$this->config->get('domain')}/details/asset/{$asset->external_id}",
       '#attached' => [
         'library' => [
-          'acquiadam/asset_details',
+          'media_acquiadam/asset_details',
         ],
       ],
     ];

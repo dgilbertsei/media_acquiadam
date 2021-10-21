@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
 /**
  * Class AcquiadamAuthService.
  *
- * @package Drupal\acquiadam
+ * @package Drupal\media_acquiadam
  */
 class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
 
@@ -22,7 +22,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    *   An immutable configuration object.
    */
   public static function getConfig() {
-    return \Drupal::config('acquiadam.settings');
+    return \Drupal::config('media_acquiadam.settings');
   }
 
   /**

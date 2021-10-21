@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\acquiadam\AcquiadamAuthService;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\Core\Messenger\Messenger;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
@@ -29,7 +29,7 @@ class AcquiadamAuthTest extends UnitTestCase {
   /**
    * Acquia DAM oAuth service.
    *
-   * @var \Drupal\acquiadam\AcquiadamAuthService
+   * @var \Drupal\media_acquiadam\AcquiadamAuthService
    */
   protected $acquidamAuth;
 
@@ -110,8 +110,8 @@ class AcquiadamAuthTest extends UnitTestCase {
     $this->container->set('http_client', $http_client);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     $this->container->set('messenger', $messenger);
-    $this->container->set('acquiadam.auth', $acquidamAuth);
-    $this->acquidamAuth = \Drupal::service('acquiadam.auth');
+    $this->container->set('media_acquiadam.auth', $acquidamAuth);
+    $this->acquidamAuth = \Drupal::service('media_acquiadam.auth');
   }
 
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -12,7 +12,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
-use Drupal\acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -67,21 +67,21 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Acquia DAM asset image helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetImageHelper
+   * @var \Drupal\media_acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
    * Acquia DAM client.
    *
-   * @var \Drupal\acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
    * Acquia DAM factory for wrapping media entities.
    *
-   * @var \Drupal\acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -105,11 +105,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   Drupal filesystem service.
    * @param \Drupal\Core\Utility\Token $token
    *   Drupal token service.
-   * @param \Drupal\acquiadam\Service\AssetImageHelper $assetImageHelper
+   * @param \Drupal\media_acquiadam\Service\AssetImageHelper $assetImageHelper
    *   Acquia DAM asset image helper service.
-   * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
+   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiaDamClient
    *   Acquia DAM client.
-   * @param \Drupal\acquiadam\Service\AssetMediaFactory $assetMediaFactory
+   * @param \Drupal\media_acquiadam\Service\AssetMediaFactory $assetMediaFactory
    *   Acquia DAM Asset Media Factory service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
@@ -127,13 +127,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
     $this->configFactory = $configFactory;
-    $this->config = $configFactory->get('acquiadam.settings');
+    $this->config = $configFactory->get('media_acquiadam.settings');
     $this->fileSystem = $fileSystem;
     $this->token = $token;
     $this->assetImageHelper = $assetImageHelper;
     $this->acquiaDamClient = $acquiaDamClient;
     $this->assetMediaFactory = $assetMediaFactory;
-    $this->loggerChannel = $loggerChannelFactory->get('acquiadam');
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
   }
 
   /**
@@ -146,9 +146,9 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $container->get('config.factory'),
       $container->get('file_system'),
       $container->get('token'),
-      $container->get('acquiadam.asset_image.helper'),
-      $container->get('acquiadam.acquiadam'),
-      $container->get('acquiadam.asset_media.factory'),
+      $container->get('media_acquiadam.asset_image.helper'),
+      $container->get('media_acquiadam.acquiadam'),
+      $container->get('media_acquiadam.asset_media.factory'),
       $container->get('logger.factory')
     );
   }
@@ -191,7 +191,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Creates a new file for an asset.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to save a new file for.
    * @param string $destination_folder
    *   The path to save the asset into.
@@ -242,7 +242,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Fetches binary asset data from a remote source.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to fetch data for.
    * @param string filename
    *   The filename as a reference so it can be overridden.

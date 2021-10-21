@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
-use Drupal\acquiadam\AcquiadamInterface;
-use Drupal\acquiadam\Exception\InvalidCredentialsException;
+use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -20,14 +20,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * assets where changed within the given period of time, and adds them to the
  * queue.
  *
- * @package Drupal\acquiadam
+ * @package Drupal\media_acquiadam
  */
 class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInjectionInterface {
 
   /**
    * The Acquiadam Service.
    *
-   * @var \Drupal\acquiadam\AcquiadamInterface
+   * @var \Drupal\media_acquiadam\AcquiadamInterface
    */
   protected $acquiadam;
 
@@ -69,7 +69,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   /**
    * AssetRefreshManager constructor.
    *
-   * @param \Drupal\acquiadam\AcquiadamInterface $acquiadam
+   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiadam
    *   The Acquiadam Service.
    * @param \Drupal\Core\State\StateInterface $state
    *   The Drupal State Service.
@@ -86,7 +86,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager) {
     $this->acquiadam = $acquiadam;
     $this->state = $state;
-    $this->logger = $logger_factory->get('acquiadam');
+    $this->logger = $logger_factory->get('media_acquiadam');
     $this->queue = $queue_factory->get($this->getQueueName());
     $this->mediaStorage = $entity_type_manager->getStorage('media');
   }
@@ -96,7 +96,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('acquiadam.acquiadam'),
+      $container->get('media_acquiadam.acquiadam'),
       $container->get('state'),
       $container->get('logger.factory'),
       $container->get('queue'),
@@ -108,7 +108,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    * {@inheritdoc}
    */
   public function getQueueName(): string {
-    return 'acquiadam_asset_refresh';
+    return 'media_acquiadam_asset_refresh';
   }
 
   /**
@@ -171,7 +171,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         $offset = $this->getRequestLimit() * ($page - 1);
 
         // @TODO: Deal with the timezone.
-        $date = date('Y-m-d\TH:i:s\Z', \Drupal::state()->get('acquiadam.last_sync'));
+        $date = date('Y-m-d\TH:i:s\Z', \Drupal::state()->get('media_acquiadam.last_sync'));
 
         $response = $this->acquiadam->searchAssets([
           'limit' => $this->getRequestLimit(),

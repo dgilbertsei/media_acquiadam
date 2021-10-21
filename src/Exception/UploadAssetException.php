@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains Drupal\acquiadam\Exception\UploadAssetException.
+ * Contains Drupal\media_acquiadam\Exception\UploadAssetException.
  */
 
-namespace Drupal\acquiadam\Exception;
+namespace Drupal\media_acquiadam\Exception;
 
 /**
  * Class UploadAssetException

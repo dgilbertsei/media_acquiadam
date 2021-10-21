@@ -1,0 +1,11 @@
+media_acquiadam.config:
+  route_name : media_acquiadam.config
+  title: Acquiadam Configurations
+  base_route: media_acquiadam.config
+  weight: 0
+
+media_acquiadam.migrate_assets:
+  route_name: media_acquiadam.migrate_assets
+  title: Migrate Assets
+  base_route: media_acquiadam.config
+  weight: 1

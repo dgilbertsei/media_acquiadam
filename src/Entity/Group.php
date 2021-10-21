@@ -5,7 +5,7 @@
  * Describes Acquia DAM's Group data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class Group implements EntityInterface, \JsonSerializable {
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -12,14 +12,14 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\Service\AssetFileEntityHelper;
-use Drupal\acquiadam\Service\AssetMediaFactory;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetImageHelperTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
+use Drupal\media_acquiadam\Service\AssetMediaFactory;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetImageHelperTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -41,7 +41,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
   /**
    * A mocked AssetFileEntityHelper.
    *
-   * @var \Drupal\acquiadam\Service\AssetFileEntityHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $assetFileEntityHelper;
 
@@ -103,10 +103,10 @@ class AssetFileEntityHelperTest extends UnitTestCase {
 
     $this->container = new ContainerBuilder();
     $this->setMockedDrupalServices($this->container);
-    $this->container->set('acquiadam.asset_image.helper',
+    $this->container->set('media_acquiadam.asset_image.helper',
       $this->getAssetImageHelperStub());
-    $this->container->set('acquiadam.acquiadam', $acquiadam);
-    $this->container->set('acquiadam.asset_media.factory',
+    $this->container->set('media_acquiadam.acquiadam', $acquiadam);
+    $this->container->set('media_acquiadam.asset_media.factory',
       $asset_media_factory);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
     \Drupal::setContainer($this->container);
@@ -164,7 +164,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
     $entity_field_manager->method('getFieldDefinitions')->willReturnMap([
-      ['media', 'acquiadam', ['phpunit_file_field' => $field_definition]],
+      ['media', 'media_acquiadam', ['phpunit_file_field' => $field_definition]],
     ]);
 
     $token = $this->getMockBuilder(Token::class)
@@ -197,7 +197,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
   /**
    * Get a mocked AssetFileEntityHelper that stubs file operations.
    *
-   * @return \Drupal\acquiadam\Service\AssetFileEntityHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\media_acquiadam\Service\AssetFileEntityHelper|\PHPUnit\Framework\MockObject\MockObject
    *   The mocked AssetFileEntityHelper class.
    */
   protected function getMockedAssetFileEntityHelper() {
@@ -208,9 +208,9 @@ class AssetFileEntityHelperTest extends UnitTestCase {
         $this->container->get('config.factory'),
         $this->container->get('file_system'),
         $this->container->get('token'),
-        $this->container->get('acquiadam.asset_image.helper'),
-        $this->container->get('acquiadam.acquiadam'),
-        $this->container->get('acquiadam.asset_media.factory'),
+        $this->container->get('media_acquiadam.asset_image.helper'),
+        $this->container->get('media_acquiadam.acquiadam'),
+        $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
       ])
       ->setMethods([

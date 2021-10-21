@@ -1,18 +1,18 @@
 <?php
 
-namespace Drupal\acquiadam\Plugin\QueueWorker;
+namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\acquiadam\Client;
+use Drupal\media_acquiadam\Client;
 
 /**
  * Report Acquia DAM asset usage via integration links.
  *
  * @QueueWorker (
- *   id = "acquiadam_integration_link_report",
+ *   id = "media_acquiadam_integration_link_report",
  *   title = @Translation("Acquia DAM Integration Link Report"),
  *   cron = {"time" = 30}
  * )
@@ -22,7 +22,7 @@ class IntegrationLinkReport extends QueueWorkerBase implements ContainerFactoryP
   /**
    * Acquia DAM client factory.
    *
-   * @var \Drupal\acquiadam\Client
+   * @var \Drupal\media_acquiadam\Client
    */
   protected $client;
 
@@ -50,8 +50,8 @@ class IntegrationLinkReport extends QueueWorkerBase implements ContainerFactoryP
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('acquiadam.client'),
-      $container->get('logger.factory')->get('acquiadam')
+      $container->get('media_acquiadam.client'),
+      $container->get('logger.factory')->get('media_acquiadam')
     );
   }
 

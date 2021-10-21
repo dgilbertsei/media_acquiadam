@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
 /**
  * Interface AcquiadamInterface.

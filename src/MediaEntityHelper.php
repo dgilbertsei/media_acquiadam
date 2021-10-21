@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
-use Drupal\acquiadam\Service\AssetFileEntityHelper;
+use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 
 /**
  * Class MediaEntityHelper.
@@ -25,21 +25,21 @@ class MediaEntityHelper {
   /**
    * Acquia DAM asset data service.
    *
-   * @var \Drupal\acquiadam\AssetData
+   * @var \Drupal\media_acquiadam\AssetData
    */
   protected $assetData;
 
   /**
    * Acquia DAM client.
    *
-   * @var \Drupal\acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
   /**
    * Acquia DAM asset file helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetFileEntityHelper
+   * @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper
    */
   protected $assetFileHelper;
 
@@ -57,11 +57,11 @@ class MediaEntityHelper {
    *   The media entity to wrap.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity Type Manager service.
-   * @param \Drupal\acquiadam\AssetDataInterface $assetData
+   * @param \Drupal\media_acquiadam\AssetDataInterface $assetData
    *   Acquia DAM asset data service.
-   * @param \Drupal\acquiadam\AcquiadamInterface $acquiaDamClient
+   * @param \Drupal\media_acquiadam\AcquiadamInterface $acquiaDamClient
    *   Acquia DAM client.
-   * @param \Drupal\acquiadam\Service\AssetFileEntityHelper $assetFileHelper
+   * @param \Drupal\media_acquiadam\Service\AssetFileEntityHelper $assetFileHelper
    *   Acquia DAM file entity helper service.
    */
   public function __construct(MediaInterface $media, EntityTypeManagerInterface $entityTypeManager, AssetDataInterface $assetData, AcquiadamInterface $acquiaDamClient, AssetFileEntityHelper $assetFileHelper) {
@@ -157,7 +157,7 @@ class MediaEntityHelper {
   /**
    * Get the asset from a media entity.
    *
-   * @return bool|\Drupal\acquiadam\Entity\Asset
+   * @return bool|\Drupal\media_acquiadam\Entity\Asset
    *   The asset or FALSE on failure.
    */
   public function getAsset() {

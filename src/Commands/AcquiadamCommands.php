@@ -1,16 +1,16 @@
 <?php
 
-namespace Drupal\acquiadam\Commands;
+namespace Drupal\media_acquiadam\Commands;
 
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
-use Drupal\acquiadam\Form\AcquiadamMigrateAssets;
+use Drupal\media_acquiadam\Form\AcquiadamMigrateAssets;
 
 /**
  * Acquia DAM drush commands.
  *
- * @package Drupal\acquiadam\Commands
+ * @package Drupal\media_acquiadam\Commands
  */
 class AcquiadamCommands extends DrushCommands {
 
@@ -26,7 +26,7 @@ class AcquiadamCommands extends DrushCommands {
    */
   public function __construct(ConfigFactoryInterface $config_factory) {
     parent::__construct();
-    $this->config = $config_factory->get('acquiadam.settings');
+    $this->config = $config_factory->get('media_acquiadam.settings');
   }
 
   /**
@@ -39,9 +39,9 @@ class AcquiadamCommands extends DrushCommands {
    * @option string $delimiter The CSV delimited.
    */
   public function migrate($file, $options = ['delimiter' => ',']) {
-    $legacy_ids_to_new_ids = _acquiadam_parse_migration_csv($file, $options['delimiter']);
+    $legacy_ids_to_new_ids = _media_acquiadam_parse_migration_csv($file, $options['delimiter']);
 
-    $batch = _acquiadam_build_migration_batch($legacy_ids_to_new_ids);
+    $batch = _media_acquiadam_build_migration_batch($legacy_ids_to_new_ids);
 
     batch_set($batch);
     drush_backend_batch_process();
@@ -76,32 +76,32 @@ class AcquiadamCommands extends DrushCommands {
    */
   public function sync($options = ['method' => null, 'date' => null]) {
     if (($options['method'] && $options['method'] === 'delta') || $this->config->get('sync_method') === 'updated_date') {
-      $sync_timestamp = \Drupal::state()->get('acquiadam.last_sync');
+      $sync_timestamp = \Drupal::state()->get('media_acquiadam.last_sync');
       // If a specific date has been provided, we need to temporary replace the
       // acquiadam.last_sync state value as it is the one used by sub-processes.
       if ($options['date']) {
         $previous_last_sync = $sync_timestamp;
         $sync_timestamp = strtotime($options['date']);
-        \Drupal::state()->set('acquiadam.last_sync', $sync_timestamp);
+        \Drupal::state()->set('media_acquiadam.last_sync', $sync_timestamp);
       }
 
       $this->logger()->notice(dt('Fetching and queuing for synchronization the assets which have been updated since @date.', ['@date' => date('c', $sync_timestamp)]));
 
-      acquiadam_refresh_asset_sync_updated_date_queue();
+      media_acquiadam_refresh_asset_sync_updated_date_queue();
 
       // If a specific date has been provided, we need to revert the previous
       // state value.
       if ($options['date']) {
-        \Drupal::state()->set('acquiadam.last_sync', $previous_last_sync);
+        \Drupal::state()->set('media_acquiadam.last_sync', $previous_last_sync);
       }
     }
     else {
       $this->logger()->notice(dt("Queuing all the Acquia DAM's related media for synchronization."));
 
-      acquiadam_refresh_asset_sync_queue();
+      media_acquiadam_refresh_asset_sync_queue();
     }
 
-    $total_queue_items = \Drupal::queue('acquiadam_asset_refresh')->numberOfItems();
+    $total_queue_items = \Drupal::queue('media_acquiadam_asset_refresh')->numberOfItems();
     $this->logger()->success(dt('@total_queue_items medias have been queued for sync.', ['@total_queue_items' => $total_queue_items]));
   }
 

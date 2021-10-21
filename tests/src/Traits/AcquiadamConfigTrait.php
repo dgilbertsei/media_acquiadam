@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Traits;
+namespace Drupal\Tests\media_acquiadam\Traits;
 
 /**
  * A shared mock config factory service.
@@ -14,7 +14,7 @@ trait AcquiadamConfigTrait {
    */
   public function getConfigFactoryStub(array $configs = []) {
     return parent::getConfigFactoryStub([
-      'acquiadam.settings' => [
+      'media_acquiadam.settings' => [
         'token' => 'demo/121someRandom1342test32st',
         'sync_interval' => 3600,
         'sync_method' => "updated_date",

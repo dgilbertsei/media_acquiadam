@@ -5,7 +5,7 @@
  * Describes Acquia DAM's Asset data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class Asset implements EntityInterface, \JsonSerializable {
 

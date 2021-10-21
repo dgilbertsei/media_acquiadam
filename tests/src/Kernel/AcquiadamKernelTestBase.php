@@ -1,16 +1,16 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Kernel;
+namespace Drupal\Tests\media_acquiadam\Kernel;
 
-use Drupal\acquiadam\AssetData;
-use Drupal\acquiadam\Client;
-use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Service\AssetFileEntityHelper;
+use Drupal\media_acquiadam\AssetData;
+use Drupal\media_acquiadam\Client;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\media\Entity\Media;
 use Drupal\media\MediaInterface;
-use Drupal\acquiadam_test\TestClient;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\media_acquiadam_test\TestClient;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 
 /**
  * Base class for Acquia DAM kernel tests.
@@ -31,14 +31,14 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
     'file',
     'image',
     'media',
-    'acquiadam',
-    'acquiadam_test',
+    'media_acquiadam',
+    'media_acquiadam_test',
   ];
 
   /**
    * The test client.
    *
-   * @var \Drupal\acquiadam_test\TestClient
+   * @var \Drupal\media_acquiadam_test\TestClient
    */
   protected $testClient;
 
@@ -47,7 +47,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * Mocked to have a fixed set/get.
    *
-   * @var \Drupal\acquiadam\AssetData|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\AssetData|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $acquiaAssetData;
 
@@ -60,11 +60,11 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
 
     $this->setTestClient();
 
-    $this->installConfig('acquiadam_test');
+    $this->installConfig('media_acquiadam_test');
     $this->installEntitySchema('file');
     $this->installEntitySchema('media');
     $this->installSchema('file', ['file_usage']);
-    $this->installSchema('acquiadam', ['acquiadam_assets_data']);
+    $this->installSchema('media_acquiadam', ['acquiadam_assets_data']);
   }
 
   /**
@@ -89,7 +89,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
           'type' => "string"
         ]
       ]);
-    $this->container->set('acquiadam.client',
+    $this->container->set('media_acquiadam.client',
       $acquiadam_client_factory);
 
     $asset_data = $this->getMockBuilder(AssetData::class)
@@ -102,7 +102,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
     });
     $asset_data->expects($this->any())
       ->method('isUpdatedAsset')->willReturn(TRUE);
-    $this->container->set('acquiadam.asset_data', $asset_data);
+    $this->container->set('media_acquiadam.asset_data', $asset_data);
     $this->acquiaAssetData = $asset_data;
 
     $fileHelper = $this->getMockBuilder(AssetFileEntityHelper::class)
@@ -112,9 +112,9 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
         $this->container->get('config.factory'),
         $this->container->get('file_system'),
         $this->container->get('token'),
-        $this->container->get('acquiadam.asset_image.helper'),
-        $this->container->get('acquiadam.acquiadam'),
-        $this->container->get('acquiadam.asset_media.factory'),
+        $this->container->get('media_acquiadam.asset_image.helper'),
+        $this->container->get('media_acquiadam.acquiadam'),
+        $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
       ])
       ->setMethods([
@@ -122,7 +122,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ])
       ->getMock();
     $fileHelper->expects($this->any())->method('phpFileGetContents')->willReturn('File contents');
-    $this->container->set('acquiadam.asset_file.helper', $fileHelper);
+    $this->container->set('media_acquiadam.asset_file.helper', $fileHelper);
     \Drupal::setContainer($this->container);
   }
 
@@ -166,7 +166,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   /**
    * Get the URI from a given asset.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to generate the URI.
    * @param \Drupal\media\MediaInterface $media
    *   The media entity for this asset.
@@ -178,7 +178,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    */
   protected function getAssetUri(Asset $asset, MediaInterface $media) {
     $destination_folder = $this->container
-      ->get('acquiadam.asset_file.helper')
+      ->get('media_acquiadam.asset_file.helper')
       ->getDestinationFromEntity($media, 'field_acquiadam_asset_file');
 
     return sprintf('%s/%s', $destination_folder, $asset->filename);

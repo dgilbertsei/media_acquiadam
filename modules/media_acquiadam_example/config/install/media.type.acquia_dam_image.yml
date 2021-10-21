@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - media_acquiadam
+id: acquia_dam_image
+label: 'Acquia DAM Image'
+description: 'An image asset hosted on Acquia DAM.'
+source: acquiadam_asset
+queue_thumbnail_downloads: false
+new_revision: false
+source_configuration:
+  source_field: field_acquiadam_asset_id
+field_map:
+  description: field_acquiadam_asset_descrip
+  file: field_acquiadam_asset_image
+  filename: name

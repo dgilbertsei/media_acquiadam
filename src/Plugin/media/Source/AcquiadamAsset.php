@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam\Plugin\media\Source;
+namespace Drupal\media_acquiadam\Plugin\media\Source;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -10,9 +10,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
-use Drupal\acquiadam\Service\AssetImageHelper;
-use Drupal\acquiadam\Service\AssetMediaFactory;
-use Drupal\acquiadam\Service\AssetMetadataHelper;
+use Drupal\media_acquiadam\Service\AssetImageHelper;
+use Drupal\media_acquiadam\Service\AssetMediaFactory;
+use Drupal\media_acquiadam\Service\AssetMetadataHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -31,28 +31,28 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * The asset that we're going to render details for.
    *
-   * @var \Drupal\acquiadam\Entity\Asset
+   * @var \Drupal\media_acquiadam\Entity\Asset
    */
   protected $currentAsset = NULL;
 
   /**
    * Acquia DAM asset image helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetImageHelper
+   * @var \Drupal\media_acquiadam\Service\AssetImageHelper
    */
   protected $assetImageHelper;
 
   /**
    * Acquia DAM asset metadata helper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetMetadataHelper
+   * @var \Drupal\media_acquiadam\Service\AssetMetadataHelper
    */
   protected $assetMetadataHelper;
 
   /**
    * Acquia DAM Asset Media Factory service.
    *
-   * @var \Drupal\acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -99,9 +99,9 @@ class AcquiadamAsset extends MediaSourceBase {
       $container->get('entity_field.manager'),
       $container->get('plugin.manager.field.field_type'),
       $container->get('config.factory'),
-      $container->get('acquiadam.asset_image.helper'),
-      $container->get('acquiadam.asset_metadata.helper'),
-      $container->get('acquiadam.asset_media.factory')
+      $container->get('media_acquiadam.asset_image.helper'),
+      $container->get('media_acquiadam.asset_metadata.helper'),
+      $container->get('media_acquiadam.asset_media.factory')
     );
   }
 

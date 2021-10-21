@@ -1,15 +1,15 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\AssetDataInterface;
-use Drupal\acquiadam\Client;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\AssetDataInterface;
+use Drupal\media_acquiadam\Client;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -31,7 +31,7 @@ class AcquiadamServiceTest extends UnitTestCase {
   /**
    * Acquia DAM client.
    *
-   * @var \Drupal\acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\Acquiadam
    */
   protected $acquiaDamClient;
 
@@ -105,9 +105,9 @@ class AcquiadamServiceTest extends UnitTestCase {
 
     $this->container = new ContainerBuilder();
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
-    $this->container->set('acquiadam.client',
+    $this->container->set('media_acquiadam.client',
       $dam_client);
-    $this->container->set('acquiadam.asset_data', $acquiadam_asset_data);
+    $this->container->set('media_acquiadam.asset_data', $acquiadam_asset_data);
     \Drupal::setContainer($this->container);
 
     $this->acquiaDamClient = Acquiadam::create($this->container);

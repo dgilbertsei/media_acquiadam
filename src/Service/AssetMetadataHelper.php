@@ -1,12 +1,12 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\AcquiadamInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -28,7 +28,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   /**
    * A configured API object.
    *
-   * @var \Drupal\acquiadam\AcquiadamInterface|\Drupal\acquiadam\Client
+   * @var \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client
    *   $acquiadam
    */
   protected $acquiadam;
@@ -43,7 +43,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   A Drupal date formatter service.
-   * @param \Drupal\acquiadam\AcquiadamInterface|\Drupal\acquiadam\Client $acquiadam
+   * @param \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client $acquiadam
    *   A configured API object.
    */
   public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam) {
@@ -57,7 +57,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('date.formatter'),
-      $container->get('acquiadam.acquiadam')
+      $container->get('media_acquiadam.acquiadam')
     );
   }
 
@@ -138,7 +138,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   /**
    * Gets a metadata item from the given asset.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to get metadata from.
    * @param string $name
    *   The name of the metadata item to retrieve.

@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\acquiadam\Controller;
+namespace Drupal\media_acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
-use Drupal\acquiadam\AcquiadamAuthService;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\user\UserData;
 use Drupal\user\UserInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -106,7 +106,7 @@ class AcquiadamAuthController extends ControllerBase implements ContainerInjecti
       // Store acquiadam account details.
       $this
         ->userData
-        ->set('acquiadam', $user->id(), 'account', $account);
+        ->set('media_acquiadam', $user->id(), 'account', $account);
 
       // Redirect back to user edit form.
       $redirect = Url::fromRoute('entity.user.edit_form', ['user' => $user->id()])->toString();

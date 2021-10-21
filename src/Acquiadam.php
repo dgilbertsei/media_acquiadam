@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -24,7 +24,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * The Acquia DAM client service.
    *
-   * @var \Drupal\acquiadam\Client
+   * @var \Drupal\media_acquiadam\Client
    */
   protected $acquiaDamClient;
 
@@ -38,14 +38,14 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * Acquiadam constructor.
    *
-   * @param \Drupal\acquiadam\Client $client
+   * @param \Drupal\media_acquiadam\Client $client
    *   An instance of Client that we can get a acquiadam client from.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
    */
   public function __construct(Client $client, LoggerChannelFactoryInterface $loggerChannelFactory) {
     $this->acquiaDamClient = $client;
-    $this->loggerChannel = $loggerChannelFactory->get('acquiadam');
+    $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
   }
 
   /**
@@ -53,7 +53,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('acquiadam.client'),
+      $container->get('media_acquiadam.client'),
       $container->get('logger.factory')
     );
   }
@@ -121,7 +121,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    *   The operation to perform. One of get, set, or clear.
    * @param int $assetId
    *   The asset ID when using get or set.
-   * @param \Drupal\acquiadam\Entity\Asset|false|null $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset|false|null $asset
    *   The data to store under the given asset ID.
    *
    * @return mixed|null

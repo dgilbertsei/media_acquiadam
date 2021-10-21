@@ -5,7 +5,7 @@
  * Describes Acquia DAM's User data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class User implements EntityInterface, \JsonSerializable {
 

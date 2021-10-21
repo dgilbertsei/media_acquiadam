@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam\Form;
+namespace Drupal\media_acquiadam\Form;
 
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Utility\Xss;
@@ -99,7 +99,7 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'acquiadam_config';
+    return 'media_acquiadam_config';
   }
 
   /**
@@ -107,7 +107,7 @@ class AcquiadamConfig extends ConfigFormBase {
    */
   protected function getEditableConfigNames() {
     return [
-      'acquiadam.settings',
+      'media_acquiadam.settings',
     ];
   }
 
@@ -115,7 +115,7 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('acquiadam.settings');
+    $config = $this->config('media_acquiadam.settings');
 
     $form['authentication'] = [
       '#type' => 'fieldset',
@@ -274,7 +274,7 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('acquiadam.settings')
+    $this->config('media_acquiadam.settings')
       ->set('domain', $this->domain)
       ->set('token', $form_state->getValue('token'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
@@ -364,12 +364,12 @@ class AcquiadamConfig extends ConfigFormBase {
   }
 
   /**
-   * Wrapper for acquiadam_get_active_media_ids().
+   * Wrapper for media_acquiadam_get_active_media_ids().
    *
    * This method exists so the functionality can be overridden in unit tests.
    */
   protected function getActiveMediaIds() {
-    return acquiadam_get_active_media_ids();
+    return media_acquiadam_get_active_media_ids();
   }
 
   /**
@@ -395,9 +395,9 @@ class AcquiadamConfig extends ConfigFormBase {
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   public function processBatchItems(array $media_ids, array &$context) {
-    /** @var \Drupal\acquiadam\Plugin\QueueWorker\AssetRefresh $asset_refresh_queue_worker */
+    /** @var \Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh $asset_refresh_queue_worker */
     $asset_refresh_queue_worker = $this->queueWorkerManager
-      ->createInstance('acquiadam_asset_refresh');
+      ->createInstance('media_acquiadam_asset_refresh');
 
     if (empty($context['sandbox']['progress'])) {
       $context['sandbox']['progress'] = $context['results']['processed'] = 0;
@@ -415,7 +415,7 @@ class AcquiadamConfig extends ConfigFormBase {
         }
       }
       catch (\Exception $e) {
-        $this->logger('acquiadam')->error(
+        $this->logger('media_acquiadam')->error(
           'Failed to update media entity id = :id. Message: :message',
           [
             ':id' => $media_id,
@@ -453,9 +453,9 @@ class AcquiadamConfig extends ConfigFormBase {
 
     if ($results['processed'] === $results['total']) {
       // Reset all Drupal States related to the automatic asset synchronization.
-      $this->state->set('acquiadam.notifications_starttime', $results['start_time']);
-      $this->state->set('acquiadam.notifications_endtime', NULL);
-      $this->state->set('acquiadam.notifications_next_page', NULL);
+      $this->state->set('media_acquiadam.notifications_starttime', $results['start_time']);
+      $this->state->set('media_acquiadam.notifications_endtime', NULL);
+      $this->state->set('media_acquiadam.notifications_next_page', NULL);
     }
   }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam\Plugin\QueueWorker;
+namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -8,14 +8,14 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
 use Drupal\Core\Queue\SuspendQueueException;
-use Drupal\acquiadam\Service\AssetMediaFactory;
+use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Updates Acquia DAM assets.
  *
  * @QueueWorker (
- *   id = "acquiadam_asset_refresh",
+ *   id = "media_acquiadam_asset_refresh",
  *   title = @Translation("Acquia DAM Asset Refresh"),
  *   cron = {"time" = 30}
  * )
@@ -39,7 +39,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   /**
    * Acquia DAM Asset Media Factory service.
    *
-   * @var \Drupal\acquiadam\Service\AssetMediaFactory
+   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory
    */
   protected $assetMediaFactory;
 
@@ -69,9 +69,9 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('logger.factory')->get('acquiadam'),
+      $container->get('logger.factory')->get('media_acquiadam'),
       $container->get('entity_type.manager'),
-      $container->get('acquiadam.asset_media.factory'),
+      $container->get('media_acquiadam.asset_media.factory'),
       $container->get('config.factory')
     );
   }
@@ -121,7 +121,7 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
 
     // If the asset is expired/deleted in Acquia DAM and is unpublished in
     // Drupal, we delete it.
-    $perform_delete = $this->configFactory->get('acquiadam.settings')->get('sync_perform_delete');
+    $perform_delete = $this->configFactory->get('media_acquiadam.settings')->get('sync_perform_delete');
     if ((empty($asset) || !$asset->released_and_not_expired) && $perform_delete && !$entity->isPublished()) {
       $entity->delete();
       $this->loggerChannel->warning(

@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\File\FileSystemInterface;
@@ -95,7 +95,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get the URL to the DAM-provided thumbnail if possible.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to get the thumbnail size from.
    * @param int $thumbnailSize
    *   Find the closest thumbnail size without going over when multiple
@@ -117,7 +117,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
 
     $url = Url::fromUri($asset->embeds->original->url, ["query" => [
       $dimension => $thumbnailSize,
-      "q" => $this->configFactory->get('acquiadam.settings')->get('image_quality') ?? 80
+      "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80
     ]]);
     $thumbnailUrl = str_replace("/original/", "/png/", $url->toString());
     return $thumbnailUrl;
@@ -126,7 +126,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get the thumbnail for the given asset.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The Acquia DAM asset.
    * @param \Drupal\file\FileInterface|false $file
    *   The file entity to create a thumbnail uri from.
@@ -181,7 +181,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getFallbackThumbnail() {
 
-    $fallback = $this->configFactory->get('acquiadam.settings')->get(
+    $fallback = $this->configFactory->get('media_acquiadam.settings')->get(
         'fallback_thumbnail'
       );
 
@@ -248,7 +248,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The path to the Acquia DAM module.
    */
   protected function getAcquiaDamModulePath() {
-    return drupal_get_path('module', 'acquiadam');
+    return drupal_get_path('module', 'media_acquiadam');
   }
 
   /**
@@ -260,7 +260,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The URI to save as the fallback thumbnail.
    */
   protected function saveFallbackThumbnail($uri) {
-    $this->configFactory->getEditable('acquiadam.settings')->set(
+    $this->configFactory->getEditable('media_acquiadam.settings')->set(
         'fallback_thumbnail',
         $uri
       )->save();

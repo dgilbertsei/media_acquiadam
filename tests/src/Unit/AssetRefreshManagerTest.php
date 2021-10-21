@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\Exception\InvalidCredentialsException;
-use Drupal\acquiadam\Service\AssetRefreshManager;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
+use Drupal\media_acquiadam\Service\AssetRefreshManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -12,14 +12,14 @@ use Drupal\Core\Entity\Query\Null\Query;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\State;
-use Drupal\Tests\acquiadam\Traits\AcquiadamLoggerFactoryTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * AssetRefreshManager Service test.
  *
- * @coversDefaultClass \Drupal\acquiadam\Service\AssetRefreshManager
+ * @coversDefaultClass \Drupal\media_acquiadam\Service\AssetRefreshManager
  *
  * @group acquiadam
  */
@@ -41,7 +41,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
   /**
    * AssetRefreshManager service.
    *
-   * @var \Drupal\acquiadam\Service\AssetRefreshManagerInterface
+   * @var \Drupal\media_acquiadam\Service\AssetRefreshManagerInterface
    */
   protected $assetRefreshManager;
 
@@ -62,7 +62,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
   /**
    * The Acquiadam Service.
    *
-   * @var \Drupal\acquiadam\AcquiadamInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\AcquiadamInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $acquiadamClient;
 
@@ -414,7 +414,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
     $this->container->set('queue', $queue_factory);
     $this->container->set('entity_type.manager', $entity_type_manager);
-    $this->container->set('acquiadam.acquiadam', $this->acquiadamClient);
+    $this->container->set('media_acquiadam.acquiadam', $this->acquiadamClient);
     \Drupal::setContainer($this->container);
 
     $this->assetRefreshManager = AssetRefreshManager::create($this->container);

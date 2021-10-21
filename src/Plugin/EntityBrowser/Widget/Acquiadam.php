@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\acquiadam\Plugin\EntityBrowser\Widget;
+namespace Drupal\media_acquiadam\Plugin\EntityBrowser\Widget;
 
-use Drupal\acquiadam\Entity\Asset;
-use Drupal\acquiadam\Entity\Category;
-use Drupal\acquiadam\Exception\InvalidCredentialsException;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Category;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -17,13 +17,13 @@ use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
 use Drupal\media\MediaSourceManager;
-use Drupal\acquiadam\AcquiadamInterface;
-use Drupal\acquiadam\Form\AcquiadamConfig;
+use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Form\AcquiadamConfig;
 use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Drupal\acquiadam\AcquiadamAuthService;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 /**
  * Uses a view to provide entity listing in a browser's widget.
  *
@@ -39,7 +39,7 @@ class Acquiadam extends WidgetBase {
   /**
    * The dam interface.
    *
-   * @var \Drupal\acquiadam\AcquiadamInterface
+   * @var \Drupal\media_acquiadam\AcquiadamInterface
    */
   protected $acquiadam;
 
@@ -114,7 +114,7 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
   }
 
   /**
@@ -182,7 +182,7 @@ class Acquiadam extends WidgetBase {
     // error message with invitation to authenticate via his user edit form.
     $auth = $this->acquiadam->getAuthState();
     if (empty($auth['valid_token'])) {
-      $return_link = Url::fromRoute('acquiadam.user_auth', ['uid' => $this->user->id()], ['absolute' => TRUE])->toString();
+      $return_link = Url::fromRoute('media_acquiadam.user_auth', ['uid' => $this->user->id()], ['absolute' => TRUE])->toString();
       $auth_url = AcquiadamAuthService::generateAuthUrl($return_link);
       if ($auth_url) {
         $auth_link = Url::fromUri($auth_url, ['attributes' => ['target' => '_blank']]);
@@ -197,7 +197,7 @@ class Acquiadam extends WidgetBase {
         // If user has permission then error message will include config form link.
         if ($this->user->hasPermission('administer site configuration')) {
           $message = $this->t('Acquia DAM module is not configured yet. Please %config it to start using Acquia DAM assets.', [
-            '%config' => Link::createFromRoute($this->t('configure'), 'acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
+            '%config' => Link::createFromRoute($this->t('configure'), 'media_acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
           ]);
         }
       }
@@ -207,7 +207,7 @@ class Acquiadam extends WidgetBase {
         '#message' => $message,
         '#attached' => [
           'library' => [
-            'acquiadam/asset_browser',
+            'media_acquiadam/asset_browser',
           ],
         ],
       ];
@@ -216,7 +216,7 @@ class Acquiadam extends WidgetBase {
 
     // Start by inheriting parent form.
     $form = parent::getForm($original_form, $form_state, $additional_widget_parameters);
-    $config = $this->config->get('acquiadam.settings');
+    $config = $this->config->get('media_acquiadam.settings');
 
     // Attach the modal library.
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
@@ -392,7 +392,7 @@ class Acquiadam extends WidgetBase {
     ];
 
     // Get module path to create URL for background images.
-    $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
+    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
 
     // If no search terms, display Acquia DAM Categories.
     if (!empty($categories) && ($offset < count($categories))) {
@@ -429,7 +429,7 @@ class Acquiadam extends WidgetBase {
       '#options' => $assets,
       '#attached' => [
         'library' => [
-          'acquiadam/asset_browser',
+          'media_acquiadam/asset_browser',
         ],
       ],
     ];
@@ -556,10 +556,10 @@ class Acquiadam extends WidgetBase {
    * @return string
    *   Element HTML markup.
    *
-   * @var \Drupal\acquiadam\Entity\Asset $acquiadamAsset
+   * @var \Drupal\media_acquiadam\Entity\Asset $acquiadamAsset
    */
   public function layoutMediaEntity(Asset $acquiadamAsset) {
-    $modulePath = $this->moduleHandler->getModule('acquiadam')->getPath();
+    $modulePath = $this->moduleHandler->getModule('media_acquiadam')->getPath();
 
     $assetName = $acquiadamAsset->filename;
     if (!empty($acquiadamAsset->thumbnails)) {

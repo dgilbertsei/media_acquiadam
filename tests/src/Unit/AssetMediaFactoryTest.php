@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -9,13 +9,13 @@ use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceInterface;
 use Drupal\media\MediaTypeInterface;
-use Drupal\acquiadam\AcquiadamInterface;
-use Drupal\acquiadam\AssetDataInterface;
-use Drupal\acquiadam\MediaEntityHelper;
-use Drupal\acquiadam\Service\AssetFileEntityHelper;
-use Drupal\acquiadam\Service\AssetMediaFactory;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
+use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\AssetDataInterface;
+use Drupal\media_acquiadam\MediaEntityHelper;
+use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
+use Drupal\media_acquiadam\Service\AssetMediaFactory;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -40,7 +40,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
   /**
    * The asset media factory.
    *
-   * @var \Drupal\acquiadam\Service\AssetMediaFactory|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\Service\AssetMediaFactory|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $assetMediaFactory;
 
@@ -212,7 +212,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
     $entity_storage->method('load')->willReturnMap([
       [$this->mediaEntity->id(), $this->mediaEntity],
       [$this->getMockedFileEntity()->id(), $this->getMockedFileEntity()],
-      ['acquiadam', $media_bundle],
+      ['media_acquiadam', $media_bundle],
     ]);
 
     $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
@@ -238,9 +238,9 @@ class AssetMediaFactoryTest extends UnitTestCase {
 
     $this->container = new ContainerBuilder();
     $this->container->set('entity_type.manager', $entity_type_manager);
-    $this->container->set('acquiadam.asset_data', $asset_data);
-    $this->container->set('acquiadam.acquiadam', $acquiadam_client);
-    $this->container->set('acquiadam.asset_file.helper',
+    $this->container->set('media_acquiadam.asset_data', $asset_data);
+    $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
+    $this->container->set('media_acquiadam.asset_file.helper',
       $asset_file_helper);
     \Drupal::setContainer($this->container);
 

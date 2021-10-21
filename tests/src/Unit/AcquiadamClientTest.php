@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Session\AccountProxyInterface;
-use Drupal\acquiadam\Client;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\media_acquiadam\Client;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
@@ -29,7 +29,7 @@ class AcquiadamClientTest extends UnitTestCase {
   /**
    * Acquia DAM client factory.
    *
-   * @var \Drupal\acquiadam\Client
+   * @var \Drupal\media_acquiadam\Client
    */
   protected $client;
 
@@ -37,7 +37,7 @@ class AcquiadamClientTest extends UnitTestCase {
    * Checks if the service is created in the Drupal context.
    */
   public function testClient() {
-    $this->assertNotNull(\Drupal::service('acquiadam.client'));
+    $this->assertNotNull(\Drupal::service('media_acquiadam.client'));
   }
 
   /**
@@ -69,8 +69,8 @@ class AcquiadamClientTest extends UnitTestCase {
 
     $container = new ContainerBuilder();
     \Drupal::setContainer($container);
-    $container->set('acquiadam.client', $client);
-    $this->client = \Drupal::service('acquiadam.client');
+    $container->set('media_acquiadam.client', $client);
+    $this->client = \Drupal::service('media_acquiadam.client');
   }
 
 }

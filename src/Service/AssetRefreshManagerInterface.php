@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
 /**
  * Interface AssetRefreshManagerInterface.

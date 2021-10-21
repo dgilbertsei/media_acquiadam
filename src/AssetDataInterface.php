@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
 /**
  * Defines the asset data service interface.

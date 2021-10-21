@@ -5,7 +5,7 @@
  * Describes Acquia DAM's MiniFolder data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class MiniFolder implements EntityInterface, \JsonSerializable {
 

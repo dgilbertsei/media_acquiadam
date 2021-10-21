@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Component\Datetime\Time;
 use Drupal\Core\Batch\BatchBuilder;
@@ -10,16 +10,16 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\Messenger;
 use Drupal\Core\Queue\QueueWorkerManager;
 use Drupal\Core\State\State;
-use Drupal\acquiadam\Form\AcquiadamConfig;
-use Drupal\acquiadam\Plugin\QueueWorker\AssetRefresh;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\media_acquiadam\Form\AcquiadamConfig;
+use Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\ClientInterface;
 
 /**
  * Config form test.
  *
- * @coversDefaultClass \Drupal\acquiadam\Form\AcquiadamConfig
+ * @coversDefaultClass \Drupal\media_acquiadam\Form\AcquiadamConfig
  *
  * @group acquiadam
  */
@@ -37,7 +37,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   /**
    * Acquia DAM config form.
    *
-   * @var \Drupal\Tests\acquiadam\Unit\AcquiadamConfig
+   * @var \Drupal\Tests\media_acquiadam\Unit\AcquiadamConfig
    */
   protected $acquiaDamConfig;
 
@@ -51,7 +51,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   /**
    * Queue Worker.
    *
-   * @var \Drupal\acquiadam\Plugin\QueueWorker\AssetRefresh|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\Plugin\QueueWorker\AssetRefresh|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $queueWorker;
 
@@ -146,9 +146,9 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->state->expects($this->exactly(3))
       ->method('set')
       ->withConsecutive(
-        [$this->equalTo('acquiadam.notifications_starttime'), $this->equalTo(1560000000)],
-        [$this->equalTo('acquiadam.notifications_endtime'), $this->equalTo(NULL)],
-        [$this->equalTo('acquiadam.notifications_next_page'), $this->equalTo(NULL)]
+        [$this->equalTo('media_acquiadam.notifications_starttime'), $this->equalTo(1560000000)],
+        [$this->equalTo('media_acquiadam.notifications_endtime'), $this->equalTo(NULL)],
+        [$this->equalTo('media_acquiadam.notifications_next_page'), $this->equalTo(NULL)]
       );
     $this->acquiaDamConfig->finishBatchOperation(NULL, $context['results'], []);
   }
@@ -235,7 +235,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   /**
    * Get a partially mocked AcquiadamConfig object.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\acquiadam\Form\AcquiadamConfig
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\media_acquiadam\Form\AcquiadamConfig
    *   A mocked version of the AcquiadamConfig form class.
    *
    * @throws \Exception

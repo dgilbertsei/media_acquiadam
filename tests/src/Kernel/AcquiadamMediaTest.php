@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Kernel;
+namespace Drupal\Tests\media_acquiadam\Kernel;
 
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 
 /**
  * Tests Media entities with Acquia DAM source.
@@ -17,7 +17,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
   /**
    * The initial asset for this test.
    *
-   * @var \Drupal\acquiadam\Entity\Asset
+   * @var \Drupal\media_acquiadam\Entity\Asset
    */
   protected $asset;
 
@@ -81,7 +81,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests updating media entity when new version is available.
    */
   public function testNewVersionUpdate() {
-    /** @var \Drupal\acquiadam\AssetData $asset_data */
+    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
     $asset_data = $this->getAssetData();
 
     $this->saveNewVersion();
@@ -99,10 +99,10 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests that version is only updated when file is saved correctly.
    */
   public function testFailedFileSave() {
-    /** @var \Drupal\acquiadam\AssetData $asset_data */
-    $asset_data = $this->container->get('acquiadam.asset_data');
-    /** @var \Drupal\acquiadam\Service\AssetFileEntityHelper $asset_file_helper */
-    $asset_file_helper = $this->container->get('acquiadam.asset_file.helper');
+    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
+    $asset_data = $this->container->get('media_acquiadam.asset_data');
+    /** @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper $asset_file_helper */
+    $asset_file_helper = $this->container->get('media_acquiadam.asset_file.helper');
     /** @var \Drupal\Core\File\FileSystem $file_system */
     $file_system = $this->container->get('file_system');
 
@@ -193,7 +193,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
   /**
    * Clears source current asset so we can simulate updates from the API.
    *
-   * @param \Drupal\acquiadam\Plugin\media\Source\AcquiadamAsset $source
+   * @param \Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset $source
    *   The source to clear.
    */
   protected function clearCurrentAssetFromSource(AcquiadamAsset $source) {

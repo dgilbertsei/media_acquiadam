@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\acquiadam\Service;
+namespace Drupal\media_acquiadam\Service;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
-use Drupal\acquiadam\MediaEntityHelper;
+use Drupal\media_acquiadam\MediaEntityHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -238,11 +238,11 @@ class AssetMediaFactory implements ContainerInjectionInterface {
    * @param \Drupal\media\MediaInterface $media
    *   The media entity to wrap.
    *
-   * @return \Drupal\acquiadam\MediaEntityHelper
+   * @return \Drupal\media_acquiadam\MediaEntityHelper
    *   A media entity wrapped with a helper class.
    */
   public function get(MediaInterface $media) {
-    // Not ideal but the usage of acquiadam.asset_file.helper gets flagged
+    // Not ideal but the usage of media_acquiadam.asset_file.helper gets flagged
     // as a circular dependency even though it's just a passthrough to another
     // class.
     // phpcs:disable DrupalPractice.Objects.GlobalDrupal.GlobalDrupal
@@ -252,9 +252,9 @@ class AssetMediaFactory implements ContainerInjectionInterface {
     $helper_class = $this->getAssetMediaEntityHelperClass();
     return new $helper_class($media,
       $this->entityTypeManager,
-      $container->get('acquiadam.asset_data'),
-      $container->get('acquiadam.acquiadam'),
-      $container->get('acquiadam.asset_file.helper'));
+      $container->get('media_acquiadam.asset_data'),
+      $container->get('media_acquiadam.acquiadam'),
+      $container->get('media_acquiadam.asset_file.helper'));
   }
 
   /**

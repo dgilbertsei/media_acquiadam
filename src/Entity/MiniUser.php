@@ -5,7 +5,7 @@
  * Describes Acquia DAM's MiniUser data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class MiniUser implements EntityInterface, \JsonSerializable {
 

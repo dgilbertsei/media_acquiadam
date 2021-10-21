@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\acquiadam;
+namespace Drupal\media_acquiadam;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -54,7 +54,7 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
   /**
    * Check if the given asset is different than what is stored.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The current version of the asset.
    * @param bool $saveUpdatedVersion
    *   TRUE to save the new version (if newer than the existing).

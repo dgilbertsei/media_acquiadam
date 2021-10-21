@@ -29,16 +29,16 @@ services:
         # Install Drupal!
         vendor/bin/drush --yes --db-url=mysql://tugboat:tugboat@mysql:3306/tugboat site:install standard
         # Enable our module!
-        vendor/bin/drush --yes en acquiadam
-        vendor/bin/drush --yes en acquiadam_example
+        vendor/bin/drush --yes en media_acquiadam
+        vendor/bin/drush --yes en media_acquiadam_example
         vendor/bin/drush --yes en entity_browser
         vendor/bin/drush --yes en linkit
         vendor/bin/drush --yes en dblog
         # Setup secret sauce
-        vendor/bin/drush --yes cset acquiadam.settings username $dam_username
-        vendor/bin/drush --yes cset acquiadam.settings password $dam_password
-        vendor/bin/drush --yes cset acquiadam.settings client_id $dam_client_id
-        vendor/bin/drush --yes cset acquiadam.settings secret $dam_secret
+        vendor/bin/drush --yes cset media_acquiadam.settings username $dam_username
+        vendor/bin/drush --yes cset media_acquiadam.settings password $dam_password
+        vendor/bin/drush --yes cset media_acquiadam.settings client_id $dam_client_id
+        vendor/bin/drush --yes cset media_acquiadam.settings secret $dam_secret
       build: |
         set -eux
         export COMPOSER_MEMORY_LIMIT=-1

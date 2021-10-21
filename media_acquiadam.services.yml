@@ -1,0 +1,33 @@
+services:
+  media_acquiadam.auth:
+    class: Drupal\media_acquiadam\acquiadamAuthService
+    arguments: [ ]
+  media_acquiadam.client:
+    class: Drupal\media_acquiadam\Client
+    arguments: ['@http_client', '@user.data', '@current_user', '@config.factory']
+  media_acquiadam.acquiadam:
+    class: Drupal\media_acquiadam\Acquiadam
+    arguments: ['@media_acquiadam.client', '@logger.factory', '@media_acquiadam.asset_data']
+  media_acquiadam.acquiadam_user_creds:
+    class: Drupal\media_acquiadam\Acquiadam
+    arguments: ['@media_acquiadam.client', '@logger.factory', '@media_acquiadam.asset_data']
+  media_acquiadam.asset_data:
+    class: Drupal\media_acquiadam\AssetData
+    arguments: ['@database']
+    tags:
+      - { name: backend_overridable }
+  media_acquiadam.asset_image.helper:
+    class: Drupal\media_acquiadam\Service\AssetImageHelper
+    arguments: ['@config.factory', '@file_system', '@http_client', '@file.mime_type.guesser', '@image.factory']
+  media_acquiadam.asset_metadata.helper:
+    class: Drupal\media_acquiadam\Service\AssetMetadataHelper
+    arguments: ['@date.formatter', '@media_acquiadam.acquiadam']
+  media_acquiadam.asset_file.helper:
+    class: Drupal\media_acquiadam\Service\AssetFileEntityHelper
+    arguments: ['@entity_type.manager', '@entity_field.manager','@config.factory', '@file_system', '@token', '@media_acquiadam.asset_image.helper', '@media_acquiadam.acquiadam', '@media_acquiadam.asset_media.factory', '@logger.factory']
+  media_acquiadam.asset_media.factory:
+    class: Drupal\media_acquiadam\Service\AssetMediaFactory
+    arguments: ['@entity_type.manager']
+  media_acquiadam.asset_refresh.manager:
+    class: Drupal\media_acquiadam\Service\AssetRefreshManager
+    arguments: ['@media_acquiadam.acquiadam', '@state', '@logger.factory', '@queue', '@entity_type.manager', '@datetime.time']

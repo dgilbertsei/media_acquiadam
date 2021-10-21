@@ -5,7 +5,7 @@
  * Contains the interface that all entity classes must implement.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 interface EntityInterface {
 

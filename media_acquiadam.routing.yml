@@ -1,0 +1,30 @@
+media_acquiadam.config:
+  path: '/admin/config/media/acquiadam'
+  defaults:
+    _form: '\Drupal\media_acquiadam\Form\AcquiadamConfig'
+    _title: 'Acquia DAM Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+media_acquiadam.user_auth:
+  path: '/user/acquiadam/auth'
+  defaults:
+    _controller: '\Drupal\media_acquiadam\Controller\AcquiadamAuthController::authenticate'
+  requirements:
+    _access: 'TRUE'
+
+media_acquiadam.asset_details:
+  path: 'acquiadam/asset/{assetId}'
+  defaults:
+    _controller: '\Drupal\media_acquiadam\Controller\AcquiadamController:assetDetailsPage'
+    _title_callback: '\Drupal\media_acquiadam\Controller\AcquiadamController:assetDetailsPageTitle'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+media_acquiadam.migrate_assets:
+  path: '/admin/config/media/acquiadam/migrate-assets'
+  defaults:
+    _form: '\Drupal\media_acquiadam\Form\AcquiadamMigrateAssets'
+    _title: 'Migrate Assets'
+  requirements:
+    _permission: 'administer site configuration'

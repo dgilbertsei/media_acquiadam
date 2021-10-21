@@ -1,5 +1,5 @@
 {
-    "name": "drupal/acquiadam",
+    "name": "drupal/media_acquiadam",
     "type": "drupal-module",
     "description": "Integrates the Media module ecosystem with Acquia DAM.",
     "license": "GPL-2.0-or-later",
@@ -24,7 +24,8 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-8.x-1.x": "1.x-dev"
+            "dev-8.x-1.x": "1.x-dev",
+            "dev-2.x": "2.x-dev"
         },
         "hooks": {
             "pre-commit": "vendor/bin/phpcs",
@@ -55,7 +56,7 @@
         ]
     },
     "support": {
-        "issues": "https://drupal.org/project/issues/acquiadam",
-        "source": "https://cgit.drupalcode.org/acquiadam"
+        "issues": "https://drupal.org/project/issues/media_acquiadam",
+        "source": "https://cgit.drupalcode.org/media_acquiadam"
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\acquiadam_test;
+namespace Drupal\media_acquiadam_test;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 
 /**
  * Overridden implementation of the Acquia DAM client for testing.
@@ -19,7 +19,7 @@ class TestClient {
   /**
    * Add or modify a test asset.
    *
-   * @param \Drupal\acquiadam\Entity\Asset $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to add/modify.
    */
   public function addAsset(Asset $asset) {
@@ -32,7 +32,7 @@ class TestClient {
    * @param int $assetId
    *   The test Asset ID.
    *
-   * @return \Drupal\acquiadam\Entity\Asset
+   * @return \Drupal\media_acquiadam\Entity\Asset
    *   The test asset.
    */
   public function getAsset($assetId) {

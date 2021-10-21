@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\acquiadam\Form;
+namespace Drupal\media_acquiadam\Form;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
@@ -59,7 +59,7 @@ class AcquiadamMigrateAssets extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'acquiadam_sync_assets';
+    return 'media_acquiadam_sync_assets';
   }
 
   /**
@@ -103,9 +103,9 @@ class AcquiadamMigrateAssets extends FormBase {
 
     // Parse the csv to get an associative array. Key is the legacy asset_id,
     // value is the new asset_id.
-    $legacy_ids_to_new_ids = _acquiadam_parse_migration_csv($file->getFileUri(), ',');
+    $legacy_ids_to_new_ids = _media_acquiadam_parse_migration_csv($file->getFileUri(), ',');
 
-    $batch = _acquiadam_build_migration_batch($legacy_ids_to_new_ids);
+    $batch = _media_acquiadam_build_migration_batch($legacy_ids_to_new_ids);
 
     batch_set($batch);
   }

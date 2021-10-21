@@ -1,17 +1,17 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\acquiadam\Service\AssetImageHelper;
+use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\UnroutedUrlAssembler;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamConfigTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
@@ -35,7 +35,7 @@ class AssetImageHelperTest extends UnitTestCase {
   /**
    * A mocked version of the AssetImageHelper service.
    *
-   * @var \Drupal\acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $assetImageHelper;
 
@@ -162,7 +162,7 @@ class AssetImageHelperTest extends UnitTestCase {
    * This is used to provide some implemented methods that would normally be
    * an issue to test.
    *
-   * @return \Drupal\acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
+   * @return \Drupal\media_acquiadam\Service\AssetImageHelper|\PHPUnit\Framework\MockObject\MockObject
    *   A mocked AssetImageHelper object.
    */
   protected function getMockedAssetImageHelper() {

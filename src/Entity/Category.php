@@ -5,7 +5,7 @@
  * Describes Acquia DAM's Category data type.
  */
 
-namespace Drupal\acquiadam\Entity;
+namespace Drupal\media_acquiadam\Entity;
 
 class Category implements EntityInterface, \JsonSerializable {
 

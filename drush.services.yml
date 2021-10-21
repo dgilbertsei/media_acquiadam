@@ -1,6 +1,6 @@
 services:
-  acquiadam.commands:
-    class: \Drupal\acquiadam\Commands\AcquiadamCommands
+  media_acquiadam.commands:
+    class: \Drupal\media_acquiadam\Commands\AcquiadamCommands
     arguments: ['@config.factory']
     tags:
       - { name: drush.command }

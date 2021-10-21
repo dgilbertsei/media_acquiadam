@@ -1,19 +1,19 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
-use Drupal\acquiadam\Acquiadam;
-use Drupal\acquiadam\AssetData;
-use Drupal\acquiadam\MediaEntityHelper;
-use Drupal\acquiadam\Service\AssetFileEntityHelper;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
-use Drupal\Tests\acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\AssetData;
+use Drupal\media_acquiadam\MediaEntityHelper;
+use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -138,7 +138,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    * @param \Drupal\media\MediaInterface|null $media
    *   The media entity to wrap.
    *
-   * @return \Drupal\acquiadam\MediaEntityHelper
+   * @return \Drupal\media_acquiadam\MediaEntityHelper
    *   An instance of the MediaEntityHelper class.
    */
   protected function getNewMediaEntityHelper(MediaInterface $media = NULL) {
@@ -148,9 +148,9 @@ class MediaEntityHelperTest extends UnitTestCase {
 
     return new MediaEntityHelper($media,
       $this->container->get('entity_type.manager'),
-      $this->container->get('acquiadam.asset_data'),
-      $this->container->get('acquiadam.acquiadam'),
-      $this->container->get('acquiadam.asset_file.helper'));
+      $this->container->get('media_acquiadam.asset_data'),
+      $this->container->get('media_acquiadam.acquiadam'),
+      $this->container->get('media_acquiadam.asset_file.helper'));
   }
 
   /**
@@ -172,7 +172,7 @@ class MediaEntityHelperTest extends UnitTestCase {
       ->getMock();
     $entity_storage->method('load')->willReturnMap([
       [$this->getMockedFileEntity()->id(), $this->getMockedFileEntity()],
-      ['acquiadam', $media_bundle],
+      ['media_acquiadam', $media_bundle],
     ]);
     $entity_storage->method('loadByProperties')->willReturnMap([
       [
@@ -224,9 +224,9 @@ class MediaEntityHelperTest extends UnitTestCase {
     $asset_file_helper->method('createNewFile')->with($this->anything(),
       'private://assets/replaced')->willReturn($this->getMockedFileEntity());
 
-    $container->set('acquiadam.asset_data', $asset_data);
-    $container->set('acquiadam.acquiadam', $acquiadam);
-    $container->set('acquiadam.asset_file.helper', $asset_file_helper);
+    $container->set('media_acquiadam.asset_data', $asset_data);
+    $container->set('media_acquiadam.acquiadam', $acquiadam);
+    $container->set('media_acquiadam.asset_file.helper', $asset_file_helper);
   }
 
 }

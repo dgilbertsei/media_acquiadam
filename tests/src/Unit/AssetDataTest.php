@@ -1,11 +1,11 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Unit;
+namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\acquiadam\AssetData;
-use Drupal\Tests\acquiadam\Traits\AcquiadamAssetDataTrait;
+use Drupal\media_acquiadam\AssetData;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -29,7 +29,7 @@ class AssetDataTest extends UnitTestCase {
    *
    * Mocked to have a fixed set/get.
    *
-   * @var \Drupal\acquiadam\AssetData|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\media_acquiadam\AssetData|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $acquiaAssetData;
 

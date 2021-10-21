@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\acquiadam\Traits;
+namespace Drupal\Tests\media_acquiadam\Traits;
 
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\file\FileInterface;
@@ -62,7 +62,7 @@ trait AcquiadamMockedMediaEntityTrait {
       ['phpunit_test_fail', FALSE],
     ]);
     $media->method('getEntityTypeId')->willReturn('media');
-    $media->method('bundle')->willReturn('acquiadam');
+    $media->method('bundle')->willReturn('media_acquiadam');
     $media->method('id')->willReturn($mediaEntityId);
     $media->method('get')
       ->with('bundle')
