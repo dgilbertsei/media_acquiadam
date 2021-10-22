@@ -261,7 +261,7 @@ function media_acquiadam_cron() {
   $count = \Drupal::queue('media_acquiadam_asset_refresh')->numberOfItems();
   if ($count > 0) {
     $logger = \Drupal::service('logger.factory')->get('media_acquiadam');
-    $logger->info('Cron execution have been cancelled because the queue @queue_name is not empty (@count items)..', ['@count' => $count]);
+    $logger->info('Cron execution has been cancelled because the queue @queue_name is not empty (@count items)..', ['@count' => $count, '@queue_name' => 'Acquia DAM Asset Refresh',]);
     return;
   }
 
