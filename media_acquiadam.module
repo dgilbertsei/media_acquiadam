@@ -331,7 +331,7 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
   $account = \Drupal::currentUser();
 
   $mapping_field_min_weight = 0;
-  $form['#attached']['library'][] = 'acquiadam/asset_form';
+  $form['#attached']['library'][] = 'media_acquiadam/asset_form';
 
   // Add a field mapping to the entity publishing status if one doesn't exist.
   $mappings = &$form['source_dependent']['field_map'];
