@@ -4,8 +4,8 @@ media_acquiadam.config:
   base_route: media_acquiadam.config
   weight: 0
 
-media_acquiadam.migrate_assets:
-  route_name: media_acquiadam.migrate_assets
-  title: Migrate Assets
+media_acquiadam.update_assets_reference:
+  route_name: media_acquiadam.update_assets_reference
+  title: Update Assets Reference
   base_route: media_acquiadam.config
   weight: 1

@@ -3,11 +3,11 @@
 namespace Drupal\media_acquiadam\Batch;
 
 /**
- * Class AcquiadamMigrateAssets.
+ * Class AcquiadamUpdateAssetsReference.
  *
  * Sync existing media entities with DAM.
  */
-class AcquiadamMigrateAssets {
+class AcquiadamUpdateAssetsReference {
 
   /**
    * Processes sync media entities.

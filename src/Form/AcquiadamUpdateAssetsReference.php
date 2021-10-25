@@ -10,11 +10,11 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class AcquiadamMigrateAssets.
+ * Class AcquiadamUpdateAssetsReference.
  *
- * Migrate Assets.
+ * Update Assets Reference.
  */
-class AcquiadamMigrateAssets extends FormBase {
+class AcquiadamUpdateAssetsReference extends FormBase {
 
   use StringTranslationTrait;
 
@@ -33,7 +33,7 @@ class AcquiadamMigrateAssets extends FormBase {
   protected $messenger;
 
   /**
-   * AcquiadamMigrateAssets constructor.
+   * AcquiadamUpdateAssetsReference constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Entity type manager service.
@@ -103,9 +103,9 @@ class AcquiadamMigrateAssets extends FormBase {
 
     // Parse the csv to get an associative array. Key is the legacy asset_id,
     // value is the new asset_id.
-    $legacy_ids_to_new_ids = _media_acquiadam_parse_migration_csv($file->getFileUri(), ',');
+    $legacy_ids_to_new_ids = _media_acquiadam_parse_reference_updation_csv($file->getFileUri(), ',');
 
-    $batch = _media_acquiadam_build_migration_batch($legacy_ids_to_new_ids);
+    $batch = _media_acquiadam_build_reference_updation_batch($legacy_ids_to_new_ids);
 
     batch_set($batch);
   }

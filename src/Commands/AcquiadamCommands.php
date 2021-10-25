@@ -5,7 +5,6 @@ namespace Drupal\media_acquiadam\Commands;
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drush\Commands\DrushCommands;
-use Drupal\media_acquiadam\Form\AcquiadamMigrateAssets;
 
 /**
  * Acquia DAM drush commands.
@@ -30,30 +29,30 @@ class AcquiadamCommands extends DrushCommands {
   }
 
   /**
-   * Migrate Acquia DAM assets from media_acquiadam to acquiadam.
+   * Update Media: Acquia DAM assets to reference the new Acquia DAM service instead of Acquia DAM Classic.
    *
-   * @command acquiadam:migrate
-   * @aliases acquiadam-migrate
+   * @command acquiadam:update
+   * @aliases acquiadam-update
    *
    * @param string $file The path to the migrate file.
    * @option string $delimiter The CSV delimited.
    */
-  public function migrate($file, $options = ['delimiter' => ',']) {
-    $legacy_ids_to_new_ids = _media_acquiadam_parse_migration_csv($file, $options['delimiter']);
+  public function update($file, $options = ['delimiter' => ',']) {
+    $legacy_ids_to_new_ids = _media_acquiadam_parse_reference_updation_csv($file, $options['delimiter']);
 
-    $batch = _media_acquiadam_build_migration_batch($legacy_ids_to_new_ids);
+    $batch = _media_acquiadam_build_reference_updation_batch($legacy_ids_to_new_ids);
 
     batch_set($batch);
     drush_backend_batch_process();
   }
 
   /**
-   * @hook validate acquiadam:migrate
+   * @hook validate acquiadam:update
    * @param \Consolidation\AnnotatedCommand\CommandData $commandData
    * @throws \Exception
    * @return void
    */
-  public function validateMigrate(CommandData $commandData) {
+  public function validateUpdate(CommandData $commandData) {
     $file = $commandData->input()->getArgument('file');
 
     if (!file_exists($file)) {
