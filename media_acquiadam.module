@@ -355,6 +355,9 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
       if (!isset($options['status'])) {
         $options['status'] = t('Publishing status');
       }
+
+      //Remove Asset ID field from mapping list.
+      unset($options['field_acquiadam_asset_id']);
     }
   }
   // Assign minimum weight to the description, so it shows at the top of the
