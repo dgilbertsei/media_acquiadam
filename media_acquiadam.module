@@ -339,9 +339,8 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
     foreach (Element::children($mappings) as $key) {
       // Sort fields with assigned mappings to the top to make it easier to
       // identify what is and is not mapped at a glance.
-      // We need to set different weights based on if we're dealing with an
-      // XMP field or not.
-      $mappings[$key]['#weight'] = strpos($key, 'xmp_') === FALSE ? 0 : 100;
+
+      $mappings[$key]['#weight'] = 0;
       if (!empty($mappings[$key]['#default_value']) && $mappings[$key]['#default_value'] !== '_none') {
         $mappings[$key]['#weight'] -= 10;
       }
@@ -356,7 +355,7 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
         $options['status'] = t('Publishing status');
       }
 
-      //Remove Asset ID field from mapping list.
+      // Remove Asset ID field from mapping list.
       unset($options['field_acquiadam_asset_id']);
     }
   }
@@ -366,23 +365,6 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
     $mappings['description']['#weight'] = $mapping_field_min_weight - 10;
   }
 
-  // Insert headline before first XMP field in the fieldset.
-  $mapping_keys = array_keys($mappings);
-  $xmp_keys = preg_grep('/xmp_.+/i', $mapping_keys);
-  reset($xmp_keys);
-  $offset = key($xmp_keys);
-
-  if ($offset) {
-    $xmp_header = [
-      'xmp_header' => [
-        '#type' => 'html_tag',
-        '#tag' => 'h4',
-        '#value' => t('Field Mapping: XMP Metadata'),
-        '#attributes' => ['class' => 'fieldset-subhead'],
-      ],
-    ];
-    array_splice($mappings, $offset, 0, $xmp_header);
-  }
   // Check whether user is authenticated or not.
   $client = \Drupal::service('media_acquiadam.client');
   $user_authenticated = $client->checkAuth();
@@ -396,7 +378,7 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
     $message = t('Acquia DAM module is not configured yet. Please contact your administrator to do so.');
     if ($account->hasPermission('administer site configuration')) {
       $message = t('Acquia DAM module is not configured yet. Please %config it to start using Acquia DAM assets.', [
-        '%config' => Link::createFromRoute(t('configure'), 'acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
+        '%config' => Link::createFromRoute(t('configure'), 'media_acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
       ]);
     }
   }
