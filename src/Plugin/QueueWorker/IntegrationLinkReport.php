@@ -5,8 +5,8 @@ namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\media_acquiadam\Client;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Report Acquia DAM asset usage via integration links.
@@ -75,7 +75,8 @@ class IntegrationLinkReport extends QueueWorkerBase implements ContainerFactoryP
       ];
 
       $this->client->registerIntegrationLink($post);
-    } catch (\Exception $x) {
+    }
+    catch (\Exception $x) {
       $this->loggerChannel->error(
         'Error trying to create the integration link for @media_id',
         ['@media_id' => $data['mid']]
@@ -85,4 +86,5 @@ class IntegrationLinkReport extends QueueWorkerBase implements ContainerFactoryP
 
     return TRUE;
   }
+
 }
