@@ -11,7 +11,7 @@ media_acquiadam.user_auth:
   defaults:
     _controller: '\Drupal\media_acquiadam\Controller\AcquiadamAuthController::authenticate'
   requirements:
-    _access: 'TRUE'
+    _user_is_logged_in: 'TRUE'
 
 media_acquiadam.asset_details:
   path: 'acquiadam/asset/{assetId}'
