@@ -162,7 +162,7 @@ class MediaEntityHelper {
    */
   public function getAsset() {
     $assetId = $this->getAssetId();
-    return !empty($assetId) ? $this->acquiaDamClient->getAsset($assetId, TRUE) :
+    return !empty($assetId) ? $this->acquiaDamClient->getAsset($assetId) :
       FALSE;
   }
 

@@ -71,16 +71,11 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   /**
    * {@inheritdoc}
    */
-  public function getAsset($assetId, $include_xmp = FALSE) {
+  public function getAsset($assetId) {
     $asset = $this->staticAssetCache('get', $assetId);
 
-    // @BUG: XMP-less assets may bypass static caching.
-    // Technically if the asset doesn't have xmp_metadata (and always returns
-    // an empty value) this will bypass the cache version each call.
-    $needs_xmp_get = $include_xmp && empty($asset->xmp_metadata);
-
     try {
-      if (is_null($asset) || $needs_xmp_get) {
+      if (is_null($asset)) {
         $this->staticAssetCache(
           'set',
           $assetId,
