@@ -67,11 +67,10 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
       call_user_func_array($method_variable, $arguments) : NULL;
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public function getAsset($assetId) {
+  public function getAsset(string $assetId) {
     $asset = $this->staticAssetCache('get', $assetId);
 
     try {
@@ -114,7 +113,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    *
    * @param string $op
    *   The operation to perform. One of get, set, or clear.
-   * @param int $assetId
+   * @param string|null $assetId
    *   The asset ID when using get or set.
    * @param \Drupal\media_acquiadam\Entity\Asset|false|null $asset
    *   The data to store under the given asset ID.
@@ -122,7 +121,7 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    * @return mixed|null
    *   The static cache or NULL if unset.
    */
-  public function staticAssetCache($op, $assetId = NULL, $asset = NULL) {
+  public function staticAssetCache(string $op, string $assetId = NULL, $asset = NULL) {
     if ('set' == $op) {
       return static::$cachedAssets[$assetId] = $asset;
     }

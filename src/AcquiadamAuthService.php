@@ -3,7 +3,7 @@
 namespace Drupal\media_acquiadam;
 
 /**
- * Class AcquiadamAuthService.
+ * The service to authenticate on Acquia DAM.
  *
  * @package Drupal\media_acquiadam
  */
@@ -21,7 +21,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @return \Drupal\Core\Config\ImmutableConfig
    *   An immutable configuration object.
    */
-  public static function getConfig() {
+  public static function getConfig(): ImmutableConfig {
     return \Drupal::config('media_acquiadam.settings');
   }
 
@@ -34,7 +34,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @return string
    *   The absolute path of the endpoint of the method.
    */
-  public static function getEndpoint($method) {
+  public static function getEndpoint(string $method): string {
     // Generate the endpoint SSL URL of the given method.
     $config = self::getConfig();
     $acquiadam_domain = $config->get('domain');
@@ -44,6 +44,8 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
     }
 
     \Drupal::messenger()->addError(t('Acquia DAM endpoint must be configured'));
+
+    return '';
   }
 
   /**
@@ -55,7 +57,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @return string
    *   The absolute URL used for authorization.
    */
-  public static function generateAuthUrl($return_link) {
+  public static function generateAuthUrl(string $return_link): string {
     $config = self::getConfig();
     $acquiadam_domain = $config->get('domain');
     $client_id = $config->get('client_id');
@@ -73,7 +75,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @return bool
    *   Returns boolean based on access authorization.
    */
-  public static function cancel($access_token) {
+  public static function cancel(string $access_token): bool {
     if (empty($access_token)) {
       \Drupal::messenger()->addError(t('No token was provided.'));
       return FALSE;
@@ -111,7 +113,7 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @return array
    *   The response data of the authentication attempt.
    */
-  public static function authenticate($auth_code) {
+  public static function authenticate(string $auth_code): array {
     // Generate the token endpoint SSL URL of the request.
     $endpoint = self::getEndpoint('oauth/token');
 

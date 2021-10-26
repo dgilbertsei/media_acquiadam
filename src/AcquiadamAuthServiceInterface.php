@@ -3,7 +3,7 @@
 namespace Drupal\media_acquiadam;
 
 /**
- * Interface AcquiadamAuthServiceInterface.
+ * The interface for a service to handle authentication on Acquia DAM.
  *
  * @package Drupal\media_acquiadam
  */
@@ -23,7 +23,7 @@ interface AcquiadamAuthServiceInterface {
    * @return string
    *   The absolute path of the endpoint of the method.
    */
-  public static function getEndpoint($method);
+  public static function getEndpoint(string $method): string;
 
   /**
    * Provides the authorization link with Acquia DAM.
@@ -34,7 +34,7 @@ interface AcquiadamAuthServiceInterface {
    * @return string
    *   The absolute URL used for authorization.
    */
-  public static function generateAuthUrl($return_link);
+  public static function generateAuthUrl(string $return_link): string;
 
   /**
    * Purge Acquia DAM authorization connection.
@@ -45,7 +45,7 @@ interface AcquiadamAuthServiceInterface {
    * @return bool
    *   Returns a boolean based on authorization.
    */
-  public static function cancel($access_token);
+  public static function cancel(string $access_token): bool;
 
   /**
    * Authenticates the user.
@@ -56,6 +56,6 @@ interface AcquiadamAuthServiceInterface {
    * @return array
    *   The response data of the authentication attempt.
    */
-  public static function authenticate($auth_code);
+  public static function authenticate(string $auth_code): array;
 
 }
