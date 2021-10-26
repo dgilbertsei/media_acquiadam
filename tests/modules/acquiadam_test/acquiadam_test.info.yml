@@ -1,6 +1,0 @@
-name: "Acquia DAM Testing"
-description: "Testing for Acquia DAM module."
-package: Media
-type: module
-core: 8.x
-core_version_requirement: '^8 || ^9'
