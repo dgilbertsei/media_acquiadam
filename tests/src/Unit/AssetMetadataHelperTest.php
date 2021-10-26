@@ -33,7 +33,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
   protected $assetMetadataHelper;
 
   /**
-   * Test that all basic attributes are set and XMP metadata gets set.
+   * Test that all basic attributes are set and specific metadata gets set.
    */
   public function testGetMetadataAttributeLabels() {
     $this->assetMetadataHelper->setSpecificMetadataFields([
