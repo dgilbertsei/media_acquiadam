@@ -9,9 +9,6 @@ media_acquiadam.settings:
     token:
       type: string
       label: 'Acquia DAM authentication token'
-    search_endpoint:
-      type: string
-      label: 'Search endpoint'
     client_id:
       type: string
       label: 'Client id'
@@ -30,16 +27,6 @@ media_acquiadam.settings:
     image_quality:
       type: integer
       label: 'Image quality'
-    oauth:
-      type: mapping
-      label: 'Oauth'
-      mapping:
-        excluded_redirect_keys:
-          type: sequence
-          label: 'Excluded redirect keys'
-          sequence:
-            type: string
-            label: 'Key'
     sync_perform_delete:
       type: integer
       label: 'Delete inactive drupal dam assets'
