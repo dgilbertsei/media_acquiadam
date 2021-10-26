@@ -250,7 +250,7 @@ class Client {
   /**
    * Get an Asset given an Asset ID.
    *
-   * @param int $assetId
+   * @param string $assetId
    *   The Acquia DAM Asset ID.
    * @param array $expands
    *   The additional properties to be included.
@@ -260,7 +260,7 @@ class Client {
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAsset(int $assetId, array $expands = []): Asset {
+  public function getAsset(string $assetId, array $expands = []): Asset {
     $this->checkAuth();
 
     $required_expands = Asset::getRequiredExpands();
