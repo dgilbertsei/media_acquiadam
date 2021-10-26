@@ -528,13 +528,13 @@ class Client {
   /**
    * Download file asset from Acquia DAM.
    *
-   * @param int $assetID
+   * @param string $assetID
    *   Asset ID to be fetched.
    *
    * @return string
    *   Contents of the file as a string.
    */
-  public function downloadAsset($assetID): string {
+  public function downloadAsset(string $assetID): string {
     $this->checkAuth();
 
     $response = $this->getAsset($assetID);
