@@ -450,13 +450,6 @@ class AcquiadamConfig extends ConfigFormBase {
       '@count assets (out of @total) have been synchronized.',
        ['@total' => $results['total']]);
     $this->messenger()->addStatus($message);
-
-    if ($results['processed'] === $results['total']) {
-      // Reset all Drupal States related to the automatic asset synchronization.
-      $this->state->set('media_acquiadam.notifications_starttime', $results['start_time']);
-      $this->state->set('media_acquiadam.notifications_endtime', NULL);
-      $this->state->set('media_acquiadam.notifications_next_page', NULL);
-    }
   }
 
 }

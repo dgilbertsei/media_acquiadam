@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Class AssetRefreshManager.
  *
  * Adds media items to the asset sync queue for later processing.
- * Uses the Notifications API to get affected asset ids - determines which
+ * Uses the Search API to get affected asset ids - determines which
  * assets where changed within the given period of time, and adds them to the
  * queue.
  *
