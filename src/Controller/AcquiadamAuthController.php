@@ -3,14 +3,14 @@
 namespace Drupal\media_acquiadam\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Url;
 use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\user\UserData;
 use Drupal\user\UserInterface;
-use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Acquia DAM Auth controller for the acquiadam module.
@@ -91,7 +91,7 @@ class AcquiadamAuthController extends ControllerBase implements ContainerInjecti
    *
    * @todo improve function documentation block.
    */
-  private function handleAuthentication($auth_code, UserInterface $user) {
+  private function handleAuthentication(string $auth_code, UserInterface $user) {
     $response = AcquiadamAuthService::authenticate($auth_code);
 
     // If account is valid is and a token code has been provide, update the
@@ -119,7 +119,10 @@ class AcquiadamAuthController extends ControllerBase implements ContainerInjecti
     else {
       $error_msg = $this->t('Authorization Failure');
       if (isset($response->error)) {
-        $error_msg .= ' ' . $this->t('[@error: @description]', ['@error' => $response->error, '@description' => $response->description]);
+        $error_msg .= ' ' . $this->t('[@error: @description]', [
+          '@error' => $response->error,
+          '@description' => $response->description,
+        ]);
       }
 
       $this->messenger()->addError($error_msg);

@@ -2,12 +2,12 @@
 
 namespace Drupal\media_acquiadam\Controller;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Controller\ControllerBase;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\media_acquiadam\Service\AssetMetadataHelper;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -94,13 +94,13 @@ class AcquiadamController extends ControllerBase {
   /**
    * Sets the asset details page title.
    *
-   * @param int $assetId
+   * @param string $assetId
    *   The asset ID for the asset to render title for.
    *
    * @return string
    *   The asset details page title.
    */
-  public function assetDetailsPageTitle($assetId) {
+  public function assetDetailsPageTitle(string $assetId): string {
     $asset = $this->getAsset($assetId);
     return $this->t(
       "Asset details: %filename",
@@ -111,13 +111,13 @@ class AcquiadamController extends ControllerBase {
   /**
    * Get an asset.
    *
-   * @param int $assetId
+   * @param string $assetId
    *   The asset ID for the asset to render details for.
    *
    * @return \Drupal\media_acquiadam\Entity\Asset|false
    *   The asset or FALSE on failure.
    */
-  protected function getAsset($assetId) {
+  protected function getAsset(string $assetId) {
     if (!isset($this->asset)) {
       $this->asset = $this->acquiadam->getAsset($assetId);
     }
@@ -128,16 +128,16 @@ class AcquiadamController extends ControllerBase {
   /**
    * Render a page that includes details about an asset.
    *
-   * @param int $assetId
+   * @param string $assetId
    *   The asset ID to retrieve data for.
    *
    * @return array
    *   A render array.
    */
-  public function assetDetailsPage($assetId) {
+  public function assetDetailsPage(string $assetId): array {
 
     // Fetch the asset details via the API.
-    // @TODO: Check that asset is known by Drupal to avoid exposing assets
+    // @todo Check that asset is known by Drupal to avoid exposing assets
     // which are not used in Drupal.
     $asset = $this->getAsset($assetId);
 
