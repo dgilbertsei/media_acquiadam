@@ -2,9 +2,9 @@
 
 namespace Drupal\media_acquiadam;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\media_acquiadam\Entity\Asset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

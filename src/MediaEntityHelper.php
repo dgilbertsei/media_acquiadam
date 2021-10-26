@@ -169,7 +169,7 @@ class MediaEntityHelper {
   /**
    * Get the asset ID for the given media entity.
    *
-   * @return int|false
+   * @return string|false
    *   The asset ID or FALSE on failure.
    */
   public function getAssetId() {
