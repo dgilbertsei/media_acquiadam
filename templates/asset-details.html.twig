@@ -1,13 +1,13 @@
 <div class="asset-preview">
-  <img src="{{ asset_preview }}" alt="Asset preview" />
+  <img src="{{ asset_preview }}" alt="{{ 'Asset preview'|t }}" />
   <br/>
-  <a target="_blank" href="{{ asset_link }}">Open in Acquia DAM</a>
+  <a target="_blank" href="{{ asset_link }}">{{ 'Open in Acquia DAM'|t }}</a>
 </div>
 
 <div class="asset-data">
   <table>
     <tr>
-      <td colspan="2"><strong>Asset Properties</strong></td>
+      <td colspan="2"><strong>{{ 'Asset Properties'|t }}</strong></td>
     </tr>
     {% for attribute, value in asset_data.base_properties %}
       <tr>
@@ -19,7 +19,7 @@
 
     {% if asset_data.additional_metadata is not empty %}
       <tr>
-        <td colspan="2"><strong>Additional Metadata</strong></td>
+        <td colspan="2"><strong>{{ 'Additional Metadata'|t }}</strong></td>
       </tr>
       {% for attribute, value in asset_data.additional_metadata %}
         <tr>
