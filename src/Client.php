@@ -1,18 +1,11 @@
 <?php
-/**
- * @file
- * Client for the Acquia DAM integration.
- */
+
 namespace Drupal\media_acquiadam;
 
-use Drupal\media_acquiadam\Entity\Asset;
-use Drupal\media_acquiadam\Entity\Category;
-use Drupal\media_acquiadam\Entity\MiniFolder;
-use Drupal\media_acquiadam\Entity\User;
-use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
-use Drupal\media_acquiadam\Exception\UploadAssetException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Category;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
@@ -31,6 +24,8 @@ class Client {
 
   /**
    * The base URL of the Acquia DAM API.
+   *
+   * @var string
    */
   protected $baseUrl = "https://api.widencollective.com/v2";
 
@@ -80,9 +75,13 @@ class Client {
    * Client constructor.
    *
    * @param \GuzzleHttp\ClientInterface $client
-   * @param UserDataInterface $user_data
+   *   The Guzzle client interface.
+   * @param \Drupal\user\UserDataInterface $user_data
+   *   The user data interface.
    * @param \Drupal\Core\Session\AccountInterface $account
+   *   The account interface.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config interface.
    */
   public function __construct(ClientInterface $client, UserDataInterface $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory) {
     $this->client = $client;
@@ -93,10 +92,14 @@ class Client {
   }
 
   /**
-   * Check if the current user is authenticated on Acquia DAM. In case of
-   * anonymous user, check the generic token has been configured.
+   * Check if the current user is authenticated on Acquia DAM.
+   *
+   * In case of anonymous user, check the generic token has been configured.
+   *
+   * @return bool
+   *   TRUE if the authentication details are available. FALSE otherwise.
    */
-  public function checkAuth() {
+  public function checkAuth(): bool {
     if ($this->account->isAuthenticated()) {
       $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
       if (isset($account['acquiadam_username']) && isset($account['acquiadam_token'])) {
@@ -113,9 +116,10 @@ class Client {
   /**
    * Get internal auth state details.
    *
-   * {@inheritdoc}
+   * @return array
+   *   An array with the auth state details (username and token).
    */
-  public function getAuthState() {
+  public function getAuthState(): array {
     $state = ['valid_token' => FALSE];
 
     $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
@@ -134,8 +138,9 @@ class Client {
    * Return an array of headers to add to every authenticated request.
    *
    * @return array
+   *   A list of headers to be used in API calls.
    */
-  protected function getDefaultHeaders() {
+  protected function getDefaultHeaders(): array {
     $token = NULL;
     if ($this->account->isAuthenticated()) {
       $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
@@ -160,9 +165,12 @@ class Client {
    * @param string $categoryName
    *   The Acquia DAM Category Name.
    *
-   * @return Category
+   * @return \Drupal\media_acquiadam\Entity\Category
+   *   The category object.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getCategoryByName($categoryName) {
+  public function getCategoryByName(string $categoryName): Category {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -177,20 +185,24 @@ class Client {
   }
 
   /**
-   * Load subcategories by Category link or parts(used in breadcrumb).
+   * Load subcategories by Category link or parts (used in breadcrumb).
    *
-   * @param Category $category
+   * @param \Drupal\media_acquiadam\Entity\Category $category
    *   Category object.
-   * @return Category[]
    *
+   * @return \Drupal\media_acquiadam\Entity\Category[]
+   *   A list of sub-categories (ie: child categories).
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getCategoryData(Category $category) {
+  public function getCategoryData(Category $category): array {
     $this->checkAuth();
     $url = $this->baseUrl . '/categories';
-    // If category is not set, it will laod the root category.
-    if(isset($category->_links->categories)){
+    // If category is not set, it will load the root category.
+    if (isset($category->_links->categories)) {
       $url = $category->_links->categories;
-    } elseif (!empty($category->parts)) {
+    }
+    elseif (!empty($category->parts)) {
       $cats = "";
       foreach ($category->parts as $part) {
         $cats .= "/" . $part;
@@ -210,9 +222,12 @@ class Client {
   /**
    * Get top level categories.
    *
-   * @return Category[]
+   * @return Drupal\media_acquiadam\Entity\Category[]
+   *   A list of top level categories (ie: root categories).
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getTopLevelCategories() {
+  public function getTopLevelCategories(): array {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -240,9 +255,12 @@ class Client {
    * @param array $expands
    *   The additional properties to be included.
    *
-   * @return Asset
+   * @return \Drupal\media_acquiadam\Entity\Asset
+   *   The asset entity.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAsset($assetId, $expands = []) {
+  public function getAsset(int $assetId, array $expands = []): Asset {
     $this->checkAuth();
 
     $required_expands = Asset::getRequiredExpands();
@@ -364,17 +382,17 @@ class Client {
    * @param int $folderID
    *   The Acquia DAM folder ID.
    *
+   * @return string
+   *   Acquia DAM response (asset id).
+   *
    * @throws UploadAssetException
    *   If uploadAsset fails we throw an instance of UploadAssetException
    *   that contains a message for the caller.
-   *
-   * @return string
-   *   Acquia DAM response (asset id).
    */
-  public function uploadAsset($file_uri, $file_name, $folderID) {
+  public function uploadAsset(string $file_uri, string $file_name, int $folderID): string {
     $this->checkAuth();
 
-    //Getting file data from file_uri
+    // Getting file data from file_uri.
     $file_type = mime_content_type($file_uri);
     $file_size = filesize($file_uri);
 
@@ -405,27 +423,26 @@ class Client {
   /**
    * Get a list of Assets given a Category ID.
    *
-   * @param int $categoryId
-   *   The Acquia DAM Category ID.
-   *
    * @param array $params
    *   Additional query parameters for the request.
    *
    * @return object
    *   Contains the following keys:
-   *     - folders: an array containing a MiniFolder describing $folderId
    *     - offset: The offset used for the query.
-   *     - total_count: The total number of assets in the result set across all pages.
+   *     - total_count: The total number of assets in the result set across all
+   *       pages.
    *     - limit: The number of assets returned at a time.
    *     - facets: Information about the assets returned.
    *     - items: an array of Asset objects.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAssetsByCategory(array $params = []) {
+  public function getAssetsByCategory(array $params = []): object {
     $this->checkAuth();
 
     $date = date('m/d/Y');
     $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
-    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after '. $date . '])';
+    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
 
     $response = $this->client->request(
       "GET",
@@ -443,15 +460,6 @@ class Client {
     }
     $response->items = $assets;
 
-    // Replace folders key with actual Folder objects.
-    $folders = [];
-    if(isset($response->folders) && is_array($response->folders)) {
-      foreach ($response->folders as $folder) {
-        $folders[] = MiniFolder::fromJson($folder);
-      }
-    }
-    $response->folders = $folders;
-
     return $response;
   }
 
@@ -460,10 +468,13 @@ class Client {
    *
    * @param array $assetIds
    *   The Acquia DAM Asset ID's.
+   * @param array $expand
+   *   A list of dta items to expand on the result set.
    *
    * @return array
+   *   A list of assets.
    */
-  public function getAssetMultiple(array $assetIds, $expand = []) {
+  public function getAssetMultiple(array $assetIds, array $expand = []): array {
     $this->checkAuth();
 
     if (empty($assetIds)) {
@@ -471,33 +482,30 @@ class Client {
     }
 
     $assets = [];
-    foreach($assetIds as $assetId) {
+    foreach ($assetIds as $assetId) {
       $assets[] = $this->getAsset($assetId, $expand);
     }
     return $assets;
   }
 
   /**
-   * Get a list of Assets given an array of Asset ID's.
+   * Search for assets using the Acquia DAM search API.
    *
    * @param array $params
-   *   Additional query parameters for the request.
-   *     - sortby: The field to sort by. Options: filename, filesize, datecreated, datemodified. (Default=datecreated)
-   *     - sortdir: The direction to sort by. Options: asc, desc (Default=asc)
-   *     - limit: The number of items to return. Any int between 1 and 100. (Default=50)
-   *     - offset: The item number to start with. (Default=0)
-   *     - types: File type filter. Options: image, audiovideo, document, presentation, other. (Default=NULL)
+   *   An array used as query parameter. Valid parameters are documented on
+   *   https://widenv2.docs.apiary.io/#reference/assets/assets/list-by-search-query.
    *
    * @return array
+   *   A list of assets.
    *
-   * @todo clean this up. mystery arrays make an api hard to use.
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function searchAssets(array $params) {
+  public function searchAssets(array $params): array {
     $this->checkAuth();
 
     $date = date('m/d/Y');
     $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
-    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after '. $date . '])';
+    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
 
     $response = $this->client->request(
       "GET",
@@ -511,22 +519,22 @@ class Client {
     $results = [
       'total_count' => $response->total_count,
     ];
-    foreach ($response->items as $asset){
+    foreach ($response->items as $asset) {
       $results['assets'][] = Asset::fromJson($asset);
     }
     return $results;
   }
 
   /**
-   * Download file asset from Acquia DAM
+   * Download file asset from Acquia DAM.
    *
    * @param int $assetID
-   *   Asset ID to be fetched
+   *   Asset ID to be fetched.
    *
-   * @return string $file_content
-   *   Contents of the file as a string
+   * @return string
+   *   Contents of the file as a string.
    */
-  public function downloadAsset($assetID) {
+  public function downloadAsset($assetID): string {
     $this->checkAuth();
 
     $response = $this->getAsset($assetID);
@@ -558,7 +566,7 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
-  public function queueAssetDownload($assetIDs, array $options) {
+  public function queueAssetDownload($assetIDs, array $options): array {
     $this->checkAuth();
 
     if (!is_array($assetIDs)) {
@@ -604,7 +612,7 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
-  public function downloadFromQueue($downloadKey) {
+  public function downloadFromQueue($downloadKey): array {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -626,7 +634,7 @@ class Client {
    * are supplied. Any attempt to change the status to 'active' for assets that
    * still require metadata will return back 409.
    *
-   * @param int $assetID
+   * @param string $assetID
    *   The asset to edit.
    * @param array $data
    *   An array of values to set.
@@ -647,7 +655,7 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
-  public function editAsset($assetID, array $data) {
+  public function editAsset(string $assetID, array $data) {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -673,8 +681,10 @@ class Client {
    *
    * @return array
    *   A list of metadata fields.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getSpecificMetadataFields() {
+  public function getSpecificMetadataFields(): array {
     if (!empty($this->specificMetadataFields)) {
       return $this->specificMetadataFields;
     }
@@ -723,7 +733,7 @@ class Client {
         }
         $this->specificMetadataFields[$field->displayKey] = [
           'label' => $field->displayName,
-          'type' => $type
+          'type' => $type,
         ];
       }
     }
@@ -735,10 +745,11 @@ class Client {
    * Register integration link on Acquia DAM via API.
    *
    * @param array $data
+   *   The body of the POST request.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  function registerIntegrationLink($data) {
+  public function registerIntegrationLink(array $data) {
     try {
       $this->checkAuth();
     }
@@ -771,10 +782,11 @@ class Client {
    * Get all the integration links which have been registered on Acquia DAM.
    *
    * @return array
+   *   All the integration links which are registered on Acquia DAM.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  function getIntegrationLinks() {
+  public function getIntegrationLinks(): array {
     $this->checkAuth();
 
     $response = $this->client->request(
@@ -794,9 +806,12 @@ class Client {
    * Get a specific integration link by its uuid.
    *
    * @param string $uuid
+   *   The uuid of the integration link to fetch.
+   *
    * @return mixed
+   *   The integration link if found, NULL otherwise.
    */
-  function getIntegrationLink($uuid) {
+  public function getIntegrationLink(string $uuid) {
     foreach ($this->getIntegrationLinks() as $link) {
       if ($link->uuid === $uuid) {
         return $link;
@@ -807,13 +822,15 @@ class Client {
   }
 
   /**
-   * Get all the integration links which have been registered for a specific asset.
+   * Get all the integration links which have been registered for an asset.
    *
    * @param string $asset_uuid
+   *   The uuid of the asset to check.
    *
    * @return array
+   *   The integration links of the asset.
    */
-  function getAssetIntegrationLinks($asset_uuid) {
+  public function getAssetIntegrationLinks(string $asset_uuid): array {
     $links = [];
 
     foreach ($this->getIntegrationLinks() as $link) {
