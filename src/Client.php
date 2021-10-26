@@ -669,39 +669,6 @@ class Client {
   }
 
   /**
-   * Edit asset XMP metadata.
-   *
-   * @param int $assetID
-   *   The asset to edit XMP metadata for.
-   * @param array $data
-   *   A key value array of metadata to edit.
-   *
-   * @return array
-   *   The metadata of the asset.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
-   */
-  public function editAssetXmpMetadata($assetID, array $data) {
-    $this->checkAuth();
-
-    $data['type'] = 'assetxmp';
-
-    $response = $this->client->request(
-      'PUT',
-      $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
-      [
-        'headers' => $this->getDefaultHeaders(),
-        RequestOptions::JSON => $data,
-      ]
-    );
-
-    $response = json_decode((string) $response->getBody(), TRUE);
-
-    return $response;
-  }
-
-  /**
    * Get a list of metadata.
    *
    * @return array
