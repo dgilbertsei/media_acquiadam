@@ -536,33 +536,6 @@ class Client {
   }
 
   /**
-   * Get asset metadata.
-   */
-  public function getAssetMetadata($assetId) {
-    $this->checkAuth();
-
-    $response = $this->client->request(
-      'GET',
-      $this->baseUrl . '/assets/' . $assetId . '/metadatas/xmp',
-      ['headers' => $this->getDefaultHeaders()]
-    );
-
-    $response = json_decode((string) $response->getBody());
-
-    $metadata = [];
-    foreach ($response->active_fields as $field) {
-      if (!empty($field->value)) {
-        $metadata[$field->field] = [
-          'label' => $field->field_name,
-          'value' => $field->value,
-        ];
-      }
-    }
-
-    return $metadata;
-  }
-
-  /**
    * Queue custom asset conversions for download.
    *
    * This is a 2 step process:
