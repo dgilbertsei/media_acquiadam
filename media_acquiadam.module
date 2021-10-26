@@ -48,7 +48,7 @@ function media_acquiadam_form_user_form_alter(&$form, FormStateInterface $form_s
         '#prefix' => t('Currently authorized with Acquia DAM as "@username".', array('@username' => $acquiadam_username)) . '<br />',
       ];
 
-      $form['actions']['submit']['#submit'][] = 'media_acquiadam_unathorize';
+      $form['actions']['submit']['#submit'][] = 'media_acquiadam_unauthorize';
     }
     else {
       $return_link = $base_url . Url::fromRoute('media_acquiadam.user_auth')->toString() . '?uid=' . $user->id();
@@ -65,9 +65,9 @@ function media_acquiadam_form_user_form_alter(&$form, FormStateInterface $form_s
 }
 
 /**
- * Custom user form submit handler.
+ * Custom user form submit handler to unauthorize the user on Acquia DAM.
  */
-function media_acquiadam_unathorize($form, FormStateInterface $form_state) {
+function media_acquiadam_unauthorize($form, FormStateInterface $form_state) {
   if ($form_state->getValue('remove_auth')) {
     // Get the editing user.
     $user = \Drupal::routeMatch()->getParameter('user');
@@ -75,9 +75,10 @@ function media_acquiadam_unathorize($form, FormStateInterface $form_state) {
     $acquiadam_account = \Drupal::service('user.data')
       ->get('media_acquiadam', $user->id(), 'account');
 
+    // Cancel the user token on Acquia DAM.
     $cancelled = AcquiadamAuthService::cancel($acquiadam_account['acquiadam_token']);
 
-    // Unset Acquia DAM account data.
+    // Remove the Acquia DAM data (mainly the token) from the user account.
     if ($cancelled) {
       \Drupal::service('user.data')
         ->set('media_acquiadam', $user->id(), 'account', []);
