@@ -536,33 +536,6 @@ class Client {
   }
 
   /**
-   * Get asset metadata.
-   */
-  public function getAssetMetadata($assetId) {
-    $this->checkAuth();
-
-    $response = $this->client->request(
-      'GET',
-      $this->baseUrl . '/assets/' . $assetId . '/metadatas/xmp',
-      ['headers' => $this->getDefaultHeaders()]
-    );
-
-    $response = json_decode((string) $response->getBody());
-
-    $metadata = [];
-    foreach ($response->active_fields as $field) {
-      if (!empty($field->value)) {
-        $metadata[$field->field] = [
-          'label' => $field->field_name,
-          'value' => $field->value,
-        ];
-      }
-    }
-
-    return $metadata;
-  }
-
-  /**
    * Queue custom asset conversions for download.
    *
    * This is a 2 step process:
@@ -693,39 +666,6 @@ class Client {
     $asset = Asset::fromJson((string) $response->getBody());
 
     return $asset;
-  }
-
-  /**
-   * Edit asset XMP metadata.
-   *
-   * @param int $assetID
-   *   The asset to edit XMP metadata for.
-   * @param array $data
-   *   A key value array of metadata to edit.
-   *
-   * @return array
-   *   The metadata of the asset.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
-   */
-  public function editAssetXmpMetadata($assetID, array $data) {
-    $this->checkAuth();
-
-    $data['type'] = 'assetxmp';
-
-    $response = $this->client->request(
-      'PUT',
-      $this->baseUrl . '/assets/' . $assetID . '/metadatas/xmp',
-      [
-        'headers' => $this->getDefaultHeaders(),
-        RequestOptions::JSON => $data,
-      ]
-    );
-
-    $response = json_decode((string) $response->getBody(), TRUE);
-
-    return $response;
   }
 
   /**
