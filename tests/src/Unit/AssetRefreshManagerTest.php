@@ -100,7 +100,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @param array $request_query_options
    *   The list of request query options.
    * @param array $response
-   *   The stub of Notifications API response.
+   *   The stub of Search API response.
    * @param array $expected_asset_ids
    *   The list of expected asset ids.
    *
@@ -136,7 +136,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @param array $request_query_options
    *   The list of request query options.
    * @param array $response
-   *   The stub of Notifications API response.
+   *   The stub of Search API response.
    * @param array $expected_asset_ids
    *   The list of expected asset ids.
    * @param int $expected_total
@@ -158,7 +158,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @param array $request_query_options
    *   The list of request query options.
    * @param array $response
-   *   The stub of Notifications API response.
+   *   The stub of Search API response.
    * @param array $expected_asset_ids
    *   The list of expected asset ids.
    * @param int $expected_total
@@ -313,7 +313,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
    * @param array $request_query_options
    *   The list of request query options.
    * @param array $response
-   *   The stub of Notifications API response.
+   *   The stub of Search API response.
    */
   protected function setupApiResponseStub(array $request_query_options, array $response) {
     $this->acquiadamClient

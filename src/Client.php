@@ -732,57 +732,6 @@ class Client {
   }
 
   /**
-   * Returns the list of recent Acquia DAM REST API "Notifications".
-   *
-   * @param array $query_options
-   *   The associative array of optional query parameters:
-   *   - "limit" - the maximum number of items to return;
-   *   - "offset" - the starting position for the number of items to return;
-   *   - "starttime" - the lowest (inclusive) "date_created_unix" notification
-   *     property to return;
-   *   - "endtime" - the highest (exclusive) "date_created_unix" notification
-   *     property to return.
-   *
-   * @return array
-   *   The response (associative array) from Notifications API containing the
-   *   following keys:
-   *   - "last_read" - date/time the Notifications API was last read;
-   *   - "offset" - duplicates the offset parameter;
-   *   - "limit" - duplicates the limit parameter;
-   *   - "total" - the total number of notification items in the API;
-   *   - "notifications" - notification items.
-   *
-   * @throws \GuzzleHttp\Exception\GuzzleException
-   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
-   */
-  public function getNotifications(array $query_options = []): array {
-    $this->checkAuth();
-    $query_options += [
-      'limit' => 100,
-      'offset' => 0,
-      'starttime' => NULL,
-      'endtime' => NULL,
-    ];
-
-    $response = $this->client->request(
-      'GET',
-      $this->baseUrl . '/notifications',
-      [
-        'headers' => $this->getDefaultHeaders(),
-        'query' => $query_options,
-      ]
-    );
-    if ($response->getStatusCode() == 429) {
-      \Drupal::logger('media_acquiadam')->error(
-        'Failed to fetch asset ids: Too Many Requests.'
-      );
-      return [];
-    }
-
-    return json_decode((string) $response->getBody(), TRUE);
-  }
-
-  /**
    * Register integration link on Acquia DAM via API.
    *
    * @param array $data

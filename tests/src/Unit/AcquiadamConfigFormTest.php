@@ -142,14 +142,6 @@ class AcquiadamConfigFormTest extends UnitTestCase {
       $this->assertBatchRun($context, $run, $total_media_ids);
     }
 
-    // Verify the batch finish operation.
-    $this->state->expects($this->exactly(3))
-      ->method('set')
-      ->withConsecutive(
-        [$this->equalTo('media_acquiadam.notifications_starttime'), $this->equalTo(1560000000)],
-        [$this->equalTo('media_acquiadam.notifications_endtime'), $this->equalTo(NULL)],
-        [$this->equalTo('media_acquiadam.notifications_next_page'), $this->equalTo(NULL)]
-      );
     $this->acquiaDamConfig->finishBatchOperation(NULL, $context['results'], []);
   }
 
