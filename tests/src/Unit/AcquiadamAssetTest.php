@@ -45,7 +45,7 @@ class AcquiadamAssetTest extends UnitTestCase {
   public function testGetMetadata() {
     $media = $this->getMockedMediaEntity($this->getAssetData()->id);
 
-    $this->assertEquals('media:acquiadam:' . $media->uuid(),
+    $this->assertEquals('media:media_acquiadam:' . $media->uuid(),
       $this->acquiadamMediaSource->getMetadata($media, 'default_name'));
     $this->assertEquals($this->getMockedFileEntity()->id(),
       $this->acquiadamMediaSource->getMetadata($media, 'file'));

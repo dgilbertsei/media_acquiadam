@@ -61,7 +61,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
    * @covers ::getFormId
    */
   public function testGetFormId() {
-    $this->assertEquals('acquiadam_config',
+    $this->assertEquals('media_acquiadam_config',
       $this->acquiaDamConfig->getFormId());
   }
 

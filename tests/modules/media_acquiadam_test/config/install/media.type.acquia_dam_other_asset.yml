@@ -2,7 +2,7 @@ langcode: en
 status: true
 dependencies:
   module:
-    - acquiadam
+    - media_acquiadam
 id: acquia_dam_other_asset
 label: 'Acquia DAM Asset (2)'
 description: 'A generic asset hosted on Acquia DAM.'
