@@ -228,7 +228,7 @@ function media_acquiadam_update_8106(&$sandbox) {
 /**
  * Update database schema following Acquia DAM upgrade.
  */
-function media_acquiadam_update_8107() {
+function media_acquiadam_update_8201() {
   $source_field = 'field_acquiadam_asset_id';
   // AcquiaDAM has moved the 'asset_id' from a number to string (uuid).
   $column_schema = [

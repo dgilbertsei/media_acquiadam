@@ -89,3 +89,36 @@ function media_acquiadam_example_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Update the existing example media bundle to remove the status mapping.
+ */
+function media_acquiadam_example_update_8201() {
+  $config_names = [
+    'media.type.acquia_dam_asset',
+    'media.type.acquia_dam_audio',
+    'media.type.acquia_dam_document',
+    'media.type.acquia_dam_image',
+    'media.type.acquia_dam_video',
+  ];
+
+  foreach ($config_names as $config_name) {
+    if (empty(Drupal::config($config_name)->get())) {
+      continue;
+    }
+
+    $config = Drupal::service('config.factory')
+      ->getEditable($config_name);
+
+    $map = $config->get('field_map');
+
+    // If the status field is mapped with an Acquia DAM field named "status",
+    // we unmap it as it does not exist anymore on Acquia DAM.
+    if (isset($map['status']) && $map['status'] === 'status') {
+      unset($map['status']);
+
+      $config->set('field_map', $map);
+      $config->save();
+    }
+  }
+}
