@@ -2,6 +2,8 @@
 
 namespace Drupal\media_acquiadam;
 
+use Drupal\Core\Config\ImmutableConfig;
+
 /**
  * The service to authenticate on Acquia DAM.
  *
@@ -110,10 +112,10 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
    * @param string $auth_code
    *   The authorization code.
    *
-   * @return array
+   * @return object
    *   The response data of the authentication attempt.
    */
-  public static function authenticate(string $auth_code): array {
+  public static function authenticate(string $auth_code): object {
     // Generate the token endpoint SSL URL of the request.
     $endpoint = self::getEndpoint('oauth/token');
 

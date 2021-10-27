@@ -53,9 +53,9 @@ interface AcquiadamAuthServiceInterface {
    * @param string $auth_code
    *   The authorization code.
    *
-   * @return array
+   * @return object
    *   The response data of the authentication attempt.
    */
-  public static function authenticate(string $auth_code): array;
+  public static function authenticate(string $auth_code): object;
 
 }
