@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Installation related hooks and functions.
+ */
+
+use Drupal\views\Entity\View;
+use Symfony\Component\Yaml\Yaml;
+
+
+/**
+ * Update views display config following Media: Acquia DAM upgrade.
+ */
+function media_acquiadam_report_update_8201() {
+  $config_factory = Drupal::configFactory();
+  // Update reporting views config only if views exist.
+  $view = View::load('acquia_dam_reporting');
+  if ($view) {
+    $views_config_path = drupal_get_path('module', 'media_acquiadam_report') . '/config/install/views.view.acquia_dam_reporting.yml';
+    $views_data = Yaml::parseFile($views_config_path);
+    $config_factory->getEditable('views.view.acquia_dam_reporting')->setData($views_data)->save();
+  }
+}
