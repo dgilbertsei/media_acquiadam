@@ -36,6 +36,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    * Validate we can get file from a media entity.
    */
   public function testGetFile() {
+    $this->setupApiResponseStub($this->getAssetData()->id, $this->getAssetData());
     $helper = $this->getNewMediaEntityHelper();
 
     $this->assertInstanceOf(FileInterface::class, $helper->getFile());
@@ -98,6 +99,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    * Validates that we can get the asset.
    */
   public function testGetAsset() {
+    $this->setupApiResponseStub($this->getAssetData()->id, $this->getAssetData());
     $this->assertInstanceOf(Asset::class,
       $this->getNewMediaEntityHelper()->getAsset());
 
@@ -121,14 +123,36 @@ class MediaEntityHelperTest extends UnitTestCase {
   }
 
   /**
+   * Setups the API response stub.
+   *
+   * @param string $request_query
+   *   The query for the Get Asset Api request
+   * @param mixed $response
+   *   The stub of Get Asset API response.
+   */
+  protected function setupApiResponseStub(string $request_query, $response) {
+    $this->acquiadamClient
+      ->expects($this->any())
+      ->method('getAsset')
+      ->with($request_query)
+      ->willReturn($response);
+  }
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
 
+    $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
+      ->setMethods(['getAsset'])
+      ->disableOriginalConstructor()
+      ->getMock();
+
     $this->container = new ContainerBuilder();
     $this->setMockedDrupalServices($this->container);
     $this->setMockedAcquiaDamServices($this->container);
+    $this->container->set('media_acquiadam.acquiadam', $this->acquiadamClient);
     \Drupal::setContainer($this->container);
   }
 
