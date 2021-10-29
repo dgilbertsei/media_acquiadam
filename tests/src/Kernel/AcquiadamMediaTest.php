@@ -10,7 +10,7 @@ use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 /**
  * Tests Media entities with Acquia DAM source.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamMediaTest extends AcquiadamKernelTestBase {
 
@@ -42,7 +42,6 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    */
   protected $acquiadamReflectionClass;
 
-
   /**
    * {@inheritdoc}
    */
@@ -53,7 +52,6 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $this->acquiadamReflectionClass = new \ReflectionClass(Acquiadam::class);
 
     $this->asset = $this->getAssetData();
-
 
     // Create file with same name as asset file to make sure asset file
     // replacement happens as expected.
@@ -81,8 +79,6 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests updating media entity when new version is available.
    */
   public function testNewVersionUpdate() {
-    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
-    $asset_data = $this->getAssetData();
 
     $this->saveNewVersion();
 
@@ -99,8 +95,6 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests that version is only updated when file is saved correctly.
    */
   public function testFailedFileSave() {
-    /** @var \Drupal\media_acquiadam\AssetData $asset_data */
-    $asset_data = $this->container->get('media_acquiadam.asset_data');
     /** @var \Drupal\media_acquiadam\Service\AssetFileEntityHelper $asset_file_helper */
     $asset_file_helper = $this->container->get('media_acquiadam.asset_file.helper');
     /** @var \Drupal\Core\File\FileSystem $file_system */

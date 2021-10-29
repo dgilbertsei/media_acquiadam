@@ -3,7 +3,10 @@
 namespace Drupal\media_acquiadam\Commands;
 
 use Consolidation\AnnotatedCommand\CommandData;
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Queue\QueueFactory;
+use Drupal\Core\State\StateInterface;
 use Drush\Commands\DrushCommands;
 
 /**
@@ -21,23 +24,55 @@ class AcquiadamCommands extends DrushCommands {
   protected $config;
 
   /**
+   * The queue factory.
+   *
+   * @var \Drupal\Core\Queue\QueueFactory
+   */
+  protected $queueService;
+
+  /**
+   * The state interface.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
+
+  /**
+   * The time service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected $time;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory, QueueFactory $queue_service, StateInterface $state, TimeInterface $time) {
     parent::__construct();
     $this->config = $config_factory->get('media_acquiadam.settings');
+    $this->queueService = $queue_service;
+    $this->state = $state;
+    $this->time = $time;
   }
 
   /**
-   * Update Media: Acquia DAM assets to reference the new Acquia DAM service instead of Acquia DAM Classic.
+   * Update Media: Process a CSV to update Acquia DAM assets to reference.
+   *
+   * This will update Acquia DAM media to change the asset_id from the
+   * legacy Acquia DAM to the new Acquia DAM.
+   *
+   * @param string $file
+   *   The path to the migrate file.
+   * @param array $options
+   *   The options of the command.
    *
    * @command acquiadam:update
    * @aliases acquiadam-update
    *
-   * @param string $file The path to the migrate file.
-   * @option string $delimiter The CSV delimited.
+   * @option string $delimiter
+   *   The CSV delimited.
    */
-  public function update($file, $options = ['delimiter' => ',']) {
+  public function update(string $file, array $options = ['delimiter' => ',']) {
     $legacy_ids_to_new_ids = _media_acquiadam_parse_reference_updation_csv($file, $options['delimiter']);
 
     $batch = _media_acquiadam_build_reference_updation_batch($legacy_ids_to_new_ids);
@@ -47,10 +82,14 @@ class AcquiadamCommands extends DrushCommands {
   }
 
   /**
-   * @hook validate acquiadam:update
+   * Validate handler for the acquiadam:update command.
+   *
    * @param \Consolidation\AnnotatedCommand\CommandData $commandData
+   *   The command data.
+   *
+   * @hook validate acquiadam:update
+   *
    * @throws \Exception
-   * @return void
    */
   public function validateUpdate(CommandData $commandData) {
     $file = $commandData->input()->getArgument('file');
@@ -73,26 +112,19 @@ class AcquiadamCommands extends DrushCommands {
    * @usage drush acquiadam:sync --method=delta --date=2021-01-01T00:00:00
    * @usage drush acquiadam:sync --method=all
    */
-  public function sync($options = ['method' => null, 'date' => null]) {
+  public function sync($options = ['method' => NULL, 'date' => NULL]) {
     if (($options['method'] && $options['method'] === 'delta') || $this->config->get('sync_method') === 'updated_date') {
-      $sync_timestamp = \Drupal::state()->get('media_acquiadam.last_sync');
-      // If a specific date has been provided, we need to temporary replace the
-      // acquiadam.last_sync state value as it is the one used by sub-processes.
+      $sync_timestamp = $this->state->get('media_acquiadam.last_sync');
+      // If specific date has been provided, we replace the acquiadam.last_sync
+      // state value as it is the one used by sub-processes.
       if ($options['date']) {
-        $previous_last_sync = $sync_timestamp;
         $sync_timestamp = strtotime($options['date']);
-        \Drupal::state()->set('media_acquiadam.last_sync', $sync_timestamp);
+        $this->state->set('media_acquiadam.last_sync', $sync_timestamp);
       }
 
       $this->logger()->notice(dt('Fetching and queuing for synchronization the assets which have been updated since @date.', ['@date' => date('c', $sync_timestamp)]));
 
       media_acquiadam_refresh_asset_sync_updated_date_queue();
-
-      // If a specific date has been provided, we need to revert the previous
-      // state value.
-      if ($options['date']) {
-        \Drupal::state()->set('media_acquiadam.last_sync', $previous_last_sync);
-      }
     }
     else {
       $this->logger()->notice(dt("Queuing all the Acquia DAM's related media for synchronization."));
@@ -100,15 +132,21 @@ class AcquiadamCommands extends DrushCommands {
       media_acquiadam_refresh_asset_sync_queue();
     }
 
-    $total_queue_items = \Drupal::queue('media_acquiadam_asset_refresh')->numberOfItems();
-    $this->logger()->success(dt('@total_queue_items medias have been queued for sync.', ['@total_queue_items' => $total_queue_items]));
+    $this->state->set('media_acquiadam.last_sync', $this->time->getRequestTime());
+
+    $total_queue_items = $this->queueService->get('media_acquiadam_asset_refresh')->numberOfItems();
+    $this->logger()->success(dt('@total_queue_items medias are queued for sync.', ['@total_queue_items' => $total_queue_items]));
   }
 
   /**
-   * @hook validate acquiadam:sync
+   * The validation handler for the acquiadam:sync command.
+   *
    * @param \Consolidation\AnnotatedCommand\CommandData $commandData
+   *   The command data.
+   *
+   * @hook validate acquiadam:sync
+   *
    * @throws \Exception
-   * @return void
    */
   public function validateSync(CommandData $commandData) {
     // Validate the method argument.
@@ -127,4 +165,5 @@ class AcquiadamCommands extends DrushCommands {
       }
     }
   }
+
 }

@@ -2,9 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\media_acquiadam\Acquiadam;
-use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
-use Drupal\media_acquiadam\Service\AssetRefreshManager;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -12,6 +9,9 @@ use Drupal\Core\Entity\Query\Null\Query;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\State;
+use Drupal\media_acquiadam\Acquiadam;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
+use Drupal\media_acquiadam\Service\AssetRefreshManager;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Exception\GuzzleException;
@@ -21,7 +21,7 @@ use GuzzleHttp\Exception\GuzzleException;
  *
  * @coversDefaultClass \Drupal\media_acquiadam\Service\AssetRefreshManager
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AssetRefreshManagerTest extends UnitTestCase {
 

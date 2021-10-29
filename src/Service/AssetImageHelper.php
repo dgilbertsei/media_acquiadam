@@ -2,14 +2,14 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
-use Drupal\image\Entity\ImageStyle;
+use Drupal\media_acquiadam\Entity\Asset;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
@@ -58,6 +58,13 @@ class AssetImageHelper implements ContainerInjectionInterface {
   protected $imageFactory;
 
   /**
+   * Entity manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * AssetImageHelper constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
@@ -70,13 +77,16 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   Drupal MIME type guesser.
    * @param \Drupal\Core\Image\ImageFactory $imageFactory
    *   Drupal ImageFactory service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory) {
+  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory, EntityTypeManagerInterface $entityTypeManager) {
     $this->httpClient = $httpClient;
     $this->configFactory = $configFactory;
     $this->fileSystem = $fileSystem;
     $this->mimeTypeGuesser = $mimeTypeGuesser;
     $this->imageFactory = $imageFactory;
+    $this->entityTypeManager = $entityTypeManager;
   }
 
   /**
@@ -88,7 +98,8 @@ class AssetImageHelper implements ContainerInjectionInterface {
       $container->get('file_system'),
       $container->get('http_client'),
       $container->get('file.mime_type.guesser'),
-      $container->get('image.factory')
+      $container->get('image.factory'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -109,16 +120,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
       return FALSE;
     }
     // Check if file_properties are loaded with asset.
-    if(empty($asset->file_properties)) {
+    if (empty($asset->file_properties)) {
       $dimension = "w";
-    } else {
+    }
+    else {
       $dimension = ($asset->file_properties->image_properties->aspect_ratio > 1) ? "w" : "h";
     }
 
-    $url = Url::fromUri($asset->embeds->original->url, ["query" => [
-      $dimension => $thumbnailSize,
-      "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80
-    ]]);
+    $url = Url::fromUri($asset->embeds->original->url, [
+      "query" => [
+        $dimension => $thumbnailSize,
+        "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80,
+      ],
+    ]);
     $thumbnailUrl = str_replace("/original/", "/png/", $url->toString());
     return $thumbnailUrl;
   }
@@ -281,7 +295,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
 
     if ($image->isValid()) {
       // Pre-create all image styles.
-      $styles = ImageStyle::loadMultiple();
+      $styles = $this->entityTypeManager->getStorage('image_style')->loadMultiple();
       foreach ($styles as $style) {
         /** @var \Drupal\image\Entity\ImageStyle $style */
         $style->flush($file->getFileUri());

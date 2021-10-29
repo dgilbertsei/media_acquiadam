@@ -144,15 +144,15 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'select',
       '#title' => $this->t('Asset refresh interval'),
       '#options' => [
-        '-1' => 'Every cron run',
-        '3600' => 'Every hour',
-        '7200' => 'Every 2 hours',
-        '10800' => 'Every 3 hours',
-        '14400' => 'Every 4 hours',
-        '21600' => 'Every 6 hours',
-        '28800' => 'Every 8 hours',
-        '43200' => 'Every 12 hours',
-        '86400' => 'Every 24 hours',
+        '-1' => $this->t('Every cron run'),
+        '3600' => $this->t('Every hour'),
+        '7200' => $this->t('Every 2 hours'),
+        '10800' => $this->t('Every 3 hours'),
+        '14400' => $this->t('Every 4 hours'),
+        '21600' => $this->t('Every 6 hours'),
+        '28800' => $this->t('Every 8 hours'),
+        '43200' => $this->t('Every 12 hours'),
+        '86400' => $this->t('Every 24 hours'),
       ],
       '#default_value' => empty($config->get('sync_interval')) ? 3600 : $config->get('sync_interval'),
       '#description' => $this->t('How often should Acquia DAM assets saved in this site be synced with Acquia DAM (this includes asset metadata as well as the asset itself)?'),
@@ -170,7 +170,7 @@ class AcquiadamConfig extends ConfigFormBase {
     ];
     $form['cron']['sync_perform_delete'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Delete inactive Drupal\'s DAM assets.'),
+      '#title' => $this->t("Delete inactive Drupal's DAM assets."),
       '#default_value' => $config->get('sync_perform_delete'),
       '#description' => $this->t('Deletes unpublished Drupal media entities if asset is not available in Acquia DAM (deleted, archived, expired).'),
     ];
@@ -267,7 +267,7 @@ class AcquiadamConfig extends ConfigFormBase {
       return FALSE;
     }
 
-    // @TODO: Validate the token.
+    // @todo Validate the token.
   }
 
   /**

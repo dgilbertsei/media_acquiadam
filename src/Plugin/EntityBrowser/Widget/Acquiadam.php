@@ -2,9 +2,6 @@
 
 namespace Drupal\media_acquiadam\Plugin\EntityBrowser\Widget;
 
-use Drupal\media_acquiadam\Entity\Asset;
-use Drupal\media_acquiadam\Entity\Category;
-use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -17,13 +14,16 @@ use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
 use Drupal\media\MediaSourceManager;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Entity\Asset;
+use Drupal\media_acquiadam\Entity\Category;
 use Drupal\media_acquiadam\Form\AcquiadamConfig;
 use Drupal\user\UserDataInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Drupal\media_acquiadam\AcquiadamAuthService;
+
 /**
  * Uses a view to provide entity listing in a browser's widget.
  *
@@ -179,7 +179,7 @@ class Acquiadam extends WidgetBase {
     }
 
     // If the current user is not authenticated over Acquia DAM, display an
-    // error message with invitation to authenticate via his user edit form.
+    // error message with invitation to authenticate via user edit form.
     $auth = $this->acquiadam->getAuthState();
     if (empty($auth['valid_token'])) {
       $return_link = Url::fromRoute('media_acquiadam.user_auth', ['uid' => $this->user->id()], ['absolute' => TRUE])->toString();
@@ -194,7 +194,8 @@ class Acquiadam extends WidgetBase {
         // If Acquia Dam module is not configured yet, display an error message
         // to configure the module first.
         $message = $this->t('Acquia DAM module is not configured yet. Please contact your administrator to do so.');
-        // If user has permission then error message will include config form link.
+        // If user has permission then error message will include config form
+        // link.
         if ($this->user->hasPermission('administer site configuration')) {
           $message = $this->t('Acquia DAM module is not configured yet. Please %config it to start using Acquia DAM assets.', [
             '%config' => Link::createFromRoute($this->t('configure'), 'media_acquiadam.config', [], ['attributes' => ['target' => '_blank']])->toString(),
@@ -226,7 +227,7 @@ class Acquiadam extends WidgetBase {
 
     // Initialize current_category.
     $current_category = new Category();
-    // Default current category name to NULL which will be treated as root category.
+    // Default current category name to NULL which will act as root category.
     $current_category->name = NULL;
     $current_category->parts = [];
     // Default current page to first page.
@@ -235,10 +236,6 @@ class Acquiadam extends WidgetBase {
     $num_per_page = $config->get('num_assets_per_page') ?? AcquiadamConfig::NUM_ASSETS_PER_PAGE;
     // Total number of assets.
     $total_asset = 0;
-    // Initial breadcrumb array representing the root category only.
-    $breadcrumbs = [
-      '0' => 'Home',
-    ];
     // If the form state contains the widget AND the reset button hadn't been
     // clicked then pull values for the current form state.
     if (isset($form_state->getCompleteForm()['widget']) && isset($trigger_elem) && $trigger_elem['#name'] != 'filter_sort_reset') {
@@ -252,7 +249,7 @@ class Acquiadam extends WidgetBase {
         // Set current category to the value stored in the form state.
         $current_category->name = $widget['asset-container']['#acquiadam_category']['name'];
         $current_category->parts = $widget['asset-container']['#acquiadam_category']['parts'];
-        $current_category->_links = $widget['asset-container']['#acquiadam_category']['_links'];
+        $current_category->links = $widget['asset-container']['#acquiadam_category']['links'];
         $current_category->categories = $widget['asset-container']['#acquiadam_category']['categories'];
       }
       if ($form_state->getValue('assets')) {
@@ -271,15 +268,16 @@ class Acquiadam extends WidgetBase {
     if (isset($trigger_elem)) {
       // If a category button has been clicked.
       if ($trigger_elem['#name'] === 'acquiadam_category') {
-        // update the required information of selected category.
+        // Update the required information of selected category.
         $current_category->name = $trigger_elem['#acquiadam_category']['name'];
         $current_category->parts = $trigger_elem['#acquiadam_category']['parts'];
-        $current_category->_links = $trigger_elem['#acquiadam_category']['_links'];
+        $current_category->links = $trigger_elem['#acquiadam_category']['links'];
         // Reset page to zero if we have navigated to a new category.
         $page = 0;
       }
-      // Set the parts value from the breadcrumb button, so selected category can be loaded.
-      if($trigger_elem['#name'] === 'breadcrumb') {
+      // Set the parts value from the breadcrumb button, so selected category
+      // can be loaded.
+      if ($trigger_elem['#name'] === 'breadcrumb') {
         $current_category->name = $trigger_elem["#category_name"];
         $current_category->parts = $trigger_elem["#parts"];
       }
@@ -288,8 +286,7 @@ class Acquiadam extends WidgetBase {
         $page_type = $trigger_elem['#page_type'];
         $current_category->name = $trigger_elem['#current_category']->name ?? NULL;
         $current_category->parts = $trigger_elem['#current_category']->parts ?? [];
-        //$current_category->categories_link = $trigger_elem['#current_category']->categories_link ?? NULL;
-        // Set the current category id to the id of the category that was clicked.
+        // Set the current category id to the id of the category, was clicked.
         $page = intval($trigger_elem['#acquiadam_page']);
       }
       // If the filter/sort submit button has been clicked.
@@ -339,41 +336,41 @@ class Acquiadam extends WidgetBase {
       'query' => $search_query,
       'expand' => 'thumbnails',
     ];
-    // load search results if filter is clicked.
+    // Load search results if filter is clicked.
     if ($page_type == "search") {
       $search_results = $this->acquiadam->searchAssets($params);
       $items = isset($search_results['assets']) ? $search_results['assets'] : [];
       // Total number of assets.
       $total_asset = isset($search_results['total_count']) ? $search_results['total_count'] : 0;
     }
-    // load categories data.
+    // Load categories data.
     else {
       $categories = $this->acquiadam->getCategoryData($current_category);
       // Total number of categories.
       $total_asset = $total_category = count($categories);
-      // Load assets only when not in root category.
-        $sub_category_offset = $page * $num_per_page;
-        // Update offset value if parent categoty contains both sub category and asset.
-        if ($total_category <= $offset) {
-          $params['offset'] = $offset - $total_category;
-        }
-        // Update Limit value if sub categories number is less than the number of items per page.
-        if ($total_category < $num_per_page) {
-          $params['limit'] = $num_per_page - $total_category;
-        }
-        // Reset limit value after all the categories are already displayed in previous page.
-        if ($offset > $total_category) {
-          $params['limit'] = $num_per_page;
-        }
-        if ($current_category->name) {
-          $params['query'] = 'category:' . $current_category->name;
-        }
-        $category_assets = $this->acquiadam->getAssetsByCategory($params);
-        if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
-          $items = $category_assets->items;
-        }
-        // Total asset conatins both asset and subcategory(if any).
-        $total_asset += $category_assets->total_count;
+      // Update offset value if category contains both sub category and asset.
+      if ($total_category <= $offset) {
+        $params['offset'] = $offset - $total_category;
+      }
+      // Update Limit value if sub categories number is less than the number
+      // of items per page.
+      if ($total_category < $num_per_page) {
+        $params['limit'] = $num_per_page - $total_category;
+      }
+      // Reset limit value after all the categories are already displayed
+      // in previous page.
+      if ($offset > $total_category) {
+        $params['limit'] = $num_per_page;
+      }
+      if ($current_category->name) {
+        $params['query'] = 'category:' . $current_category->name;
+      }
+      $category_assets = $this->acquiadam->getAssetsByCategory($params);
+      if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
+        $items = $category_assets->items;
+      }
+      // Total asset conatins both asset and subcategory(if any).
+      $total_asset += $category_assets->total_count;
     }
 
     // Add the filter and sort options to the form.
@@ -435,10 +432,10 @@ class Acquiadam extends WidgetBase {
     ];
     // If the number of assets in the current category is greater than
     // the number of assets to show per page.
-     if ($total_asset > $num_per_page) {
-       // Add the pager to the form.
-       $form['actions'] += $this->getPager($total_asset, $page, $num_per_page, $page_type, $current_category);
-     }
+    if ($total_asset > $num_per_page) {
+      // Add the pager to the form.
+      $form['actions'] += $this->getPager($total_asset, $page, $num_per_page, $page_type, $current_category);
+    }
     return $form;
   }
 
@@ -460,10 +457,10 @@ class Acquiadam extends WidgetBase {
       '#type' => 'select',
       '#title' => 'Sort by',
       '#options' => [
-        'filename' => 'File name',
-        'size' => 'File size',
-        'created_date' => 'Date created',
-        'last_update_date' => 'Date modified',
+        'filename' => $this->t('File name'),
+        'size' => $this->t('File size'),
+        'created_date' => $this->t('Date created'),
+        'last_update_date' => $this->t('Date modified'),
       ],
       '#default_value' => 'created_date',
     ];
@@ -471,7 +468,10 @@ class Acquiadam extends WidgetBase {
     $form['filter-sort-container']['sortdir'] = [
       '#type' => 'select',
       '#title' => 'Sort direction',
-      '#options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
+      '#options' => [
+        'asc' => $this->t('Ascending'),
+        'desc' => $this->t('Descending'),
+      ],
       '#default_value' => 'asc',
     ];
     // Add dropdown for filtering on asset type.
@@ -514,7 +514,7 @@ class Acquiadam extends WidgetBase {
         'class' => ['breadcrumb acquiadam-browser-breadcrumb-container'],
       ],
     ];
-    //Placeholder to keep parts information for breadcrumbs.
+    // Placeholder to keep parts information for breadcrumbs.
     $level = [];
     // Add the home breadcrumb buttons to the form.
     $form['breadcrumb-container'][0] = [
@@ -530,22 +530,23 @@ class Acquiadam extends WidgetBase {
       ],
     ];
     // Add the breadcrumb buttons to the form.
-      foreach ($category->parts as $key => $category_name) {
-        $level[] = $category_name;
-        $key++; //Increment it so doesn't overwrite the home.
-        $form['breadcrumb-container'][$key] = [
-          '#type' => 'button',
-          '#value' => $category_name,
-          '#category_name' => $category_name,
-          '#name' => 'breadcrumb',
-          '#parts' => $level,
-          '#prefix' => '<li>',
-          '#suffix' => '</li>',
-          '#attributes' => [
-            'class' => ['acquiadam-browser-breadcrumb'],
-          ],
-        ];
-      }
+    foreach ($category->parts as $key => $category_name) {
+      $level[] = $category_name;
+      // Increment it so doesn't overwrite the home.
+      $key++;
+      $form['breadcrumb-container'][$key] = [
+        '#type' => 'button',
+        '#value' => $category_name,
+        '#category_name' => $category_name,
+        '#name' => 'breadcrumb',
+        '#parts' => $level,
+        '#prefix' => '<li>',
+        '#suffix' => '</li>',
+        '#attributes' => [
+          'class' => ['acquiadam-browser-breadcrumb'],
+        ],
+      ];
+    }
 
     return $form;
   }
@@ -616,7 +617,7 @@ class Acquiadam extends WidgetBase {
     }
     // Last available page based on number of assets in category
     // divided by number of assets to show per page.
-     $last_page = floor(($total_count - 1) / $num_per_page);
+    $last_page = floor(($total_count - 1) / $num_per_page);
     // First page to show in the pager.
     // Try to put the button for the current page in the middle by starting at
     // the current page number minus 4.
@@ -673,11 +674,9 @@ class Acquiadam extends WidgetBase {
   public function validate(array &$form, FormStateInterface $form_state) {
     // If the primary submit button was clicked to select assets.
     if (!empty($form_state->getTriggeringElement()['#eb_widget_main_submit'])) {
-      // The media bundle.
       $media_bundle = $this->entityTypeManager->getStorage('media_type')
         ->load($this->configuration['media_type']);
-      // Load the field definitions for this bundle.
-      $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
+
       // Load the file settings to validate against.
       $field_map = $media_bundle->getFieldMap();
       if (!isset($field_map['file'])) {
@@ -685,14 +684,11 @@ class Acquiadam extends WidgetBase {
         $form_state->setError($form['widget']['asset-container']['assets'], $message);
         return;
       }
-      $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
-        ->getSetting('file_extensions');
-      $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
+
       // The form input uses checkboxes which returns zero for unchecked assets.
       // Remove these unchecked assets.
       $assets = array_filter($form_state->getValue('assets'));
-      // Fetch assets.
-      $dam_assets = $this->acquiadam->getAssetMultiple($assets);
+
       // Get the cardinality for the media field that is being populated.
       $field_cardinality = $form_state->get([
         'entity_browser',
@@ -708,13 +704,16 @@ class Acquiadam extends WidgetBase {
       // If the field cardinality is limited and the number of assets selected
       // is greater than the field cardinality.
       if ($field_cardinality > 0 && count($assets) > $field_cardinality) {
-        // Format the error message for singular or plural
-        // depending on cardinality.
         $message = $this->formatPlural($field_cardinality, 'You can not select more than 1 entity.', 'You can not select more than @count entities.');
-        // Set the error message on the form.
         $form_state->setError($form['widget']['asset-container']['assets'], $message);
       }
 
+      // @codingStandardsIgnoreStart
+      // $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
+      // $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
+      //   ->getSetting('file_extensions');
+      // $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
+      // $dam_assets = $this->acquiadam->getAssetMultiple($assets);
       // If the asset's file type does not match allowed file types.
       // foreach ($dam_assets as $asset) {
       //   // $filetype = $asset->filetype;
@@ -729,6 +728,7 @@ class Acquiadam extends WidgetBase {
       //     $form_state->setError($form['widget']['asset-container']['assets'], $message);
       //   }
       // }
+      // @codingStandardsIgnoreEnd
     }
   }
 
@@ -749,72 +749,63 @@ class Acquiadam extends WidgetBase {
   protected function prepareEntities(array $form, FormStateInterface $form_state) {
     // Get asset id's from form state.
     $asset_ids = $form_state->getValue('current_selections', []) + array_filter($form_state->getValue('assets', []));
-    // Load type information.
+
     /** @var \Drupal\media\MediaTypeInterface $media_type */
     $media_type = $this->entityTypeManager->getStorage('media_type')
       ->load($this->configuration['media_type']);
+
     // Get the source field for this type which stores the asset id.
     $source_field = $media_type->getSource()
       ->getSourceFieldDefinition($media_type)
       ->getName();
+
     // Query for existing entities.
     $existing_ids = $this->entityTypeManager->getStorage('media')
       ->getQuery()
       ->condition('bundle', $media_type->id())
       ->condition($source_field, $asset_ids, 'IN')
       ->execute();
-    // Load the entities found.
     $entities = $this->entityTypeManager->getStorage('media')
       ->loadMultiple($existing_ids);
-    // Loop through the existing entities.
+
+    // We remove the existing media from the asset_ids array, so they do not
+    // get fetched and created as duplicates.
     foreach ($entities as $entity) {
-      // Set the asset id of the current entity.
       $asset_id = $entity->get($source_field)->value;
-      // If the asset id of the entity is in the list of asset id's selected.
+
       if (in_array($asset_id, $asset_ids)) {
-        // Remove the asset id from the input so it does not get fetched
-        // and does not get created as a duplicate.
         unset($asset_ids[$asset_id]);
       }
     }
-    // Fetch the assets.
+
     $assets = $this->acquiadam->getAssetMultiple($asset_ids);
-    // Loop through the returned assets.
+
     foreach ($assets as $asset) {
-      // Initialize entity values.
       $entity_values = [
         'bundle' => $media_type->id(),
-        // This should be the current user id.
         'uid' => $this->user->id(),
-        // This should be the current language code.
         'langcode' => $this->languageManager->getCurrentLanguage()->getId(),
-        // This should map the asset status to the drupal entity status.
-        /**
-         * @todo: find out if we can use status from Acquia Dam.
-         */
+        // @todo Find out if we can use status from Acquia Dam.
         'status' => 1,
-        // Set the entity name to the asset name.
-        /**
-         * @todo: Once we use the `metadata info` in Asset we require to replace this with Display Name here.
-         */
         'name' => $asset->filename,
-        // Set the chosen source field for this entity to the asset id.
         $source_field => $asset->id,
         'created' => strtotime($asset->created_date),
         'changed' => strtotime($asset->last_update_date),
       ];
+
       // Create a new entity to represent the asset.
       $entity = $this->entityTypeManager->getStorage('media')
         ->create($entity_values);
-      // Save the entity.
       $entity->save();
+
       // Reload the entity to make sure we have everything populated properly.
       $entity = $this->entityTypeManager->getStorage('media')
         ->load($entity->id());
+
       // Add the new entity to the array of returned entities.
       $entities[] = $entity;
     }
-    // Return the entities.
+
     return $entities;
   }
 
@@ -843,6 +834,6 @@ class Acquiadam extends WidgetBase {
       '#tag' => 'p',
       '#value' => $category->name,
     ];
-}
+  }
 
 }

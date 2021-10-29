@@ -21,7 +21,7 @@ use GuzzleHttp\ClientInterface;
  *
  * @coversDefaultClass \Drupal\media_acquiadam\Form\AcquiadamConfig
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamConfigFormTest extends UnitTestCase {
 

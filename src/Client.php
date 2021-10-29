@@ -199,8 +199,8 @@ class Client {
     $this->checkAuth();
     $url = $this->baseUrl . '/categories';
     // If category is not set, it will load the root category.
-    if (isset($category->_links->categories)) {
-      $url = $category->_links->categories;
+    if (isset($category->links->categories)) {
+      $url = $category->links->categories;
     }
     elseif (!empty($category->parts)) {
       $cats = "";
@@ -693,7 +693,9 @@ class Client {
       $this->checkAuth();
     }
     catch (\Exception $e) {
-      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to retrieve metadata fields.');
+      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to retrieve metadata fields. Exception message: %message', [
+        '%message' => $e->getMessage(),
+      ]);
       $this->specificMetadataFields = [];
       return $this->specificMetadataFields;
     }
@@ -709,7 +711,9 @@ class Client {
 
     }
     catch (\Exception $e) {
-      \Drupal::logger('media_acquiadam')->error('Unable to retrieve metadata fields.');
+      \Drupal::logger('media_acquiadam')->error('Unable to retrieve metadata fields. Exception message: %message', [
+        '%message' => $e->getMessage(),
+      ]);
       $this->specificMetadataFields = [];
       return $this->specificMetadataFields;
     }
@@ -754,7 +758,10 @@ class Client {
       $this->checkAuth();
     }
     catch (\Exception $e) {
-      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      \Drupal::logger('media_acquiadam')->error('Unable to authenticate to register integration link for asset @uuid. Exception message: %message', [
+        '@uuid' => $data['assetUuid'],
+        '%message' => $e->getMessage(),
+      ]);
       return FALSE;
     }
 
@@ -771,7 +778,10 @@ class Client {
       $response = json_decode((string) $response->getBody(), TRUE);
     }
     catch (\Exception $e) {
-      \Drupal::logger('media_acquiadam')->error('Unable to register integration link for asset @uuid.', ['uuid' => $data['assetUuid']]);
+      \Drupal::logger('media_acquiadam')->error('Unable to register integration link for asset @uuid. Exception message: %message', [
+        '@uuid' => $data['assetUuid'],
+        '%message' => $e->getMessage(),
+      ]);
       return FALSE;
     }
 

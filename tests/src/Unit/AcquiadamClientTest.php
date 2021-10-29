@@ -13,7 +13,7 @@ use GuzzleHttp\ClientInterface;
 /**
  * Client factory test.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamClientTest extends UnitTestCase {
 

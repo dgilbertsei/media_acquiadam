@@ -9,7 +9,6 @@ use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\Core\Database\Database;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -25,7 +24,7 @@ function media_acquiadam_schema() {
         'default' => '',
         'type' => 'varchar_ascii',
         'not null' => TRUE,
-        'length' => 128
+        'length' => 128,
       ],
       'name' => [
         'description' => 'The identifier of the data.',
@@ -214,7 +213,7 @@ function media_acquiadam_update_8105(&$sandbox) {
 function media_acquiadam_update_8106(&$sandbox) {
   $config = \Drupal::configFactory()->getEditable('media_acquiadam.settings');
   $sync_interval = $config->get('sync_interval');
-  // If the interval is set to 0,
+  // If the interval is set to 0.
   if ($sync_interval === '0') {
     $int_val = 0;
   }
@@ -362,18 +361,21 @@ function media_acquiadam_entity_get_form_display($entity_type, $bundle, $form_mo
  * @param object $database
  *   The database object.
  *
- * @return bool $status
+ * @return bool
  *   Update status.
  */
 function media_acquiadam_update_source_field($database) {
   $entity_type = 'media';
   $field_name = 'field_acquiadam_asset_id';
-  $tables = ['media__field_acquiadam_asset_id', 'media_revision__field_acquiadam_asset_id'];
+  $tables = [
+    'media__field_acquiadam_asset_id',
+    'media_revision__field_acquiadam_asset_id',
+  ];
   $current_rows = $current_revision_rows = $new_fields_list = [];
   $field_storage = FieldStorageConfig::loadByName($entity_type, $field_name);
   // If field storage is not exist return NULL.
   if (is_null($field_storage)) {
-    return;
+    return FALSE;
   }
   // Backup current rows from source field and source field revision table.
   foreach ($tables as $table) {
@@ -399,8 +401,8 @@ function media_acquiadam_update_source_field($database) {
   $new_field_storage['type'] = 'string';
   $new_field_storage['settings'] = [
     'max_length' => 255,
-    'is_ascii' => false,
-    'case_sensitive' => false,
+    'is_ascii' => FALSE,
+    'case_sensitive' => FALSE,
   ];
   // Deleting field storage which will also delete bundles(fields).
   $field_storage->delete();
@@ -418,7 +420,7 @@ function media_acquiadam_update_source_field($database) {
 
   // Restore existing data into field table and revision table if exist.
   if ($current_rows || $current_revision_rows) {
-    foreach($tables as $table) {
+    foreach ($tables as $table) {
       if ($database->schema()->tableExists($table)) {
         $existing_rows = ($table === 'media__field_acquiadam_asset_id') ? $current_rows : $current_revision_rows;
         foreach ($existing_rows as $row) {
@@ -437,9 +439,9 @@ function media_acquiadam_update_source_field($database) {
  * Get existing rows from table.
  *
  * @param string $table
- *   The table name
+ *   The table name.
  *
- * @return array $rows
+ * @return array
  *   An array contain table rows.
  */
 function media_acquiadam_get_table_rows(string $table) {

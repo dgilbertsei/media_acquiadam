@@ -1,115 +1,152 @@
 <?php
 
-/**
- * @file
- * Describes Acquia DAM's Asset data type.
- */
-
 namespace Drupal\media_acquiadam\Entity;
 
+/**
+ * The asset entity describing the asset object shared by Acquia DAM.
+ */
 class Asset implements EntityInterface, \JsonSerializable {
 
   /**
-   * @var string $id
+   * The ID of the asset.
+   *
+   * @var string
    */
   public $id;
 
   /**
-   * @var string $external_id
+   * The external ID of the asset.
+   *
+   * @var string
    */
-  public $external_id;
+  public $externalId;
 
   /**
-   * @var string $filename
+   * The filename of the asset.
+   *
+   * @var string
    */
   public $filename;
 
   /**
-   * @var string $created_date
+   * The date the asset has been created (format: YYYY-MM-DDTHH:MM:SSZ).
+   *
+   * @var string
    */
-  public $created_date;
+  public $createdDate;
 
   /**
-   * @var string $last_update_date
+   * The latest date the asset has been updated (format: YYYY-MM-DDTHH:MM:SSZ).
+   *
+   * @var string
    */
-  public $last_update_date;
+  public $lastUpdateDate;
 
   /**
-   * @var string $file_upload_date
+   * The date the file has been uploaded (format: YYYY-MM-DDTHH:MM:SSZ).
+   *
+   * @var string
    */
-  public $file_upload_date;
+  public $fileUploadDate;
 
   /**
-   * @var string $deleted_date
+   * The date the asset has been deleted (format: YYYY-MM-DDTHH:MM:SSZ).
+   *
+   * @var string
    */
-  public $deleted_date;
+  public $deletedDate;
 
   /**
-   * @var boolean $released_and_not_expired
+   * Flag assets which are released and not expired.
+   *
+   * @var bool
    */
-  public $released_and_not_expired;
+  public $releasedAndNotExpired;
 
   /**
-   * @var array $download_link
+   * The link to download the asset.
+   *
+   * @var array
    */
-  public $download_link;
+  public $downloadLink;
 
   /**
-   * @var array $thumbnails
+   * An array of thumbnail urls.
+   *
+   * @var array
    */
   public $thumbnails;
 
   /**
-   * @var array $asset_properties
+   * The list of the asset's properties.
+   *
+   * @var array
    */
-  public $asset_properties;
+  public $assetProperties;
 
   /**
-   * @var array $embeds
+   * A list of urls to embed the asset.
+   *
+   * @var array
    */
   public $embeds;
 
   /**
-   * @var array $file_properties
+   * The list of the file's properties.
+   *
+   * @var array
    */
-  public $file_properties;
+  public $fileProperties;
 
   /**
-   * @var array $metadata
+   * The asset's metadata.
+   *
+   * @var array
    */
   public $metadata;
 
   /**
-   * @var array $metadata_info
+   * The description of the asset's metadata types.
+   *
+   * @var array
    */
-  public $metadata_info;
+  public $metadataInfo;
 
   /**
-   * @var array $metadata_vocabulary
+   * The possible values of the metadata of vocabulary types.
+   *
+   * @var array
    */
-  public $metadata_vocabulary;
+  public $metadataVocabulary;
 
   /**
-   * @var array $security
+   * The asset's security metadata.
+   *
+   * @var array
    */
   public $security;
 
   /**
-   * @var array $expanded
+   * The list of the expanded attributes.
+   *
+   * @var array
    */
   public $expanded;
 
   /**
-   * @var array $_links
+   * Various links related to the asset.
+   *
+   * @var array
    */
-  public $_links;
+  public $links;
 
   /**
-   * A list of allowed values for the expand query attribute.
+   * A list of allowed values for the "expand" query attribute.
    *
    * @return string[]
+   *   The exhaustive list of allowed "expand" values.
    */
-  public static function getAllowedExpands() {
+  public static function getAllowedExpands(): array {
     return [
       'asset_properties',
       'file_properties',
@@ -124,27 +161,32 @@ class Asset implements EntityInterface, \JsonSerializable {
   }
 
   /**
-   * The default expand query attribute, mandatory for some later process as
-   * thumbnails or metadata.
+   * The default expand query attribute.
+   *
+   * These attributes are mandatory for some later process.
    *
    * @return string[]
+   *   The list of expands properties which must be fetched along the asset.
    */
-  public static function getRequiredExpands() {
+  public static function getRequiredExpands(): array {
     return [
       'file_properties',
       'metadata',
       'embeds',
-      'security'
+      'security',
     ];
   }
 
   /**
-   * Widen supported file formats.
-   * @TODO Get these values from Config.
+   * Acquia DAM supported file formats.
+   *
+   * @todo Get these values from Config.
+   * @todo Check if the values should be translatable.
    *
    * @return string[]
+   *   An array of supported file formats.
    */
-  public static function getFileFormats() {
+  public static function getFileFormats(): array {
     return [
       0 => 'All',
       'IMAGE' => 'Image',
@@ -190,10 +232,10 @@ class Asset implements EntityInterface, \JsonSerializable {
       'metadata_vocabulary',
       'security',
       'expanded',
-      '_links',
+      'links',
     ];
 
-    // Copy all of the simple properties.
+    // Copy all the simple properties.
     $asset = new static();
     foreach ($properties as $property) {
       if (isset($json->{$property})) {
@@ -204,30 +246,31 @@ class Asset implements EntityInterface, \JsonSerializable {
     return $asset;
   }
 
-  public function jsonSerialize() {
-    $properties = [
+  /**
+   * {@inheritdoc}
+   */
+  public function jsonSerialize():array {
+    return [
       'id' => $this->id,
-      'external_id' => $this->external_id,
+      'external_id' => $this->externalId,
       'filename' => $this->filename,
-      'created_date' => $this->created_date,
-      'last_update_date' => $this->last_update_date,
-      'file_upload_date' => $this->file_upload_date,
-      'deleted_date' => $this->deleted_date,
-      'released_and_not_expired' => $this->released_and_not_expired,
-      'download_link' => $this->download_link,
+      'created_date' => $this->createdDate,
+      'last_update_date' => $this->lastUpdateDate,
+      'file_upload_date' => $this->fileUploadDate,
+      'deleted_date' => $this->deletedDate,
+      'released_and_not_expired' => $this->releasedAndNotExpired,
+      'download_link' => $this->downloadLink,
       'thumbnails' => $this->thumbnails,
-      'asset_properties'=> $this->asset_properties,
+      'asset_properties' => $this->assetProperties,
       'embeds' => $this->embeds,
-      'file_properties' => $this->file_properties,
+      'file_properties' => $this->fileProperties,
       'metadata' => $this->metadata,
-      'metadata_info' => $this->metadata_info,
-      'metadata_vocabulary' => $this->metadata_vocabulary,
+      'metadata_info' => $this->metadataInfo,
+      'metadata_vocabulary' => $this->metadataVocabulary,
       'security' => $this->security,
       'expanded' => $this->expanded,
-      '_links' => $this->_links,
+      'links' => $this->links,
     ];
-
-    return $properties;
   }
 
 }

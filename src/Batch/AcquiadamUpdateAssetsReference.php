@@ -12,8 +12,6 @@ class AcquiadamUpdateAssetsReference {
   /**
    * Processes sync media entities.
    *
-   * @param array $media_ids
-   *   Acquiadam_asset media IDs.
    * @param array $sync_data
    *   Old asset ID and corresponding new Asset ID.
    * @param mixed $context

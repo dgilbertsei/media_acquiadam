@@ -2,7 +2,6 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -13,6 +12,7 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Entity\Asset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -244,7 +244,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *
    * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The asset to fetch data for.
-   * @param string filename
+   * @param string $filename
    *   The filename as a reference so it can be overridden.
    *
    * @return false|string
@@ -252,8 +252,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    */
   protected function fetchRemoteAssetData(Asset $asset, &$filename) {
     if ($asset->file_properties->format_type === 'image') {
-      // If the module was configured to enforce an image size limit then we need
-      // to grab the nearest matching pre-created size.
+      // If the module was configured to enforce an image size limit then we
+      // need to grab the nearest matching pre-created size.
       $size_limit = $this->config->get('size_limit');
 
       $thumbnail_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, $size_limit);
@@ -284,7 +284,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *
    * @param string $uri
    *   The URI of the file to get the contents of.
-   * @param string filename
+   * @param string $filename
    *   The filename as a reference so it can be overridden by the filename
    *   returned by the headers.
    *

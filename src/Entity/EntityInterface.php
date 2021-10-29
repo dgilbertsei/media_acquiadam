@@ -1,16 +1,14 @@
 <?php
 
-/**
- * @file
- * Contains the interface that all entity classes must implement.
- */
-
 namespace Drupal\media_acquiadam\Entity;
 
+/**
+ * Provides an interface that all entity classes must implement.
+ */
 interface EntityInterface {
 
   /**
-   * Creates a new instance of the Entity given a JSON object from the Acquia DAM API.
+   * Create new instance of the Entity given a JSON object from Acquia DAM API.
    *
    * @param string|object $json
    *   Either a JSON string or a json_decode()'d object.

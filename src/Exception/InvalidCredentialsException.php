@@ -1,14 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains Drupal\media_acquiadam\Exception\InvalidCredentialsException.
- */
-
 namespace Drupal\media_acquiadam\Exception;
 
 /**
- * Class InvalidCredentialsException
+ * Class InvalidCredentialsException.
  *
  * This exception is thrown in two cases:
  *   1. The username and password supplied to the client are invalid.

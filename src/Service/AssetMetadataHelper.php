@@ -2,11 +2,11 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Entity\Asset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -34,7 +34,9 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   protected $acquiadam;
 
   /**
-   * @var array $specificMetadataFields
+   * Specific metadata fields.
+   *
+   * @var array
    */
   protected $specificMetadataFields = [];
 
@@ -78,6 +80,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    * </code>
    *
    * @param array $fields
+   *   Fields contains an array.
    */
   public function setSpecificMetadataFields(array $fields = []) {
     $this->specificMetadataFields = $fields;
@@ -87,6 +90,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    * Get the available specific metadata fields.
    *
    * @return array
+   *   An array contain specific metadata fields.
    */
   public function getSpecificMetadataFields() {
     if (empty($this->specificMetadataFields)) {

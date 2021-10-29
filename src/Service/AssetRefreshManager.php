@@ -2,13 +2,13 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Drupal\media_acquiadam\AcquiadamInterface;
-use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\StateInterface;
+use Drupal\media_acquiadam\AcquiadamInterface;
+use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -170,8 +170,8 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         // Calculate the offset value as a number of previously processed items.
         $offset = $this->getRequestLimit() * ($page - 1);
 
-        // @TODO: Deal with the timezone.
-        $date = date('Y-m-d\TH:i:s\Z', \Drupal::state()->get('media_acquiadam.last_sync'));
+        // @todo Check if timezone needs to be accounted.
+        $date = date('Y-m-d\TH:i:s\Z', $this->state->get('media_acquiadam.last_sync'));
 
         $response = $this->acquiadam->searchAssets([
           'limit' => $this->getRequestLimit(),

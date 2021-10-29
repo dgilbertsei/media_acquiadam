@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\AssetDataInterface;
 use Drupal\media_acquiadam\Client;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
@@ -15,7 +15,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Acquia DAM REST extension tests.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamServiceTest extends UnitTestCase {
 
@@ -96,7 +96,7 @@ class AcquiadamServiceTest extends UnitTestCase {
 
     $dam_client->expects($this->any())
       ->method('getAsset')
-      ->willReturnCallback(function() {
+      ->willReturnCallback(function () {
         return $this->getAssetData();
       });
     $acquiadam_asset_data = $this->getMockBuilder(AssetDataInterface::class)

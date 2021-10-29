@@ -2,13 +2,13 @@
 
 namespace Drupal\Tests\media_acquiadam\Kernel;
 
+use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
+use Drupal\media\Entity\Media;
+use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\AssetData;
 use Drupal\media_acquiadam\Client;
 use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
-use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
-use Drupal\media\Entity\Media;
-use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam_test\TestClient;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 
@@ -78,7 +78,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ->getMock();
     $acquiadam_client_factory->expects($this->any())
       ->method('getAsset')
-      ->willReturnCallback(function($assetId) {
+      ->willReturnCallback(function ($assetId) {
         return $this->testClient->getAsset($assetId);
       });
     $acquiadam_client_factory->expects($this->any())
@@ -86,8 +86,8 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ->willReturn([
         'author' => [
           'label' => "author",
-          'type' => "string"
-        ]
+          'type' => "string",
+        ],
       ]);
     $this->container->set('media_acquiadam.client',
       $acquiadam_client_factory);
@@ -97,9 +97,9 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ->setMethods(['get', 'set', 'isUpdatedAsset'])
       ->getMock();
     $asset_data->expects($this->any())
-      ->method('get')->willReturn(function($assetId, $name) {
-      return $this->asset->${name};
-    });
+      ->method('get')->willReturn(function ($assetId, $name) {
+        return $this->asset->${name};
+      });
     $asset_data->expects($this->any())
       ->method('isUpdatedAsset')->willReturn(TRUE);
     $this->container->set('media_acquiadam.asset_data', $asset_data);
@@ -118,7 +118,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
         $this->container->get('logger.factory'),
       ])
       ->setMethods([
-        'phpFileGetContents'
+        'phpFileGetContents',
       ])
       ->getMock();
     $fileHelper->expects($this->any())->method('phpFileGetContents')->willReturn('File contents');

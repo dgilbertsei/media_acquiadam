@@ -12,7 +12,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests integration of the AssetMetadataHelper service.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AssetMetadataHelperTest extends UnitTestCase {
 
@@ -39,8 +39,8 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assetMetadataHelper->setSpecificMetadataFields([
       'author' => [
         'label' => "author",
-        'type' => "string"
-      ]
+        'type' => "string",
+      ],
     ]);
     $attributes = $this->assetMetadataHelper->getMetadataAttributeLabels();
 
@@ -69,8 +69,8 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assetMetadataHelper->setSpecificMetadataFields([
       'author' => [
         'label' => "author",
-        'type' => "string"
-      ]
+        'type' => "string",
+      ],
     ]);
 
     $this->assertEquals("demoextid",

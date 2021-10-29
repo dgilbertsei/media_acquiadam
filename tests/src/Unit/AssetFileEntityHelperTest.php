@@ -25,7 +25,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests to validate that our file entity helper works as expected.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AssetFileEntityHelperTest extends UnitTestCase {
 

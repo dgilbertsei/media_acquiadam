@@ -11,7 +11,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests to validate that the asset data service works as expected.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AssetDataTest extends UnitTestCase {
 

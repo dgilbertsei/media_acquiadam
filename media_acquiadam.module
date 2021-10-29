@@ -5,12 +5,12 @@
  * Integrates Drupal with Acquia DAM.
  */
 
-use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
-use Drupal\Core\Url;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
 use Drupal\media\MediaInterface;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -21,6 +21,12 @@ use Drupal\media\MediaInterface;
  * an option (a checkbox) to remove such credentials is given.
  */
 function media_acquiadam_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // We don't want to alter the user creation form.
+  $account = $form_state->getFormObject()->getEntity();
+  if (!$account->id()) {
+    return;
+  }
+
   global $base_url;
 
   // Get the editing user.
@@ -45,7 +51,7 @@ function media_acquiadam_form_user_form_alter(&$form, FormStateInterface $form_s
       $form['media_acquiadam']['remove_auth'] = [
         '#type' => 'checkbox',
         '#title' => t('Remove Acquia DAM authorization'),
-        '#prefix' => t('Currently authorized with Acquia DAM as "@username".', array('@username' => $acquiadam_username)) . '<br />',
+        '#prefix' => t('Currently authorized with Acquia DAM as "@username".', ['@username' => $acquiadam_username]) . '<br />',
       ];
 
       $form['actions']['submit']['#submit'][] = 'media_acquiadam_unauthorize';
@@ -59,7 +65,7 @@ function media_acquiadam_form_user_form_alter(&$form, FormStateInterface $form_s
   }
   else {
     $form['media_acquiadam']['setup_message'] = [
-      '#markup' => t('You must configure your Acquia DAM domain first. @link', array('@link' => Link::createFromRoute(t('Click here to configure.'), 'media_acquiadam.config')->toString())),
+      '#markup' => t('You must configure your Acquia DAM domain first. @link', ['@link' => Link::createFromRoute(t('Click here to configure.'), 'media_acquiadam.config')->toString()]),
     ];
   }
 }
@@ -262,7 +268,10 @@ function media_acquiadam_cron() {
   $count = \Drupal::queue('media_acquiadam_asset_refresh')->numberOfItems();
   if ($count > 0) {
     $logger = \Drupal::service('logger.factory')->get('media_acquiadam');
-    $logger->info('Cron execution has been cancelled because the queue @queue_name is not empty (@count items)..', ['@count' => $count, '@queue_name' => 'Acquia DAM Asset Refresh',]);
+    $logger->info('Cron execution has been cancelled because the queue @queue_name is not empty (@count items)..', [
+      '@count' => $count,
+      '@queue_name' => 'Acquia DAM Asset Refresh',
+    ]);
     return;
   }
 
@@ -340,7 +349,6 @@ function media_acquiadam_form_media_type_edit_form_alter(&$form, FormStateInterf
     foreach (Element::children($mappings) as $key) {
       // Sort fields with assigned mappings to the top to make it easier to
       // identify what is and is not mapped at a glance.
-
       $mappings[$key]['#weight'] = 0;
       if (!empty($mappings[$key]['#default_value']) && $mappings[$key]['#default_value'] !== '_none') {
         $mappings[$key]['#weight'] -= 10;
@@ -502,19 +510,21 @@ function media_acquiadam_views_data_alter(array &$data) {
 }
 
 /**
- * Helper function to parse the reference updation CSV containing the
- * association btw the legacy asset_ids and the new asset_ids to be
- * updated in medias.
+ * Helper to parse the reference updation CSV.
  *
- * @param $filename
+ * The CSV contains the association between the legacy asset_ids and the
+ * new asset_ids to be updated in medias.
+ *
+ * @param string $filename
  *   The full path + filename of the updation file to process.
  * @param string $delimiter
  *   The csv delimiter.
+ *
  * @return array
  *   An associative array. Keys are the legacy asset_ids, values are the new
  *   asset_ids.
  */
-function _media_acquiadam_parse_reference_updation_csv($filename, $delimiter = ',') {
+function _media_acquiadam_parse_reference_updation_csv(string $filename, string $delimiter = ',') {
   $data = [];
   if (($handle = fopen($filename, 'r')) !== FALSE) {
     $counter = 0;
@@ -531,10 +541,10 @@ function _media_acquiadam_parse_reference_updation_csv($filename, $delimiter = '
 }
 
 /**
- * Helper function to get the list of Acquia Dam's medias entity ids keyed by
- * their respective asset ids.
+ * Helper to get the list of Acquia Dam's medias entity ids.
  *
  * @return array
+ *   A list of media entity ids keyed by their respective asset ids.
  */
 function media_acquiadam_get_active_media_ids_by_asset_ids() {
   // Get the list of media bundle which are using the acquiadam media source.
@@ -560,16 +570,15 @@ function media_acquiadam_get_active_media_ids_by_asset_ids() {
 }
 
 /**
- * Helper function to build the batch list of operations to update the assets
- * ids.
+ * Helper to build the batch list of operations to update the assets ids.
  *
- * @param $legacy_ids_to_new_ids
+ * @param array $legacy_ids_to_new_ids
  *   The array mapping the legacy asset_ids and the new asset_ids.
  *
  * @return array
  *   The batch array.
  */
-function _media_acquiadam_build_reference_updation_batch($legacy_ids_to_new_ids) {
+function _media_acquiadam_build_reference_updation_batch(array $legacy_ids_to_new_ids) {
   // Fetch a mapping btw legacy asset ids and their respective entity (media)
   // ids.
   $legacy_ids_to_entity_ids = media_acquiadam_get_active_media_ids_by_asset_ids();

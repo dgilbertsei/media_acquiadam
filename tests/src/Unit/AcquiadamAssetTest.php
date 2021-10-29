@@ -19,7 +19,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Tests to validate that the Media source plugin works as expected.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamAssetTest extends UnitTestCase {
 

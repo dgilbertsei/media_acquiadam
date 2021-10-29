@@ -4,12 +4,10 @@ namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
-use Drupal\Core\GeneratedUrl;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\Core\Url;
-use Drupal\Core\Utility\UnroutedUrlAssembler;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
+use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
@@ -19,7 +17,7 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 /**
  * Tests integration of the AssetImageHelper service.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AssetImageHelperTest extends UnitTestCase {
 

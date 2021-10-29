@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\Core\Messenger\Messenger;
+use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client;
@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /**
  * Acquidam Auth test.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class AcquiadamAuthTest extends UnitTestCase {
 

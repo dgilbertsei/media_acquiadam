@@ -18,7 +18,7 @@ services:
       - { name: backend_overridable }
   media_acquiadam.asset_image.helper:
     class: Drupal\media_acquiadam\Service\AssetImageHelper
-    arguments: ['@config.factory', '@file_system', '@http_client', '@file.mime_type.guesser', '@image.factory']
+    arguments: ['@config.factory', '@file_system', '@http_client', '@file.mime_type.guesser', '@image.factory', '@entity_type.manager']
   media_acquiadam.asset_metadata.helper:
     class: Drupal\media_acquiadam\Service\AssetMetadataHelper
     arguments: ['@date.formatter', '@media_acquiadam.acquiadam']

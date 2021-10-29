@@ -1,44 +1,65 @@
 <?php
 
-/**
- * @file
- * Describes Acquia DAM's Category data type.
- */
-
 namespace Drupal\media_acquiadam\Entity;
 
+/**
+ * Class Category.
+ *
+ * Describes Acquia DAM's Category data type.
+ */
 class Category implements EntityInterface, \JsonSerializable {
 
   /**
-   * @var string $id
+   * ID of the Category.
+   *
+   * @var string
    */
   public $id;
 
   /**
-   * @var string $name
+   * Name of the Category.
+   *
+   * @var string
    */
   public $name;
 
   /**
-   * @var string $path
+   * Path of the category.
+   *
+   * @var string
    */
   public $path;
 
   /**
-   * @var array $parts
    * Parts information, useful in rendering breadcrumbs.
+   *
+   * @var array
    */
   public $parts = [];
+
   /**
-   * @var Category[] $categories
+   * An array of sub categories.
+   *
+   * @var Category[]
    */
   public $categories;
 
   /**
-   * @var array $_links
+   * Links contains array of asset and categories.
+   *
+   * @var array
    */
-  public $_links;
+  public $links;
 
+  /**
+   * Get category object.
+   *
+   * @param mixed $json
+   *   Json object contain categories data.
+   *
+   * @return object
+   *   Category data.
+   */
   public static function fromJson($json) {
     if (is_string($json)) {
       $json = json_decode($json);
@@ -51,7 +72,7 @@ class Category implements EntityInterface, \JsonSerializable {
       }
       return $subCategories;
     }
-    else if (isset($json->total_count) && $json->total_count === 0) {
+    elseif (isset($json->total_count) && $json->total_count === 0) {
       return $subCategories;
     }
     $properties = [
@@ -59,7 +80,7 @@ class Category implements EntityInterface, \JsonSerializable {
       'name',
       'path',
       'parts',
-      '_links'
+      'links',
     ];
 
     $category = new static();
@@ -74,6 +95,12 @@ class Category implements EntityInterface, \JsonSerializable {
     return $category;
   }
 
+  /**
+   * Serialize the category data.
+   *
+   * @return array
+   *   Array contain category properties.
+   */
   public function jsonSerialize() {
     $properties = [
       'id' => $this->id,
@@ -81,7 +108,7 @@ class Category implements EntityInterface, \JsonSerializable {
       'name' => $this->name,
       'path' => $this->path,
       'parts' => $this->parts,
-      '_links' => $this->_links
+      'links' => $this->links,
     ];
 
     if (!empty($this->categories)) {

@@ -1,6 +1,6 @@
 services:
   media_acquiadam.commands:
     class: \Drupal\media_acquiadam\Commands\AcquiadamCommands
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@queue', '@state', '@datetime.time']
     tags:
       - { name: drush.command }

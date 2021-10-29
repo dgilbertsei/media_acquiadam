@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -10,6 +9,7 @@ use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\AssetData;
+use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\MediaEntityHelper;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
@@ -19,7 +19,7 @@ use Drupal\Tests\UnitTestCase;
 /**
  * Testing of the Media Entity helper class.
  *
- * @group acquiadam
+ * @group media_acquiadam
  */
 class MediaEntityHelperTest extends UnitTestCase {
 
@@ -126,7 +126,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    * Setups the API response stub.
    *
    * @param string $request_query
-   *   The query for the Get Asset Api request
+   *   The query for the Get Asset Api request.
    * @param mixed $response
    *   The stub of Get Asset API response.
    */
