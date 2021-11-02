@@ -9,6 +9,8 @@ use Drupal\media_acquiadam\Entity\Category;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
+use Symfony\Cmf\Component\Routing\RouteObjectInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Provides the integration with Acquia DAM.
@@ -65,6 +67,13 @@ class Client {
   protected $config;
 
   /**
+   * The request stack.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
    * The version of this client. Used in User-Agent string for API requests.
    *
    * @var string
@@ -82,13 +91,16 @@ class Client {
    *   The account interface.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The config interface.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
    */
-  public function __construct(ClientInterface $client, UserDataInterface $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory) {
+  public function __construct(ClientInterface $client, UserDataInterface $user_data, AccountInterface $account, ConfigFactoryInterface $configFactory, RequestStack $request_stack) {
     $this->client = $client;
     $this->userData = $user_data;
     $this->account = $account;
     $this->configFactory = $configFactory;
     $this->config = $configFactory->get('media_acquiadam.settings');
+    $this->requestStack = $request_stack;
   }
 
   /**
@@ -100,13 +112,16 @@ class Client {
    *   TRUE if the authentication details are available. FALSE otherwise.
    */
   public function checkAuth(): bool {
+    $request = $this->requestStack->getCurrentRequest();
+
     if ($this->account->isAuthenticated()) {
       $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
       if (isset($account['acquiadam_username']) && isset($account['acquiadam_token'])) {
         return TRUE;
       }
     }
-    elseif (!$this->account->isAuthenticated() && PHP_SAPI === 'cli' && !empty($this->config->get('token'))) {
+    elseif (!$this->account->isAuthenticated() && !empty($this->config->get('token'))
+      && (PHP_SAPI === 'cli' || $request->attributes->get(RouteObjectInterface::ROUTE_NAME) === 'system.cron_settings')) {
       return TRUE;
     }
 
@@ -142,13 +157,16 @@ class Client {
    */
   protected function getDefaultHeaders(): array {
     $token = NULL;
+    $request = $this->requestStack->getCurrentRequest();
+
     if ($this->account->isAuthenticated()) {
       $account = $this->userData->get('media_acquiadam', $this->account->id(), 'account');
       if (isset($account['acquiadam_token'])) {
         $token = $account['acquiadam_token'];
       }
     }
-    elseif (!$this->account->isAuthenticated() && PHP_SAPI === 'cli' && !empty($this->config->get('token'))) {
+    elseif (!$this->account->isAuthenticated() && !empty($this->config->get('token'))
+      && (PHP_SAPI === 'cli' || $request->attributes->get(RouteObjectInterface::ROUTE_NAME) === 'system.cron_settings')) {
       $token = $this->config->get('token');
     }
 

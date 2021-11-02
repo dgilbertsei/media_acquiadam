@@ -4,7 +4,7 @@ services:
     arguments: [ ]
   media_acquiadam.client:
     class: Drupal\media_acquiadam\Client
-    arguments: ['@http_client', '@user.data', '@current_user', '@config.factory']
+    arguments: ['@http_client', '@user.data', '@current_user', '@config.factory', '@request_stack']
   media_acquiadam.acquiadam:
     class: Drupal\media_acquiadam\Acquiadam
     arguments: ['@media_acquiadam.client', '@logger.factory', '@media_acquiadam.asset_data']
