@@ -13,6 +13,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\entity_browser\WidgetBase;
 use Drupal\entity_browser\WidgetValidationManager;
+use Drupal\image\Plugin\Field\FieldType\ImageItem;
 use Drupal\media\MediaSourceManager;
 use Drupal\media_acquiadam\AcquiadamAuthService;
 use Drupal\media_acquiadam\AcquiadamInterface;
@@ -709,27 +710,43 @@ class Acquiadam extends WidgetBase {
         $form_state->setError($form['widget']['asset-container']['assets'], $message);
       }
 
-      // @codingStandardsIgnoreStart
-      // $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
-      // $file_extensions = $field_definitions[$field_map['file']]->getItemDefinition()
-      //   ->getSetting('file_extensions');
-      // $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
-      // $dam_assets = $this->acquiadam->getAssetMultiple($assets);
-      // If the asset's file type does not match allowed file types.
-      // foreach ($dam_assets as $asset) {
-      //   // $filetype = $asset->filetype;
-      //   $type_is_supported = in_array($filetype, $supported_extensions);
+      // Get information about the file field used to handle the asset file.
+      $field_definitions = $this->entityFieldManager->getFieldDefinitions('media', $media_bundle->id());
+      $field_definition = $field_definitions[$field_map['file']]->getItemDefinition();
 
-      //   if (!$type_is_supported) {
-      //     $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
-      //       '@filetype' => $filetype,
-      //       '@supported_types' => implode(', ', $supported_extensions),
-      //     ]);
-      //     // Set the error message on the form.
-      //     $form_state->setError($form['widget']['asset-container']['assets'], $message);
-      //   }
-      // }
-      // @codingStandardsIgnoreEnd
+      // Invoke the API to get all the information about the selected assets.
+      $dam_assets = $this->acquiadam->getAssetMultiple($assets);
+
+      // If the media is only referencing images, we only validate that
+      // referenced assets are images. We don't check the extension as we are
+      // downloading the png version anyway.
+      if (is_a($field_definition->getClass(), ImageItem::class, TRUE)) {
+        foreach ($dam_assets as $asset) {
+          if ($asset->file_properties->format_type !== 'image') {
+            $message = $this->t('Please make another selection. Only images are supported.');
+            $form_state->setError($form['widget']['asset-container']['assets'], $message);
+          }
+        }
+      }
+      else {
+        // Get the list of allowed extensions for this media bundle.
+        $file_extensions = $field_definition->getSetting('file_extensions');
+        $supported_extensions = explode(',', preg_replace('/,?\s/', ',', $file_extensions));
+
+        // Browse the selected assets to validate the extensions are allowed.
+        foreach ($dam_assets as $asset) {
+          $filetype = pathinfo($asset->filename, PATHINFO_EXTENSION);
+          $type_is_supported = in_array($filetype, $supported_extensions);
+
+          if (!$type_is_supported) {
+            $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [
+              '@filetype' => $filetype,
+              '@supported_types' => implode(', ', $supported_extensions),
+            ]);
+            $form_state->setError($form['widget']['asset-container']['assets'], $message);
+          }
+        }
+      }
     }
   }
 
