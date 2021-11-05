@@ -2,7 +2,7 @@
 language: php
 
 os: linux
-dist: bionic
+dist: focal
 
 version: ~> 1.0
 
@@ -18,6 +18,9 @@ cache:
     - "$HOME/.rvm"
     - "${TMPDIR:-/tmp}/phpstan/cache"
 
+services:
+  - mysql
+
 env:
   global:
     - ORCA_SUT_NAME=drupal/media_acquiadam
@@ -25,7 +28,7 @@ env:
     - ORCA_VERSION=^3
     - ORCA_TELEMETRY_ENABLE=TRUE
 
-jobs:
+matrix:
   fast_finish: true
   include:
     - { env: ORCA_JOB=STATIC_CODE_ANALYSIS, name: "Static code analysis" }
@@ -42,6 +45,9 @@ jobs:
     - env: ORCA_JOB=LOOSE_DEPRECATED_CODE_SCAN
     - env: ORCA_JOB=ISOLATED_TEST_ON_CURRENT_DEV
     - env: ORCA_JOB=INTEGRATED_TEST_ON_CURRENT_DEV
+    - env: ORCA_JOB=INTEGRATED_TEST_ON_NEXT_MINOR
+    - env: ORCA_JOB=INTEGRATED_TEST_ON_NEXT_MINOR_DEV
+
 
 before_install:
   - composer create-project --no-dev acquia/orca ../orca "$ORCA_VERSION"
