@@ -3,16 +3,16 @@
 namespace Drupal\Tests\media_acquiadam\Unit;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Image\ImageFactory;
-use Drupal\Core\Url;
 use Drupal\Core\Utility\UnroutedUrlAssemblerInterface;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 
 /**
  * Tests integration of the AssetImageHelper service.
@@ -46,32 +46,32 @@ class AssetImageHelperTest extends UnitTestCase {
     // Ensure that we get the smallest size when given something smaller than
     // set.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 50);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=50&q=80',
       $tn_url);
 
     // Ensure we can get an exact size.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 100);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=100&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest if available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 120);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=120&q=80',
       $tn_url);
 
     // Ensure we get the closest smallest for larger sizes.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 350);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=350&q=80',
       $tn_url);
 
     // Ensure we get the  biggest if nothing was available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 1280);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80',
       $tn_url);
 
     // Ensure we get the biggest when nothing is specified.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&w=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=2048&q=80',
       $tn_url);
   }
 
@@ -171,8 +171,9 @@ class AssetImageHelperTest extends UnitTestCase {
         $this->container->get('http_client'),
         $this->container->get('file.mime_type.guesser'),
         $this->container->get('image.factory'),
+        $this->container->get('entity_type.manager'),
       ])
-      ->setMethods([
+      ->onlyMethods([
         'phpFileExists',
         'getAcquiaDamModulePath',
         'saveFallbackThumbnail',
@@ -180,7 +181,7 @@ class AssetImageHelperTest extends UnitTestCase {
       ->getMock();
 
     $helper->method('getAcquiaDamModulePath')
-      ->willReturn('modules/contrib/acquiadam');
+      ->willReturn('modules/contrib/media_acquiadam');
     $helper->method('saveFallbackThumbnail')->willReturn(NULL);
 
     return $helper;
@@ -198,16 +199,25 @@ class AssetImageHelperTest extends UnitTestCase {
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->setMethods(['copy'])
+      ->onlyMethods(['copy'])
       ->getMockForAbstractClass();
     $file_system->method('copy')
       ->willReturnCallback(function ($source, $target) {
         return is_string($target) ? $target . '_copy' : $target . '_blah';
       });
 
-    $mime_type_guesser = $this->getMockBuilder(MimeTypeGuesserInterface::class)
+    $mime_type_guesser = $this->getMockBuilder(MimeTypeGuesser::class)
       ->disableOriginalConstructor()
       ->getMock();
+    $mime_type_guesser->method('guessMimeType')->willReturnCallback(function ($uri) {
+      $map = [
+        'public://nothing.jpg' => 'image/jpg',
+        'public://nothing.mov' => 'video/quicktime',
+        'public://nothing.pdf' => 'application/pdf',
+      ];
+
+      return $map[$uri] ?? NULL;
+    });
     $mime_type_guesser->method('guess')->willReturnCallback(function ($uri) {
       $map = [
         'public://nothing.jpg' => 'image/jpg',
@@ -225,9 +235,23 @@ class AssetImageHelperTest extends UnitTestCase {
     $url_assembler = $this->getMockBuilder(UnroutedUrlAssemblerInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $url_assembler->method('assemble')->willReturnCallback(function ($uri, $options) {
-      return Url::fromUri($uri, $options)->toString();
-    });
+
+    $url_assembler
+      ->expects($this->any())
+      ->method('assemble')
+      ->willReturnMap([
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 50, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=50&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 100, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=100&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 120, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=120&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 350, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=350&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 1280, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 2048, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=2048&q=80'],
+      ]);
+
+    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
     $this->container = new ContainerBuilder();
     $this->container->set('http_client', $http_client);
     $this->container->set('file_system', $file_system);
@@ -235,6 +259,7 @@ class AssetImageHelperTest extends UnitTestCase {
     $this->container->set('image.factory', $image_factory);
     $this->container->set('config.factory', $this->getConfigFactoryStub());
     $this->container->set('unrouted_url_assembler', $url_assembler);
+    $this->container->set('entity_type.manager', $entity_type_manager);
     \Drupal::setContainer($this->container);
 
     $this->assetImageHelper = $this->getMockedAssetImageHelper();

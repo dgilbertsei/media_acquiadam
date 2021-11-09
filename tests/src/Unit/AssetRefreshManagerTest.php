@@ -374,7 +374,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['searchAssets'])
+      ->addMethods(['searchAssets'])
       ->disableOriginalConstructor()
       ->getMock();
 
@@ -393,7 +393,8 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ->willReturn($this->queue);
 
     $this->entityQuery = $this->getMockBuilder(Query::class)
-      ->setMethods(['orConditionGroup', 'condition', 'execute', 'get'])
+      ->addMethods(['get'])
+      ->onlyMethods(['orConditionGroup', 'condition', 'execute'])
       ->disableOriginalConstructor()
       ->getMock();
 

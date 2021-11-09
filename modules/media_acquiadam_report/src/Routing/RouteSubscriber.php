@@ -15,7 +15,8 @@ class RouteSubscriber extends RouteSubscriberBase {
    */
   protected function alterRoutes(RouteCollection $collection) {
     // Display asset listing as an admin page.
-    if ($route = $collection->get('view.acquia_dam_reporting.asset_report')) {
+    $route = $collection->get('view.acquia_dam_reporting.asset_report');
+    if ($route) {
       $route->setOption('_admin_route', TRUE);
     }
   }

@@ -70,7 +70,7 @@ trait AcquiadamMockedMediaEntityTrait {
 
     $file_field = $this->getMockBuilder(\stdClass::class)
       ->disableOriginalConstructor()
-      ->setMethods(['first', 'mainPropertyName'])
+      ->addMethods(['first', 'mainPropertyName'])
       ->getMock();
     $file_field->method('first')->willReturnSelf();
     $file_field->method('mainPropertyName')->willReturn('target_id');
@@ -80,7 +80,7 @@ trait AcquiadamMockedMediaEntityTrait {
 
     $asset_id_field = $this->getMockBuilder(\stdClass::class)
       ->disableOriginalConstructor()
-      ->setMethods(['first', 'mainPropertyName'])
+      ->addMethods(['first', 'mainPropertyName'])
       ->getMock();
     $asset_id_field->method('first')->willReturnSelf();
     $asset_id_field->method('mainPropertyName')->willReturn('value');

@@ -56,13 +56,11 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
    *
    * @param \Drupal\media_acquiadam\Entity\Asset $asset
    *   The current version of the asset.
-   * @param bool $saveUpdatedVersion
-   *   TRUE to save the new version (if newer than the existing).
    *
    * @return bool
    *   TRUE if the given asset is a different version than what has been stored.
    */
-  public function isUpdatedAsset(Asset $asset, $saveUpdatedVersion = TRUE) {
+  public function isUpdatedAsset(Asset $asset) {
     $latest_known_upload_date = $this->get($asset->id, 'file_upload_date');
     $actual_upload_date = strtotime($asset->file_upload_date);
     return $latest_known_upload_date !== $actual_upload_date;
@@ -94,19 +92,13 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
     }
 
     $return = [];
-    // All values for a given asset ID were requested.
-    if (isset($assetID)) {
-      foreach ($result as $record) {
-        $return[$record->name] = $record->serialized ?
-          unserialize($record->value) : $record->value;
-      }
-      return $return;
-    }
 
-    // All asset IDs for a given value were requested.
-    if (isset($name)) {
+    // If only specific assets was requested.
+    if (isset($assetID) || isset($name)) {
+      $key = isset($assetID) ? 'name' : 'asset_id';
+
       foreach ($result as $record) {
-        $return[$record->asset_id] = $record->serialized ?
+        $return[$record->{$key}] = $record->serialized ?
           unserialize($record->value) : $record->value;
       }
       return $return;

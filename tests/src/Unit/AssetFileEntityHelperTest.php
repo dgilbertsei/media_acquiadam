@@ -177,7 +177,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->setMethods(['prepareDirectory'])
+      ->onlyMethods(['prepareDirectory'])
       ->getMockForAbstractClass();
     $file_system->method('prepareDirectory')->willReturnMap([
       [
@@ -213,9 +213,9 @@ class AssetFileEntityHelperTest extends UnitTestCase {
         $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
       ])
-      ->setMethods([
-        'phpFileGetContents',
+      ->onlyMethods([
         'drupalFileSaveData',
+        'phpFileGetContents',
       ])
       ->getMock();
 

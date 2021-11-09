@@ -12,7 +12,7 @@ use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Class AssetImageHelper.
@@ -46,7 +46,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Drupal MIME type guesser.
    *
-   * @var \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface
+   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
    */
   protected $mimeTypeGuesser;
 
@@ -73,7 +73,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   Drupal filesystem wrapper.
    * @param \GuzzleHttp\ClientInterface $httpClient
    *   Guzzle HTTP Client.
-   * @param \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface $mimeTypeGuesser
+   * @param \Symfony\Component\Mime\MimeTypeGuesserInterface $mimeTypeGuesser
    *   Drupal MIME type guesser.
    * @param \Drupal\Core\Image\ImageFactory $imageFactory
    *   Drupal ImageFactory service.
@@ -133,8 +133,8 @@ class AssetImageHelper implements ContainerInjectionInterface {
         "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80,
       ],
     ]);
-    $thumbnailUrl = str_replace("/original/", "/png/", $url->toString());
-    return $thumbnailUrl;
+
+    return str_replace("/original/", "/png/", $url->toString());
   }
 
   /**
@@ -174,12 +174,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getMimeTypeFromFileType($fileType) {
     $fake_name = sprintf('public://nothing.%s', $fileType);
-    $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
+    if ($this->mimeTypeGuesser instanceof MimeTypeGuesserInterface) {
+      $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
+    }
+    else {
+      @trigger_error('\Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface is deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Implement \Symfony\Component\Mime\MimeTypeGuesserInterface instead. See https://www.drupal.org/node/3133341', E_USER_DEPRECATED);
+      $mimetype = $this->mimeTypeGuesser->guess($fake_name);
+    }
+
     if (empty($mimetype)) {
       return FALSE;
     }
 
-    list($discrete_type, $subtype) = explode('/', $mimetype, 2);
+    [$discrete_type, $subtype] = explode('/', $mimetype, 2);
 
     return [
       'discrete' => $discrete_type,

@@ -145,7 +145,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['getAsset'])
+      ->onlyMethods(['getAsset'])
       ->disableOriginalConstructor()
       ->getMock();
 
@@ -186,7 +186,7 @@ class MediaEntityHelperTest extends UnitTestCase {
   protected function setMockedDrupalServices(ContainerBuilder $container) {
 
     $media_bundle = $this->getMockBuilder(\stdClass::class)
-      ->setMethods(['getFieldMap'])
+      ->addMethods(['getFieldMap'])
       ->getMock();
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
