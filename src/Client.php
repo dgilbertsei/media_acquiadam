@@ -423,44 +423,28 @@ class Client {
   /**
    * Get a list of Assets given a Category ID.
    *
+   * @param string $category_name
+   *   Category name.
    * @param array $params
    *   Additional query parameters for the request.
    *
-   * @return object
+   * @return array
    *   Contains the following keys:
-   *     - offset: The offset used for the query.
    *     - total_count: The total number of assets in the result set across all
    *       pages.
-   *     - limit: The number of assets returned at a time.
-   *     - facets: Information about the assets returned.
-   *     - items: an array of Asset objects.
+   *     - assets: an array of Asset objects.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAssetsByCategory(array $params = []): object {
-    $this->checkAuth();
-
-    $date = date('m/d/Y');
-    $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
-    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
-
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/search', [
-        'headers' => $this->getDefaultHeaders(),
-        'query' => $params,
-      ]
-    );
-    $response = json_decode((string) $response->getBody());
-
-    // Replace items key with actual Asset objects.
-    $assets = [];
-    foreach ($response->items as $asset) {
-      $assets[] = Asset::fromJson($asset);
+  public function getAssetsByCategory(string $category_name, array $params = []): array {
+    if ($category_name) {
+      $params['query'] = 'category:' . $category_name;
     }
-    $response->items = $assets;
 
-    return $response;
+    // Fetch all assets of current category.
+    $assets = $this->searchAssets($params);
+
+    return $assets;
   }
 
   /**
