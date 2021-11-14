@@ -69,7 +69,7 @@ class Client {
    *
    * @var string
    */
-  const CLIENTVERSION = "2.x-alpha";
+  const CLIENTVERSION = "2.x";
 
   /**
    * Client constructor.
