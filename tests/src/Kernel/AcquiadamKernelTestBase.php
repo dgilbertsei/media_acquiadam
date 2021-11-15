@@ -26,7 +26,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * @var array
    */
-  protected static $modules = [
+  public static $modules = [
     'fallback_formatter',
     'file',
     'image',
