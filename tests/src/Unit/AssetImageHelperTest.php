@@ -173,7 +173,7 @@ class AssetImageHelperTest extends UnitTestCase {
         $this->container->get('image.factory'),
         $this->container->get('entity_type.manager'),
       ])
-      ->onlyMethods([
+      ->setMethods([
         'phpFileExists',
         'getAcquiaDamModulePath',
         'saveFallbackThumbnail',
@@ -199,7 +199,7 @@ class AssetImageHelperTest extends UnitTestCase {
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['copy'])
+      ->setMethods(['copy'])
       ->getMockForAbstractClass();
     $file_system->method('copy')
       ->willReturnCallback(function ($source, $target) {
