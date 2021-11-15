@@ -374,7 +374,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->addMethods(['searchAssets'])
+      ->setMethods(['searchAssets'])
       ->disableOriginalConstructor()
       ->getMock();
 
