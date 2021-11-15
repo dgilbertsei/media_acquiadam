@@ -20,7 +20,7 @@
         "dealerdirect/phpcodesniffer-composer-installer": "^0.5",
         "drupal/entity_browser": "~2.0",
         "drupal/linkit": "~5.0",
-        "phpunit/phpunit": "^6.5"
+        "phpunit/phpunit": "^9"
     },
     "extra": {
         "branch-alias": {
