@@ -17,7 +17,7 @@
     "require-dev": {
         "acquia/coding-standards": "*",
         "brainmaestro/composer-git-hooks": "^2.7",
-        "dealerdirect/phpcodesniffer-composer-installer": "^0.5",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
         "drupal/entity_browser": "~2.0",
         "drupal/linkit": "~5.0",
         "phpunit/phpunit": "^9"
