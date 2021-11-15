@@ -393,8 +393,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ->willReturn($this->queue);
 
     $this->entityQuery = $this->getMockBuilder(Query::class)
-      ->addMethods(['get'])
-      ->onlyMethods(['orConditionGroup', 'condition', 'execute'])
+      ->setMethods(['orConditionGroup', 'condition', 'execute', 'get'])
       ->disableOriginalConstructor()
       ->getMock();
 

@@ -145,7 +145,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->onlyMethods(['getAsset'])
+      ->setMethods(['getAsset'])
       ->disableOriginalConstructor()
       ->getMock();
 

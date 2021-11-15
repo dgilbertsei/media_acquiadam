@@ -94,7 +94,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
 
     $asset_data = $this->getMockBuilder(AssetData::class)
       ->disableOriginalConstructor()
-      ->onlyMethods(['get', 'set', 'isUpdatedAsset'])
+      ->setMethods(['get', 'set', 'isUpdatedAsset'])
       ->getMock();
     $asset_data->expects($this->any())
       ->method('get')->willReturn(function ($assetId, $name) {
@@ -117,7 +117,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
         $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
       ])
-      ->onlyMethods([
+      ->setMethods([
         'phpFileGetContents',
       ])
       ->getMock();
