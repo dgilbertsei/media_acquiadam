@@ -186,7 +186,7 @@ class MediaEntityHelperTest extends UnitTestCase {
   protected function setMockedDrupalServices(ContainerBuilder $container) {
 
     $media_bundle = $this->getMockBuilder(\stdClass::class)
-      ->addMethods(['getFieldMap'])
+      ->setMethods(['getFieldMap'])
       ->getMock();
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);

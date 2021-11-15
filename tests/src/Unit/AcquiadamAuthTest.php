@@ -97,7 +97,7 @@ class AcquiadamAuthTest extends UnitTestCase {
 
     $http_client = $this->getMockBuilder(Client::class)
       ->disableOriginalConstructor()
-      ->addMethods(['post'])
+      ->setMethods(['post'])
       ->getMock();
     $http_client->expects($this->any())->method('post')->willReturn($response);
 
