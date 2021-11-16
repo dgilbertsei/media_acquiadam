@@ -345,6 +345,7 @@ class Acquiadam extends WidgetBase {
     }
     // Load categories data.
     else {
+      $category_name = '';
       $categories = $this->acquiadam->getCategoryData($current_category);
       // Total number of categories.
       $total_asset = $total_category = count($categories);
@@ -363,14 +364,14 @@ class Acquiadam extends WidgetBase {
         $params['limit'] = $num_per_page;
       }
       if ($current_category->name) {
-        $params['query'] = 'category:' . $current_category->name;
+        $category_name = $current_category->name;
       }
-      $category_assets = $this->acquiadam->getAssetsByCategory($params);
+      $category_assets = $this->acquiadam->getAssetsByCategory($category_name, $params);
       if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
-        $items = $category_assets->items;
+        $items = isset($category_assets['assets']) ? $category_assets['assets'] : [];
       }
       // Total asset conatins both asset and subcategory(if any).
-      $total_asset += $category_assets->total_count;
+      $total_asset += isset($category_assets['total_count']) ? $category_assets['total_count'] : 0;
     }
 
     // Add the filter and sort options to the form.
