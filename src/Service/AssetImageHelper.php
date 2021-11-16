@@ -6,13 +6,13 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Class AssetImageHelper.
@@ -46,7 +46,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Drupal MIME type guesser.
    *
-   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
+   * @var \Drupal\Core\File\MimeType\MimeTypeGuesser
    */
   protected $mimeTypeGuesser;
 
@@ -73,14 +73,15 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   Drupal filesystem wrapper.
    * @param \GuzzleHttp\ClientInterface $httpClient
    *   Guzzle HTTP Client.
-   * @param \Symfony\Component\Mime\MimeTypeGuesserInterface $mimeTypeGuesser
+   * @param \Drupal\Core\File\MimeType\MimeTypeGuesser $mimeTypeGuesser
    *   Drupal MIME type guesser.
    * @param \Drupal\Core\Image\ImageFactory $imageFactory
    *   Drupal ImageFactory service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory, EntityTypeManagerInterface $entityTypeManager) {
+  // phpcs:ignore
+  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, $mimeTypeGuesser, ImageFactory $imageFactory, EntityTypeManagerInterface $entityTypeManager) {
     $this->httpClient = $httpClient;
     $this->configFactory = $configFactory;
     $this->fileSystem = $fileSystem;
@@ -174,7 +175,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getMimeTypeFromFileType($fileType) {
     $fake_name = sprintf('public://nothing.%s', $fileType);
-    if ($this->mimeTypeGuesser instanceof MimeTypeGuesserInterface) {
+    if ($this->mimeTypeGuesser instanceof MimeTypeGuesser) {
       $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
     }
     else {
