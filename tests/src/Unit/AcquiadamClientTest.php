@@ -9,6 +9,7 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Client factory test.
@@ -65,7 +66,11 @@ class AcquiadamClientTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $client = new Client($http_client, $user_data, $current_user, $this->getConfigFactoryStub());
+    $request_stack = $this->getMockBuilder(RequestStack::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $client = new Client($http_client, $user_data, $current_user, $this->getConfigFactoryStub(), $request_stack);
 
     $container = new ContainerBuilder();
     \Drupal::setContainer($container);
