@@ -97,15 +97,16 @@ class AcquiadamController extends ControllerBase {
    * @param string $assetId
    *   The asset ID for the asset to render title for.
    *
-   * @return string
-   *   The asset details page title.
+   * @return array
+   *   The markup contains asset details page title.
    */
-  public function assetDetailsPageTitle(string $assetId): string {
+  public function assetDetailsPageTitle(string $assetId): array {
     $asset = $this->getAsset($assetId);
-    return $this->t(
-      "Asset details: %filename",
-      ['%filename' => $asset->filename]
-    );
+    return [
+      '#markup' => $this->t("Asset details: %filename", [
+        '%filename' => $asset->filename,
+      ]),
+    ];
   }
 
   /**
