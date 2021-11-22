@@ -507,7 +507,7 @@ class Client {
 
     $date = date('m/d/Y');
     $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
-    $params['query'] .= 'rd:([before ' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
+    $params['query'] .= 'rd:([before ' . $date . '] OR [' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
 
     $response = $this->client->request(
       "GET",
