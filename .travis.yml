@@ -59,7 +59,9 @@ install:
 
 before_script: ../orca/bin/travis/before_script.sh
 
-script: ../orca/bin/travis/script.sh
+script:
+  - ./tests/travis/script.sh
+  - ../orca/bin/travis/script.sh
 
 before_cache: ../orca/bin/travis/before_cache.sh
 

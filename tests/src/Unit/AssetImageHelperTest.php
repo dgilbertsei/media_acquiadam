@@ -83,13 +83,13 @@ class AssetImageHelperTest extends UnitTestCase {
     // Second FALSE will trigger the file copy.
     // TRUE will trigger using the default.
     $this->assetImageHelper->method('phpFileExists')
-      ->with('public://webdam.png')
+      ->with('public://widen.png')
       ->willReturnOnConsecutiveCalls(FALSE, FALSE, TRUE);
 
-    $this->assertEquals('public://webdam.png_copy',
+    $this->assertEquals('public://widen.png_copy',
       $this->assetImageHelper->getFallbackThumbnail(),
       'File should be copied to new location');
-    $this->assertEquals('public://webdam.png',
+    $this->assertEquals('public://widen.png',
       $this->assetImageHelper->getFallbackThumbnail(),
       'Existing file should be used');
   }

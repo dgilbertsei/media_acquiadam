@@ -210,11 +210,11 @@ class AssetImageHelper implements ContainerInjectionInterface {
     // There was no configured fallback image, so we should use the one bundled
     // with the module.
     if (empty($fallback)) {
-      // @BUG: Can default to any image named webdam.png, not necessarily ours.
+      // @BUG: Can default to any image named widen.png, not necessarily ours.
       $default_scheme = $this->configFactory->get('system.file')->get(
           'default_scheme'
         );
-      $fallback = sprintf('%s://webdam.png', $default_scheme);
+      $fallback = sprintf('%s://widen.png', $default_scheme);
       if (!$this->phpFileExists($fallback)) {
         $fallback = $this->setFallbackThumbnail($fallback);
       }
@@ -250,7 +250,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   protected function setFallbackThumbnail($uri) {
     // Drupal core prevents generating image styles from module directories,
     // so we need to copy our placeholder to the files directory first.
-    $source = $this->getAcquiaDamModulePath() . '/img/webdam.png';
+    $source = $this->getAcquiaDamModulePath() . '/img/widen.png';
     if (!$this->phpFileExists($uri)) {
       $uri = $this->fileSystem->copy($source, $uri);
       if (!empty($uri)) {

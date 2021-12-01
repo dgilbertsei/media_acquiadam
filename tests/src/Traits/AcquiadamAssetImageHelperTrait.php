@@ -25,7 +25,7 @@ trait AcquiadamAssetImageHelperTrait {
       ['pdf', ['discrete' => 'application', 'sub' => 'pdf']],
     ]);
     $asset_image_helper->method('getThumbnailUrlBySize')
-      ->willReturn('http://subdomain.webdamdb.com/s/310th_sm_0UerYozlI3.jpg');
+      ->willReturn('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80');
 
     return $asset_image_helper;
   }
