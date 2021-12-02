@@ -1,7 +1,5 @@
 domain:
 token:
-client_id: 'd2df039fd77de48986459e68823a3380.app.widen.com'
-client_secret: '9f2c7101ea3be48a9f98424f8d158afd1ef7daf4'
 sync_interval: 3600
 sync_method: "updated_date"
 size_limit: 2048

@@ -27,7 +27,7 @@ class AcquiadamAuthTest extends UnitTestCase {
   protected $container;
 
   /**
-   * Acquia DAM oAuth service.
+   * Acquia DAM Auth service.
    *
    * @var \Drupal\media_acquiadam\AcquiadamAuthService
    */
@@ -51,7 +51,7 @@ class AcquiadamAuthTest extends UnitTestCase {
 
     $this->assertStringContainsString('subdomain.widencollective.com', $authLink);
     $this->assertStringContainsString('/allowaccess', $authLink);
-    $this->assertStringContainsString('?client_id=a3mf039fd77dw67886459q90098z0980.app.widen.com', $authLink);
+    $this->assertStringContainsString('?client_id=' . $this->acquidamAuth::CLIENT_ID, $authLink);
     $this->assertStringContainsString('&redirect_uri=localhost.com/user/acquiadam/auth?uid=1', $authLink);
   }
 

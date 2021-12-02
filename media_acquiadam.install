@@ -268,6 +268,17 @@ function media_acquiadam_update_8201() {
 }
 
 /**
+ * Remove the client_id and client_secret from the config.
+ */
+function media_acquiadam_update_8202() {
+  $config_factory = Drupal::configFactory();
+  $config_factory->getEditable('media_acquiadam.settings')
+    ->clear('client_id')
+    ->clear('client_secret')
+    ->save(TRUE);
+}
+
+/**
  * Returns the entity view display associated with a bundle and view mode.
  *
  * This is an exact copy of the deprecated entity_get_display() from Core 8.6.x.

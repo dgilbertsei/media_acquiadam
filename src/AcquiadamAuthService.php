@@ -12,6 +12,20 @@ use Drupal\Core\Config\ImmutableConfig;
 class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
 
   /**
+   * The client_id used to identify Drupal module.
+   *
+   * @var string
+   */
+  const CLIENT_ID = 'd2df039fd77de48986459e68823a3380.app.widen.com';
+
+  /**
+   * The client_secret used to identify Drupal module.
+   *
+   * @var string
+   */
+  const CLIENT_SECRET = '9f2c7101ea3be48a9f98424f8d158afd1ef7daf4';
+
+  /**
    * Constructor.
    */
   public function __construct() {
@@ -62,10 +76,9 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
   public static function generateAuthUrl(string $return_link): string {
     $config = self::getConfig();
     $acquiadam_domain = $config->get('domain');
-    $client_id = $config->get('client_id');
-    $auth_link = $acquiadam_domain ? "https://$acquiadam_domain/allowaccess?client_id=$client_id&redirect_uri=$return_link" : '';
+    $client_id = self::CLIENT_ID;
+    return $acquiadam_domain ? "https://$acquiadam_domain/allowaccess?client_id=$client_id&redirect_uri=$return_link" : '';
 
-    return $auth_link;
   }
 
   /**
@@ -124,14 +137,10 @@ class AcquiadamAuthService implements AcquiadamAuthServiceInterface {
       'grant_type' => 'authorization_code',
     ];
 
-    $config = self::getConfig();
-    $client_id = $config->get('client_id');
-    $client_secret = $config->get('client_secret');
-
     // Initiate and process the response of the HTTP request.
     $response = \Drupal::httpClient()
       ->post($endpoint, [
-        'auth' => [$client_id, $client_secret],
+        'auth' => [self::CLIENT_ID, self::CLIENT_SECRET],
         'body' => json_encode($data),
         'headers' => [
           'Content-Type' => 'application/json',

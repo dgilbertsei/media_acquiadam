@@ -9,12 +9,6 @@ media_acquiadam.settings:
     token:
       type: string
       label: 'Acquia DAM authentication token'
-    client_id:
-      type: string
-      label: 'Client id'
-    client_secret:
-      type: string
-      label: 'Client secret'
     sync_interval:
       type: integer
       label: 'Sync interval'
