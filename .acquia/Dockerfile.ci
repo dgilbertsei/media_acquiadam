@@ -30,11 +30,12 @@
   FROM ${REPO_LOCATION}composer:latest as composer
   FROM ${REPO_LOCATION}${BASE_IMAGE}
 
+  ENV CI=true
   ENV CHROMEDRIVER_VERSION 93.0.4577.63
   ENV CHROMEDRIVER_DIR /chromedriver
   ENV DEBIAN_FRONTEND=noninteractive
   #Set the working directory, usually acquia/project_name
-  ENV ORCA_WORKSPACE=/acquia/media_acquiadam
+  ENV CI_WORKSPACE=/acquia/media_acquiadam
   # Provide your package's name.
   ENV ORCA_SUT_NAME=drupal/media_acquiadam
   # Provide your package's root directory.
@@ -93,6 +94,15 @@
   && dpkg -i mysql-apt-config.deb \
   && rm mysql-apt-config.deb
 
+  # Install php8
+  RUN rm /etc/apt/preferences.d/no-debian-php
+  RUN wget -q -O - https://packages.sury.org/php/apt.gpg | apt-key add -
+  RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" >> /etc/apt/sources.list.d/php.list
+  RUN apt-get update && apt-get install -y php8.0 php8.0-cli php8.0-common \
+  php8.0-zip php8.0-gd php8.0-mbstring php8.0-tokenizer \
+  php8.0-curl php8.0-xml php8.0-bcmath php8.0-xml \
+  php8.0-intl php8.0-sqlite3 \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
   RUN apt-get update && apt-get install -y \
   git \
@@ -127,7 +137,7 @@
   #
   # Set Working Directory.
   #
-  WORKDIR $ORCA_WORKSPACE
+  WORKDIR $CI_WORKSPACE
 
   COPY composer.* ./
 
@@ -144,11 +154,7 @@
   # Install Composer
   COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-  #RUN composer create-project --no-dev --ignore-platform-req=php acquia/orca ../orca "$ORCA_VERSION"
+  RUN composer create-project --no-dev --ignore-platform-req=php acquia/orca ../orca "$ORCA_VERSION"
   RUN composer self-update
-
-  RUN git clone https://github.com/kdruckman/orca.git ../orca
-  RUN git -C ../orca checkout ORCA-201
-  RUN composer install -d ../orca --no-dev --ignore-platform-req=php
 
   COPY . ./

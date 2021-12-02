@@ -16,8 +16,14 @@ environment_image:
 _orca_steps: &orca_steps
   - steps:
       - |
-        cd $ORCA_WORKSPACE
-        ../orca/bin/ci/before_install.sh
+        cd $CI_WORKSPACE
+        ../orca/bin/ci/before_install.sh && error=false || error=true
+        # Switch to PHP8. The version will depend on the version(s) installed in your Dockerfile.
+        # The template provides version 8.0.
+        if [ "$JENKINS_PHP_VERSION" = 8.0 ]; then
+          update-alternatives --install /usr/local/bin/php php /usr/bin/php8.0 80
+          php -v
+        fi
         # Create the test fixture and place the SUT.
         ../orca/bin/ci/install.sh && error=false || error=true
         ./tests/travis/install.sh && error=false || error=true
@@ -25,7 +31,7 @@ _orca_steps: &orca_steps
         ../orca/bin/ci/before_script.sh && error=false || error=true
         # Run the test script.
         ../orca/bin/ci/script.sh && error=false || error=true
-        ../orca/bin/ci/before_cache.sh && error=false || error=true
+        ../orca/bin/ci/before_cache.sh
         if [ "$error" = "true" ]; then
           echo "Running after failure";
           ../orca/bin/ci/after_failure.sh;
@@ -56,7 +62,7 @@ pre_build:
     - args: --env ORCA_JOB=INTEGRATED_TEST_ON_CURRENT
       <<: *orca_steps
   isolated_test_on_current_dev:
-    - args: --env ORCA_JOB=ISOLATED_TEST_ON_CURRENT_DEV --env ALLOWED_FAILURE=true
+    - args: --env ORCA_JOB=ISOLATED_TEST_ON_CURRENT_DEV --env JENKINS_PHP_VERSION=8.0 --env ALLOWED_FAILURE=true
       <<: *orca_steps
   integrated_test_on_current_dev:
     - args: --env ORCA_JOB=INTEGRATED_TEST_ON_CURRENT_DEV --env ALLOWED_FAILURE=true
@@ -71,20 +77,8 @@ pre_build:
     - args: --env ORCA_JOB=LOOSE_DEPRECATED_CODE_SCAN --env ALLOWED_FAILURE=true
       <<: *orca_steps
   strict_deprecated_code_scan:
-    - args: --env ORCA_JOB=STRICT_DEPRECATED_CODE_SCAN
+    - args: --env ORCA_JOB=STRICT_DEPRECATED_CODE_SCAN  --env ALLOWED_FAILURE=true
       <<: *orca_steps
 
   security_composition_analysis:
-    required: false
-
-after_success:
-  - steps:
-      - cd $ORCA_WORKSPACE && ../orca/bin/travis/after_success.sh
-
-after_failure:
-  - steps:
-      - cd $ORCA_WORKSPACE && ../orca/bin/travis/after_failure.sh
-
-# -- Slack Bot Integration --
-notify:
-  channel: drupal-integration-eng
+    required: true
