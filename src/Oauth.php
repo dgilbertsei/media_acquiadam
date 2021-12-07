@@ -113,12 +113,13 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public function getAccessToken($auth_code) {
-    $this->loggerChannel->debug(
-      'Getting new access token for @username.',
-      [
-        '@username' => $this->currentUser->getAccountName(),
-      ]
-    );
+    $fixed_url = implode('/', array_unique(explode('/', $this->authFinishRedirect)));
+    $this->loggerChannel->debug('Getting new access token for @username. Original url: @original | fixed_url: @auth_finish_redirect', [
+       '@username' => $this->currentUser->getAccountName(),
+       '@original', $this->authFinishRedirect,
+       '@auth_finish_redirect' => $fixed_url,
+     ]);
+     $this->authFinishRedirect = $fixed_url;
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
     $response = $this->httpClient->post(
@@ -152,6 +153,11 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public function getAuthLink() {
+
+    // Fix symlink double url issue /canvas/canvas | /bridge/bridge
+    $fixed_url = implode('/', array_unique(explode('/', $this->authFinishRedirect)));
+    $this->authFinishRedirect = $fixed_url;
+
     $client_id = $this->config->get('client_id');
     $token = $this->csrfTokenGenerator->get('media_acquiadam.oauth');
     $redirect_uri = $this->urlGenerator->generateFromRoute(
@@ -174,6 +180,10 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
         '@username' => $this->currentUser->getAccountName(),
       ]
     );
+
+    // Fix symlink double url issue /canvas/canvas | /bridge/bridge
+    $fixed_url = implode('/', array_unique(explode('/', $this->authFinishRedirect)));
+    $this->authFinishRedirect = $fixed_url;
 
     /** @var \Psr\Http\Message\ResponseInterface $response */
     $response = $this->httpClient->post(
@@ -244,6 +254,10 @@ class Oauth implements OauthInterface, ContainerInjectionInterface {
         'fragment' => $parsed_url['fragment'],
       ]
     )->toString();
+
+    // Fix symlink double url issue /canvas/canvas | /bridge/bridge
+    $fixed_url = implode('/', array_unique(explode('/', $this->authFinishRedirect)));
+    $this->authFinishRedirect = $fixed_url;
   }
 
 }
