@@ -80,24 +80,22 @@ class MediaEntityHelper {
    *   A file entity or FALSE on failure.
    */
   public function getFile() {
-
     // If there is already a file on the media entity then we should use that.
     $file = $this->getExistingFile();
 
     // If we're getting an updated version of the asset we need to grab a new
     // version of the file.
     $asset = $this->getAsset();
-    if (empty($asset)) {
-      return FALSE;
-    }
+    if (!empty($asset)) {
+      $is_different_version = $this->assetData->isUpdatedAsset($asset);
 
-    $is_different_version = $this->assetData->isUpdatedAsset($asset);
-    if (!empty($asset) && (empty($file) || $is_different_version)) {
-      $destination_folder = $this->getAssetFileDestination();
-      $file = $this->assetFileHelper->createNewFile($asset, $destination_folder);
+      if (empty($file) || $is_different_version) {
+        $destination_folder = $this->getAssetFileDestination();
+        $file = $this->assetFileHelper->createNewFile($asset, $destination_folder);
 
-      if ($file) {
-        $this->assetData->set($asset->id, 'file_upload_date', strtotime($asset->file_upload_date));
+        if ($file) {
+          $this->assetData->set($asset->id, 'file_upload_date', strtotime($asset->file_upload_date));
+        }
       }
     }
 

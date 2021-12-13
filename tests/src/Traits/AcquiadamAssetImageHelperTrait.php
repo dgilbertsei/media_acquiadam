@@ -19,10 +19,10 @@ trait AcquiadamAssetImageHelperTrait {
     $asset_image_helper = $this->getMockBuilder(AssetImageHelper::class)
       ->disableOriginalConstructor()
       ->getMock();
-    $asset_image_helper->method('getMimeTypeFromFileType')->willReturnMap([
-      ['jpg', ['discrete' => 'image', 'sub' => 'jpg']],
-      ['mov', ['discrete' => 'quicktime', 'sub' => 'mov']],
-      ['pdf', ['discrete' => 'application', 'sub' => 'pdf']],
+    $asset_image_helper->method('getMimeTypeFromFileUri')->willReturnMap([
+      ['public://test.jpg', ['discrete' => 'image', 'sub' => 'jpg']],
+      ['public://test.mov', ['discrete' => 'quicktime', 'sub' => 'mov']],
+      ['public://test.pdf', ['discrete' => 'application', 'sub' => 'pdf']],
     ]);
     $asset_image_helper->method('getThumbnailUrlBySize')
       ->willReturn('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80');

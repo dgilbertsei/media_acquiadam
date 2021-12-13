@@ -180,6 +180,20 @@ class AcquiadamAsset extends MediaSourceBase {
    *   The metadata value or NULL if unset.
    */
   public function getMetadata(MediaInterface $media, $name) {
+    switch ($name) {
+      case 'default_name':
+        return parent::getMetadata($media, 'default_name');
+
+      case 'thumbnail_uri':
+        return $this->assetImageHelper->getThumbnail(
+          $this->assetMediaFactory->get($media)->getFile()
+        );
+
+      case 'file':
+        $file = $this->assetMediaFactory->get($media)->getFile();
+        $is_file = !empty($file) && $file instanceof FileInterface;
+        return $is_file ? $file->id() : NULL;
+    }
 
     if (empty($this->currentAsset)) {
       $asset = $this->assetMediaFactory->get($media)->getAsset();
@@ -189,27 +203,10 @@ class AcquiadamAsset extends MediaSourceBase {
       $this->currentAsset = $asset;
     }
 
-    switch ($name) {
-      case 'default_name':
-        return parent::getMetadata($media, 'default_name');
-
-      case 'thumbnail_uri':
-        return $this->assetImageHelper->getThumbnail(
-          $this->currentAsset,
-          $this->assetMediaFactory->get($media)->getFile()
-        );
-
-      case 'file':
-        $file = $this->assetMediaFactory->get($media)->getFile();
-        $is_file = !empty($file) && $file instanceof FileInterface;
-        return $is_file ? $file->id() : NULL;
-
-      default:
-        return $this->assetMetadataHelper->getMetadataFromAsset(
-          $this->currentAsset,
-          $name
-        );
-    }
+    return $this->assetMetadataHelper->getMetadataFromAsset(
+      $this->currentAsset,
+      $name
+    );
   }
 
 }

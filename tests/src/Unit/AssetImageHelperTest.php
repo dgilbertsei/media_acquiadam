@@ -132,26 +132,26 @@ class AssetImageHelperTest extends UnitTestCase {
   /**
    * Validate that we can get proper mime types based on a file extension.
    */
-  public function testGetMimeTypeFromFileType() {
+  public function testGetMimeTypeFromFileUri() {
     $this->assertEquals([
       'discrete' => 'image',
       'sub' => 'jpg',
     ],
-      $this->assetImageHelper->getMimeTypeFromFileType('jpg'));
+      $this->assetImageHelper->getMimeTypeFromFileUri('public://test.jpg'));
 
     $this->assertEquals([
       'discrete' => 'video',
       'sub' => 'quicktime',
     ],
-      $this->assetImageHelper->getMimeTypeFromFileType('mov'));
+      $this->assetImageHelper->getMimeTypeFromFileUri('public://test.mov'));
 
     $this->assertEquals([
       'discrete' => 'application',
       'sub' => 'pdf',
     ],
-      $this->assetImageHelper->getMimeTypeFromFileType('pdf'));
+      $this->assetImageHelper->getMimeTypeFromFileUri('public://test.pdf'));
 
-    $this->assertFalse($this->assetImageHelper->getMimeTypeFromFileType('abc123'));
+    $this->assertFalse($this->assetImageHelper->getMimeTypeFromFileUri('public://test.abc123'));
   }
 
   /**
@@ -211,9 +211,9 @@ class AssetImageHelperTest extends UnitTestCase {
       ->getMock();
     $mime_type_guesser->method('guessMimeType')->willReturnCallback(function ($uri) {
       $map = [
-        'public://nothing.jpg' => 'image/jpg',
-        'public://nothing.mov' => 'video/quicktime',
-        'public://nothing.pdf' => 'application/pdf',
+        'public://test.jpg' => 'image/jpg',
+        'public://test.mov' => 'video/quicktime',
+        'public://test.pdf' => 'application/pdf',
       ];
 
       return $map[$uri] ?? '';

@@ -141,21 +141,20 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get the thumbnail for the given asset.
    *
-   * @param \Drupal\media_acquiadam\Entity\Asset $asset
-   *   The Acquia DAM asset.
    * @param \Drupal\file\FileInterface|false $file
    *   The file entity to create a thumbnail uri from.
    *
    * @return string|false
    *   The image URI to use or FALSE.
    */
-  public function getThumbnail(Asset $asset, $file = FALSE) {
-    if (empty($file) || !$file instanceof FileInterface || empty($asset->file_properties)) {
+  public function getThumbnail($file = FALSE) {
+    if (empty($file) || !$file instanceof FileInterface) {
       return $this->getFallbackThumbnail();
     }
 
-    $mimetype = $this->getMimeTypeFromFileType(strtolower($asset->file_properties->format));
-    $is_image = 'image' == $asset->file_properties->format_type;
+    $mimetype = $this->getMimeTypeFromFileUri($file->getFileUri());
+
+    $is_image = 'image' == $mimetype['discrete'];
 
     $thumbnail = $is_image ?
       $this->getImageThumbnail($file) :
@@ -167,20 +166,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Get MIME type information based on a file extension.
    *
-   * @param string $fileType
-   *   The file extension to get information for.
+   * @param string $uri
+   *   The file uri.
    *
    * @return array|false
    *   The MIME type information or FALSE on failure.
    */
-  public function getMimeTypeFromFileType($fileType) {
-    $fake_name = sprintf('public://nothing.%s', $fileType);
+  public function getMimeTypeFromFileUri(string $uri) {
     if ($this->mimeTypeGuesser instanceof MimeTypeGuesser) {
-      $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
+      $mimetype = $this->mimeTypeGuesser->guessMimeType($uri);
     }
     else {
       @trigger_error('\Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface is deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Implement \Symfony\Component\Mime\MimeTypeGuesserInterface instead. See https://www.drupal.org/node/3133341', E_USER_DEPRECATED);
-      $mimetype = $this->mimeTypeGuesser->guess($fake_name);
+      $mimetype = $this->mimeTypeGuesser->guess($uri);
     }
 
     if (empty($mimetype)) {
@@ -202,18 +200,17 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The Drupal image path to use.
    */
   public function getFallbackThumbnail() {
-
     $fallback = $this->configFactory->get('media_acquiadam.settings')->get(
-        'fallback_thumbnail'
-      );
+      'fallback_thumbnail'
+    );
 
     // There was no configured fallback image, so we should use the one bundled
     // with the module.
     if (empty($fallback)) {
       // @BUG: Can default to any image named widen.png, not necessarily ours.
       $default_scheme = $this->configFactory->get('system.file')->get(
-          'default_scheme'
-        );
+        'default_scheme'
+      );
       $fallback = sprintf('%s://widen.png', $default_scheme);
       if (!$this->phpFileExists($fallback)) {
         $fallback = $this->setFallbackThumbnail($fallback);
@@ -283,9 +280,9 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   protected function saveFallbackThumbnail($uri) {
     $this->configFactory->getEditable('media_acquiadam.settings')->set(
-        'fallback_thumbnail',
-        $uri
-      )->save();
+      'fallback_thumbnail',
+      $uri
+    )->save();
   }
 
   /**
@@ -325,8 +322,8 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getGenericMediaIcon(array $mimetype) {
     $icon_base = $this->configFactory->get('media.settings')->get(
-        'icon_base_uri'
-      );
+      'icon_base_uri'
+    );
 
     $generic_paths = [
       sprintf(

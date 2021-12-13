@@ -37,14 +37,8 @@ class MediaEntityHelperTest extends UnitTestCase {
    */
   public function testGetFile() {
     $this->setupApiResponseStub($this->getAssetData()->id, $this->getAssetData());
-    $helper = $this->getNewMediaEntityHelper();
 
-    $this->assertInstanceOf(FileInterface::class, $helper->getFile());
-
-    // Change the source field to a failing one to simulate a missing file.
-    $media = $this->getMockedMediaEntity($this->getAssetData()->id,
-      'phpunit_test_fail');
-    $this->assertFalse($this->getNewMediaEntityHelper($media)->getFile());
+    $this->assertInstanceOf(FileInterface::class, $this->getNewMediaEntityHelper()->getFile());
   }
 
   /**

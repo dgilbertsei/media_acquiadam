@@ -278,20 +278,29 @@ class Client {
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAsset(string $assetId, array $expands = []): Asset {
+  public function getAsset(string $assetId, array $expands = []): ?Asset {
     $this->checkAuth();
 
     $required_expands = Asset::getRequiredExpands();
     $allowed_expands = Asset::getAllowedExpands();
     $expands = array_intersect(array_unique($expands + $required_expands), $allowed_expands);
 
-    $response = $this->client->request(
-      "GET",
-      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
-      ['headers' => $this->getDefaultHeaders()]
-    );
+    $asset = NULL;
+    try {
+      $response = $this->client->request(
+        "GET",
+        $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
+        ['headers' => $this->getDefaultHeaders()]
+      );
 
-    $asset = Asset::fromJson((string) $response->getBody());
+      $asset = Asset::fromJson((string) $response->getBody());
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('media_acquiadam')->error('Unable to retrieve asset %asset_id. Exception message: %message', [
+        '%asset_id' => $assetId,
+        '%message' => $e->getMessage(),
+      ]);
+    }
 
     return $asset;
   }
