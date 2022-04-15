@@ -182,7 +182,7 @@ class AcquiadamConfig extends ConfigFormBase {
     $form['image']['size_limit'] = [
       '#type' => 'select',
       '#title' => $this->t('Image size limit'),
-      '#description' => $this->t('Limit the source size used when importing image assets. The largest available size up to the selected will be used.'),
+      '#description' => $this->t('Limit the source size used when importing image assets. Images larger than the selected size will be scaled down to this setting.'),
       '#options' => [
         100 => 100,
         150 => 150,

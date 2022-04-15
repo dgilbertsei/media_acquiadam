@@ -120,19 +120,30 @@ class AssetImageHelper implements ContainerInjectionInterface {
     if (empty($asset->embeds)) {
       return FALSE;
     }
-    // Check if file_properties are loaded with asset.
-    if (empty($asset->file_properties)) {
-      $dimension = "w";
+
+    $image_properties = $asset->file_properties->image_properties ?? NULL;
+    if (!$image_properties) {
+      $query = [];
     }
     else {
-      $dimension = ($asset->file_properties->image_properties->aspect_ratio > 1) ? "w" : "h";
+      if ($image_properties->aspect_ratio > 1) {
+        $dimension = 'w';
+        $size = $image_properties->width;
+      }
+      else {
+        $dimension = 'h';
+        $size = $image_properties->height;
+      }
+
+      $scaled_size = min($thumbnailSize, $size);
+      $query = [
+        $dimension => $scaled_size,
+        "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80,
+      ];
     }
 
     $url = Url::fromUri($asset->embeds->original->url, [
-      "query" => [
-        $dimension => $thumbnailSize,
-        "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80,
-      ],
+      'query' => $query,
     ]);
 
     return str_replace("/original/", "/png/", $url->toString());

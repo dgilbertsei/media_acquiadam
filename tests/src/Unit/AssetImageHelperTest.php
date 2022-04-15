@@ -66,12 +66,12 @@ class AssetImageHelperTest extends UnitTestCase {
 
     // Ensure we get the  biggest if nothing was available.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, 1280);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=650&q=80',
       $tn_url);
 
     // Ensure we get the biggest when nothing is specified.
     $tn_url = $this->assetImageHelper->getThumbnailUrlBySize($asset);
-    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=2048&q=80',
+    $this->assertEquals('https://demo.widen.net/content/demoextid/png/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=650&q=80',
       $tn_url);
   }
 
@@ -235,8 +235,8 @@ class AssetImageHelperTest extends UnitTestCase {
         ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 100, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=100&q=80'],
         ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 120, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=120&q=80'],
         ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 350, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=350&q=80'],
-        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 1280, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=1280&q=80'],
-        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 2048, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=2048&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 650, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=650&q=80'],
+        ['https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true', ['query' => ['h' => 650, 'q' => 80], 'external' => TRUE], FALSE, 'https://demo.widen.net/content/demoextid/original/theHumanRaceMakesSense.jpg?u=lv0nkk&download=true&h=650&q=80'],
       ]);
 
     $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
