@@ -18,9 +18,15 @@ media_acquiadam.settings:
     size_limit:
       type: integer
       label: 'Size limit'
+    transcode:
+      type: string
+      label: 'Allows image transcoding'
     image_quality:
       type: integer
       label: 'Image quality'
+    image_format:
+      type: string
+      label: 'Image format'
     sync_perform_delete:
       type: integer
       label: 'Delete inactive drupal dam assets'

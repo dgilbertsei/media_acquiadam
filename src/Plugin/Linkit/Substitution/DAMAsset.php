@@ -67,6 +67,8 @@ class DAMAsset extends Media {
           // This is the original LinkIt behavior.
           if (!empty($file) && $file instanceof FileInterface) {
             $url = new GeneratedUrl();
+            // Deprecated after 9.3, module still supports 8.x.
+            // @phpstan-ignore-next-line
             $url->setGeneratedUrl(file_create_url($file->getFileUri()));
             $url->addCacheableDependency($entity);
             return $url;

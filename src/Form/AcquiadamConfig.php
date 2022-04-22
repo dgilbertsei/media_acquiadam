@@ -115,7 +115,10 @@ class AcquiadamConfig extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildForm($form, $form_state);
+
     $config = $this->config('media_acquiadam.settings');
+    $this->domain = $config->get('domain');
 
     $form['authentication'] = [
       '#type' => 'fieldset',
@@ -179,30 +182,67 @@ class AcquiadamConfig extends ConfigFormBase {
       '#type' => 'fieldset',
       '#title' => $this->t('Image configuration'),
     ];
-    $form['image']['size_limit'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Image size limit'),
-      '#description' => $this->t('Limit the source size used when importing image assets. Images larger than the selected size will be scaled down to this setting.'),
+
+    $transcode = $form_state->getValue('transcode') ?? $config->get('transcode');
+    $form['image']['transcode'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Transcode options'),
       '#options' => [
-        100 => 100,
-        150 => 150,
-        220 => 220,
-        310 => 310,
-        550 => 550,
-        1280 => 1280,
-        2048 => 2048,
+        'original' => $this->t('Original File - no transcode'),
+        'transcode' => $this->t('Transcode to standard format'),
       ],
-      '#default_value' => empty($config->get('size_limit')) ? 2048 : $config->get('size_limit'),
+      '#default_value' => $config->get('transcode') ?? 'original',
+      '#limit_validation_errors' => [],
+      '#ajax' => [
+        'wrapper' => 'transcode-options',
+        'callback' => [$this, 'rebuild'],
+      ],
     ];
-    $form['image']['image_quality'] = [
-      '#type' => 'number',
-      '#title' => $this->t('Image quality'),
-      '#description' => $this->t('Define the image quality for image manipulations. Ranges from 0 to 100. Higher values mean better image quality but bigger files.'),
-      '#min' => 0,
-      '#max' => 100,
-      '#default_value' => $config->get('image_quality') ?? 80,
-      '#field_suffix' => $this->t('%'),
+
+    $form['image']['container'] = [
+      '#type' => 'container',
+      '#prefix' => '<div id="transcode-options">',
+      '#suffix' => '</div>',
     ];
+
+    if ($transcode !== 'original') {
+      $form['image']['container']['size_limit'] = [
+        '#type' => 'select',
+        '#title' => $this->t('Downsize image size'),
+        '#description' => $this->t('Downsize the source file when importing the asset. Images larger than the select size will be scaled down.'),
+        '#options' => [
+          100 => 100,
+          150 => 150,
+          220 => 220,
+          310 => 310,
+          550 => 550,
+          1280 => 1280,
+          2048 => 2048,
+        ],
+        '#default_value' => empty($config->get('size_limit')) ? 2048 : $config->get('size_limit'),
+      ];
+      $form['image']['container']['image_quality'] = [
+        '#type' => 'number',
+        '#title' => $this->t('Downsize image quality'),
+        '#description' => $this->t('Define the image quality for image manipulations. Ranges from 0 to 100. Higher values mean better image quality but bigger files.'),
+        '#min' => 0,
+        '#max' => 100,
+        '#default_value' => $config->get('image_quality') ?? 80,
+        '#field_suffix' => $this->t('%'),
+      ];
+
+      $form['image']['container']['image_format'] = [
+        '#type' => 'radios',
+        '#title' => $this->t('Image format'),
+        '#description' => $this->t('Define the image format. SVG original file formats will not be transcoded.'),
+        '#options' => [
+          'png' => $this->t('PNG'),
+          'jpeg' => $this->t('JPEG'),
+          'gif' => $this->t('GIF'),
+        ],
+        '#default_value' => $config->get('image_format') ?? 'png',
+      ];
+    }
 
     $form['manual_sync'] = [
       '#type' => 'details',
@@ -249,13 +289,17 @@ class AcquiadamConfig extends ConfigFormBase {
       '#default_value' => $config->get('report_asset_usage') ?? 1,
     ];
 
-    return parent::buildForm($form, $form_state);
+    // Need to replace the original validate to prevent it running when the ajax
+    // callback is running.
+    $form['actions']['submit']['#validate'][] = [$this, 'doValidateForm'];
+
+    return $form;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
+  public function doValidateForm(array &$form, FormStateInterface $form_state) {
     $domain = Xss::filter($form_state->getValue('domain'));
     $domain = trim($domain);
     if (!empty($domain)) {
@@ -279,8 +323,10 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('token', $form_state->getValue('token'))
       ->set('sync_interval', $form_state->getValue('sync_interval'))
       ->set('sync_method', $form_state->getValue('sync_method'))
+      ->set('transcode', $form_state->getValue('transcode'))
       ->set('size_limit', $form_state->getValue('size_limit'))
       ->set('image_quality', $form_state->getValue('image_quality'))
+      ->set('image_format', $form_state->getValue('image_format'))
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_assets_per_page', $form_state->getValue('num_assets_per_page'))
       ->set('report_asset_usage', $form_state->getValue('report_asset_usage'))
@@ -450,6 +496,21 @@ class AcquiadamConfig extends ConfigFormBase {
       '@count assets (out of @total) have been synchronized.',
        ['@total' => $results['total']]);
     $this->messenger()->addStatus($message);
+  }
+
+  /**
+   * Rebuilds the image config container.
+   *
+   * @param array $form
+   *   Form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state.
+   *
+   * @return array
+   *   Image config options render array.
+   */
+  public function rebuild(array $form, FormStateInterface $form_state): array {
+    return $form['image']['container'];
   }
 
 }

@@ -2,8 +2,10 @@ domain:
 token:
 sync_interval: 3600
 sync_method: "updated_date"
+transcode: "original"
 size_limit: 2048
 image_quality: 80
+image_format: "original"
 sync_perform_delete: 0
 num_assets_per_page: 12
 report_asset_usage: 1

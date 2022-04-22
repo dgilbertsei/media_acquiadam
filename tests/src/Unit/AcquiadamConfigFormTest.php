@@ -80,7 +80,6 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->assertArrayHasKey('sync_method', $form['cron']);
     $this->assertArrayHasKey('sync_perform_delete', $form['cron']);
     $this->assertArrayHasKey('image', $form);
-    $this->assertArrayHasKey('size_limit', $form['image']);
     $this->assertArrayHasKey('manual_sync', $form);
     $this->assertArrayHasKey('perform_manual_sync', $form['manual_sync']);
     $this->assertArrayHasKey('misc', $form);
@@ -93,7 +92,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->assertEquals("updated_date",
       $form['cron']['sync_method']['#default_value']);
     $this->assertEquals(1, $form['cron']['sync_perform_delete']['#default_value']);
-    $this->assertEquals(1280, $form['image']['size_limit']['#default_value']);
+    $this->assertEquals(1280, $form['image']['container']['size_limit']['#default_value']);
     $this->assertEquals(1, $form['misc']['report_asset_usage']['#default_value']);
   }
 

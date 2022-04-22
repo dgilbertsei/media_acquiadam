@@ -45,9 +45,13 @@ The option for "Delete unpublished Media entities in Drupal when assets removed 
 
 #### Image Configuration
 
-The "Image size limit" field allows the site owner to control the maximum size of downloaded images in pixels.
+Transcode options allows the site owner to control the size, format, and quality of downloaded images. Selecting the "Original File - no transcode" option will download the image without any changes. Selecting the "Transcode to standard format" allows the site owner to configure the size, quality and format of the downloaded image.
 
-The "Image quality" field allows the site owner to control the quality of images downloaded from the DAM.
+The "Downsize image size" field allows the site owner to control the maximum size of downloaded images in pixels.
+
+The "Downsize image quality" field allows the site owner to control the quality of images downloaded from the DAM.
+
+The "Image format" field allows the site owner to change the file extension of downloaded images.
 
 #### Manual Asset Synchronization
 

@@ -367,6 +367,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   A file entity, or FALSE on error.
    */
   protected function drupalFileSaveData($data, $destination = NULL) {
+    // Deprecated after 9.3, module still supports 8.x.
+    // @phpstan-ignore-next-line
     return file_save_data($data, $destination, FileSystemInterface::EXISTS_REPLACE);
   }
 

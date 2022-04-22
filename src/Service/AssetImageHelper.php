@@ -121,6 +121,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
       return FALSE;
     }
 
+    $transcode = $this
+      ->configFactory
+      ->get('media_acquiadam.settings')
+      ->get('transcode');
+
+    // Do not change if the format SVG or configured to get the original.
+    if ($transcode === 'original'
+      || (!empty($asset->file_properties->format)
+      && $asset->file_properties->format === 'SVG')
+    ) {
+      return Url::fromUri($asset->embeds->original->url)->toString();
+    }
+
     $image_properties = $asset->file_properties->image_properties ?? NULL;
     if (!$image_properties) {
       $query = [];
@@ -146,7 +159,13 @@ class AssetImageHelper implements ContainerInjectionInterface {
       'query' => $query,
     ]);
 
-    return str_replace("/original/", "/png/", $url->toString());
+    // Use png format if we somehow end up with an empty value.
+    $image_format = $this
+      ->configFactory
+      ->get('media_acquiadam.settings')
+      ->get('image_format') ?? 'png';
+
+    return str_replace("/original/", "/$image_format/", $url->toString());
   }
 
   /**
@@ -278,6 +297,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The path to the Acquia DAM module.
    */
   protected function getAcquiaDamModulePath() {
+    // @phpstan-ignore-next-line
     return drupal_get_path('module', 'media_acquiadam');
   }
 

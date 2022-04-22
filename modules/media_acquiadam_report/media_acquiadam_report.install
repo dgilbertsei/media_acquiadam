@@ -16,6 +16,8 @@ function media_acquiadam_report_update_8201() {
   // Update reporting views config only if views exist.
   $view = View::load('acquia_dam_reporting');
   if ($view) {
+    // Deprecated after 9.3, module still supports 8.x.
+    /** @phpstan-ignore-next-line */
     $views_config_path = drupal_get_path('module', 'media_acquiadam_report') . '/config/install/views.view.acquia_dam_reporting.yml';
     $views_data = Yaml::parseFile($views_config_path);
     $config_factory->getEditable('views.view.acquia_dam_reporting')->setData($views_data)->save();

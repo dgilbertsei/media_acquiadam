@@ -1,6 +1,6 @@
 services:
   media_acquiadam.auth:
-    class: Drupal\media_acquiadam\acquiadamAuthService
+    class: Drupal\media_acquiadam\AcquiadamAuthService
     arguments: [ ]
   media_acquiadam.client:
     class: Drupal\media_acquiadam\Client
