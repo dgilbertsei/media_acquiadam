@@ -364,8 +364,8 @@ class Acquiadam extends WidgetBase {
       if ($offset > $total_category) {
         $params['limit'] = $num_per_page;
       }
-      if ($current_category->name) {
-        $category_name = $current_category->name;
+      if (count($current_category->parts) > 0) {
+        $category_name = implode('/', $current_category->parts);
       }
       $category_assets = $this->acquiadam->getAssetsByCategory($category_name, $params);
       if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
