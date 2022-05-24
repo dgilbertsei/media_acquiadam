@@ -340,9 +340,9 @@ class Acquiadam extends WidgetBase {
     // Load search results if filter is clicked.
     if ($page_type == "search") {
       $search_results = $this->acquiadam->searchAssets($params);
-      $items = isset($search_results['assets']) ? $search_results['assets'] : [];
+      $items = $search_results['assets'] ?? [];
       // Total number of assets.
-      $total_asset = isset($search_results['total_count']) ? $search_results['total_count'] : 0;
+      $total_asset = $search_results['total_count'] ?? 0;
     }
     // Load categories data.
     else {
@@ -369,10 +369,10 @@ class Acquiadam extends WidgetBase {
       }
       $category_assets = $this->acquiadam->getAssetsByCategory($category_name, $params);
       if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
-        $items = isset($category_assets['assets']) ? $category_assets['assets'] : [];
+        $items = $category_assets['assets'] ?? [];
       }
       // Total asset conatins both asset and subcategory(if any).
-      $total_asset += isset($category_assets['total_count']) ? $category_assets['total_count'] : 0;
+      $total_asset += $category_assets['total_count'] ?? 0;
     }
 
     // Add the filter and sort options to the form.
@@ -736,7 +736,7 @@ class Acquiadam extends WidgetBase {
         // Browse the selected assets to validate the extensions are allowed.
         foreach ($dam_assets as $asset) {
           $filetype = pathinfo($asset->filename, PATHINFO_EXTENSION);
-          $type_is_supported = in_array($filetype, $supported_extensions);
+          $type_is_supported = in_array(strtolower($filetype), $supported_extensions);
 
           if (!$type_is_supported) {
             $message = $this->t('Please make another selection. The "@filetype" file type is not one of the supported file types (@supported_types).', [

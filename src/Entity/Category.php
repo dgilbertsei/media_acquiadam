@@ -90,7 +90,7 @@ class Category implements EntityInterface, \JsonSerializable {
       }
     }
 
-    $category->categories = isset($json->items) ? $json->items : [];
+    $category->categories = $json->items ?? [];
 
     return $category;
   }
