@@ -12,12 +12,13 @@ trait AcquiadamConfigTrait {
   /**
    * {@inheritdoc}
    */
-  public function getConfigFactoryStub(array $configs = []) {
+  public function getDefaultConfigFactoryStub(array $configs = []) {
     return parent::getConfigFactoryStub([
       'media_acquiadam.settings' => [
         'token' => 'demo/121someRandom1342test32st',
         'sync_interval' => 3600,
         'sync_method' => "updated_date",
+        'transcode' => 'transcode',
         'sync_perform_delete' => 1,
         'size_limit' => 1280,
         'report_asset_usage' => 1,

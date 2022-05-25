@@ -117,21 +117,16 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The preview URL or FALSE if none available.
    */
   public function getThumbnailUrlBySize(Asset $asset, $thumbnailSize = 2048) {
-    if (empty($asset->embeds)) {
-      return FALSE;
-    }
-
-    $transcode = $this
-      ->configFactory
-      ->get('media_acquiadam.settings')
-      ->get('transcode');
+    $config = $this->configFactory->get('media_acquiadam.settings');
 
     // Do not change if the format SVG or configured to get the original.
-    if ($transcode === 'original'
-      || (!empty($asset->file_properties->format)
-      && $asset->file_properties->format === 'SVG')
-    ) {
-      return Url::fromUri($asset->embeds->original->url)->toString();
+    $format = $asset->file_properties->format ?? '';
+    if ($config->get('transcode') === 'original' || $format === 'SVG') {
+      return $asset->links->download;
+    }
+
+    if (empty($asset->embeds)) {
+      return FALSE;
     }
 
     $image_properties = $asset->file_properties->image_properties ?? NULL;
@@ -151,7 +146,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
       $scaled_size = min($thumbnailSize, $size);
       $query = [
         $dimension => $scaled_size,
-        "q" => $this->configFactory->get('media_acquiadam.settings')->get('image_quality') ?? 80,
+        "q" => $config->get('image_quality') ?? 80,
       ];
     }
 
@@ -160,10 +155,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
     ]);
 
     // Use png format if we somehow end up with an empty value.
-    $image_format = $this
-      ->configFactory
-      ->get('media_acquiadam.settings')
-      ->get('image_format') ?? 'png';
+    $image_format = $config->get('image_format') ?? 'png';
 
     return str_replace("/original/", "/$image_format/", $url->toString());
   }

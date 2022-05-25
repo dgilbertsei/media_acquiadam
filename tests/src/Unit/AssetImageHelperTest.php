@@ -76,6 +76,41 @@ class AssetImageHelperTest extends UnitTestCase {
   }
 
   /**
+   * Tests that when transcoding is turned off, the download URL is used.
+   */
+  public function testGetThumbnailWithoutTranscode(): void {
+    $config_factory = $this->getConfigFactoryStub([
+      'media_acquiadam.settings' => [
+        'token' => 'demo/121someRandom1342test32st',
+        'sync_interval' => 3600,
+        'sync_method' => "updated_date",
+        'transcode' => 'original',
+        'sync_perform_delete' => 1,
+        'size_limit' => 1280,
+        'report_asset_usage' => 1,
+        'domain' => 'subdomain.widencollective.com',
+        'client_id' => 'a3mf039fd77dw67886459q90098z0980.app.widen.com',
+      ],
+      'system.file' => ['default_scheme' => 'public'],
+      'media.settings' => ['icon_base_uri' => 'public://media-icons'],
+    ]);
+    $asset_image_helper = new AssetImageHelper(
+      $config_factory,
+      $this->container->get('file_system'),
+      $this->container->get('http_client'),
+      $this->container->get('file.mime_type.guesser'),
+      $this->container->get('image.factory'),
+      $this->container->get('entity_type.manager'),
+    );
+    $asset = $this->getAssetData();
+    $tn_url = $asset_image_helper->getThumbnailUrlBySize($asset, 50);
+    $this->assertEquals(
+      'https://orders-bb.us-east-1.widencdn.net/download-deferred/originals?asset_wrn=widen%3Aassets%3Aasset%3ALSRZZ%3Ademoextid&actor=wrn%3Ausers%3Auser%3A36614591%3Alv0nkk&tracking=ewogICJkb19ub3RfdHJhY2siOiBmYWxzZSwKICAiYW5vbnltb3VzIjogZmFsc2UsCiAgInZpc2l0b3JfaWQiOiBudWxsLAogICJ1c2VyX3dybiI6ICJ3aWRlbjp1c2Vyczp1c2VyOkxTUlpaOmx2MG5rayIKfQ%3D%3D&custom_metadata=ewogICJhcHBfbmFtZSI6ICJheGlvbSIsCiAgImludGVuZGVkX3VzZV9jb2RlIjogbnVsbCwKICAiaW50ZW5kZWRfdXNlX3ZhbHVlIjogbnVsbCwKICAiaW50ZW5kZWRfdXNlX2VtYWlsIjogbnVsbCwKICAiY29sbGVjdGlvbl9pZCI6IG51bGwsCiAgInBvcnRhbF9pZCI6IG51bGwsCiAgImRhbV9vcmRlcl9pZCI6IG51bGwKfQ%3D%3D&Expires=1632866400&Signature=pFue9SqXsXEyyF6u3rKcUSQ8TLCiC6Y9QMNsD0y8dYTLVcHCq5~kLgE7TMmo6vExJTOrD9T8PJQjD83mSWLEaziPKPLzca3AhWpUdSh~VxENXZbLEOb65Dsi2aBKgeWUx6XUdHgv-s-suLX3ONfgukTDwGinFXwvDgix7OmGywpjF8U-ydbXVfVEe2wtO8oM~kHoWTEcAslQAEtwUwnTmbvhNnu6glynxLlAyNJRT-N6AFpZ3Yl0Mv5xVfqlY9FZsKvLFBYzdTZLIhUenGL8EoSL~IgTbUG2DpTjBPgtHOCHqfU8h2~jwQwpmlrvCToA3R89OKG~uiOfwL-UOvvsow__&Key-Pair-Id=APKAJM7FVRD2EPOYUXBQ',
+      $tn_url
+    );
+  }
+
+  /**
    * Validate that a fallback image can be found.
    */
   public function testGetFallbackThumbnail() {
@@ -248,7 +283,7 @@ class AssetImageHelperTest extends UnitTestCase {
     $this->container->set('file_system', $file_system);
     $this->container->set('file.mime_type.guesser', $mime_type_guesser);
     $this->container->set('image.factory', $image_factory);
-    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('config.factory', $this->getDefaultConfigFactoryStub());
     $this->container->set('unrouted_url_assembler', $url_assembler);
     $this->container->set('entity_type.manager', $entity_type_manager);
     \Drupal::setContainer($this->container);

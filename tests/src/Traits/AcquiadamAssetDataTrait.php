@@ -118,7 +118,7 @@ trait AcquiadamAssetDataTrait {
         'status' => FALSE,
         'thumbnails' => TRUE,
       ],
-      'links' => [
+      '_links' => [
         'download' => 'https://orders-bb.us-east-1.widencdn.net/download-deferred/originals?asset_wrn=widen%3Aassets%3Aasset%3ALSRZZ%3Ademoextid&actor=wrn%3Ausers%3Auser%3A36614591%3Alv0nkk&tracking=ewogICJkb19ub3RfdHJhY2siOiBmYWxzZSwKICAiYW5vbnltb3VzIjogZmFsc2UsCiAgInZpc2l0b3JfaWQiOiBudWxsLAogICJ1c2VyX3dybiI6ICJ3aWRlbjp1c2Vyczp1c2VyOkxTUlpaOmx2MG5rayIKfQ%3D%3D&custom_metadata=ewogICJhcHBfbmFtZSI6ICJheGlvbSIsCiAgImludGVuZGVkX3VzZV9jb2RlIjogbnVsbCwKICAiaW50ZW5kZWRfdXNlX3ZhbHVlIjogbnVsbCwKICAiaW50ZW5kZWRfdXNlX2VtYWlsIjogbnVsbCwKICAiY29sbGVjdGlvbl9pZCI6IG51bGwsCiAgInBvcnRhbF9pZCI6IG51bGwsCiAgImRhbV9vcmRlcl9pZCI6IG51bGwKfQ%3D%3D&Expires=1632866400&Signature=pFue9SqXsXEyyF6u3rKcUSQ8TLCiC6Y9QMNsD0y8dYTLVcHCq5~kLgE7TMmo6vExJTOrD9T8PJQjD83mSWLEaziPKPLzca3AhWpUdSh~VxENXZbLEOb65Dsi2aBKgeWUx6XUdHgv-s-suLX3ONfgukTDwGinFXwvDgix7OmGywpjF8U-ydbXVfVEe2wtO8oM~kHoWTEcAslQAEtwUwnTmbvhNnu6glynxLlAyNJRT-N6AFpZ3Yl0Mv5xVfqlY9FZsKvLFBYzdTZLIhUenGL8EoSL~IgTbUG2DpTjBPgtHOCHqfU8h2~jwQwpmlrvCToA3R89OKG~uiOfwL-UOvvsow__&Key-Pair-Id=APKAJM7FVRD2EPOYUXBQ',
         'self' => 'https://api.widencollective.com/v2/assets/f45f7fa4-e294-4908-bbd9-685b4deb52d3',
         'self_all' => 'https://api.widencollective.com/v2/assets/f45f7fa4-e294-4908-bbd9-685b4deb52d3?expand=asset_properties%2Cembeds%2Cfile_properties%2Cmetadata%2Cmetadata_info%2Cmetadata_vocabulary%2Csecurity%2Cthumbnails',

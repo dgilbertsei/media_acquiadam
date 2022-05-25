@@ -63,7 +63,8 @@ class AssetData implements AssetDataInterface, ContainerInjectionInterface {
   public function isUpdatedAsset(Asset $asset) {
     $latest_known_upload_date = $this->get($asset->id, 'file_upload_date');
     $actual_upload_date = strtotime($asset->file_upload_date);
-    return $latest_known_upload_date !== $actual_upload_date;
+    // Using loose equality to allow int/string comparison.
+    return $latest_known_upload_date != $actual_upload_date;
   }
 
   /**

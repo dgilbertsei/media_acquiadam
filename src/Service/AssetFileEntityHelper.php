@@ -13,6 +13,8 @@ use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Entity\Asset;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -74,7 +76,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Acquia DAM client.
    *
-   * @var \Drupal\media_acquiadam\Acquiadam
+   * @var \Drupal\media_acquiadam\AcquiadamInterface
    */
   protected $acquiaDamClient;
 
@@ -91,6 +93,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected $loggerChannel;
+
+  /**
+   * The HTTP client.
+   *
+   * @var \GuzzleHttp\Client
+   */
+  protected $httpClient;
 
   /**
    * AssetFileEntityHelper constructor.
@@ -113,6 +122,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   Acquia DAM Asset Media Factory service.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerChannelFactory
    *   The Drupal LoggerChannelFactory service.
+   * @param \GuzzleHttp\Client $client
+   *   The HTTP client.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
@@ -123,7 +134,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     AssetImageHelper $assetImageHelper,
     AcquiadamInterface $acquiaDamClient,
     AssetMediaFactory $assetMediaFactory,
-    LoggerChannelFactoryInterface $loggerChannelFactory) {
+    LoggerChannelFactoryInterface $loggerChannelFactory,
+    Client $client) {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityFieldManager = $entityFieldManager;
     $this->configFactory = $configFactory;
@@ -134,6 +146,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     $this->acquiaDamClient = $acquiaDamClient;
     $this->assetMediaFactory = $assetMediaFactory;
     $this->loggerChannel = $loggerChannelFactory->get('media_acquiadam');
+    $this->httpClient = $client;
   }
 
   /**
@@ -149,7 +162,8 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $container->get('media_acquiadam.asset_image.helper'),
       $container->get('media_acquiadam.acquiadam'),
       $container->get('media_acquiadam.asset_media.factory'),
-      $container->get('logger.factory')
+      $container->get('logger.factory'),
+      $container->get('http_client')
     );
   }
 
@@ -217,6 +231,9 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     // as a parameter so it can be overridden.
     $filename = $asset->filename;
     $file_contents = $this->fetchRemoteAssetData($asset, $filename);
+    if ($file_contents === FALSE) {
+      return FALSE;
+    }
 
     $destination_path = sprintf('%s/%s', $destination_folder, $filename);
 
@@ -251,14 +268,17 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   The remote asset contents or FALSE on failure.
    */
   protected function fetchRemoteAssetData(Asset $asset, &$filename) {
-    if ($asset->file_properties->format_type === 'image') {
+    if ($this->config->get('transcode') === 'original') {
+      $download_url = $asset->links->download;
+    }
+    elseif ($asset->file_properties->format_type === 'image') {
       // If the module was configured to enforce an image size limit then we
       // need to grab the nearest matching pre-created size.
       $size_limit = $this->config->get('size_limit');
 
-      $thumbnail_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, $size_limit);
+      $download_url = $this->assetImageHelper->getThumbnailUrlBySize($asset, $size_limit);
 
-      if (empty($thumbnail_url)) {
+      if (empty($download_url)) {
         $this->loggerChannel->warning(
           'Unable to save file for asset ID @asset_id. Thumbnail for request size (@size px) has not been found.', [
             '@asset_id' => $asset->id,
@@ -267,43 +287,31 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
         );
         return FALSE;
       }
-
-      $file_contents = $this->phpFileGetContents($thumbnail_url, $filename);
     }
     else {
-      $file_contents = $this->acquiaDamClient->downloadAsset($asset->id);
+      $original_url = $asset->embeds->original->url ?? '';
+      if ($original_url === '') {
+        return FALSE;
+      }
+      $download_url = str_replace('&download=true', '', $original_url);
+    }
+
+    try {
+      $response = $this->httpClient->get($download_url);
+      $file_contents = (string) $response->getBody();
+      if ($response->hasHeader('Content-Disposition')) {
+        $disposition = $response->getHeader('Content-Disposition')[0];
+        preg_match('/filename="(.*)"/', $disposition, $matches);
+        if (count($matches) > 1) {
+          $filename = $matches[1];
+        }
+      }
+    }
+    catch (RequestException $exception) {
+      return FALSE;
     }
 
     return $file_contents;
-  }
-
-  /**
-   * Wrapper for file_get_contents().
-   *
-   * This method exists so the functionality can be overridden in unit tests.
-   *
-   * @param string $uri
-   *   The URI of the file to get the contents of.
-   * @param string $filename
-   *   The filename as a reference so it can be overridden by the filename
-   *   returned by the headers.
-   *
-   * @return false|string
-   *   The file data or FALSE on failure.
-   */
-  protected function phpFileGetContents($uri, &$filename) {
-    $content = file_get_contents($uri);
-
-    // Loop through the response headers to find one providing the filename to
-    // use instead of the default one.
-    foreach ($http_response_header as $header) {
-      preg_match('/filename="(.*)"/', $header, $matches);
-      if ($matches) {
-        $filename = $matches[1];
-        break;
-      }
-    }
-    return $content;
   }
 
   /**

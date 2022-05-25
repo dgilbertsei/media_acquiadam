@@ -70,7 +70,7 @@ class AcquiadamClientTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
-    $client = new Client($http_client, $user_data, $current_user, $this->getConfigFactoryStub(), $request_stack);
+    $client = new Client($http_client, $user_data, $current_user, $this->getDefaultConfigFactoryStub(), $request_stack);
 
     $container = new ContainerBuilder();
     \Drupal::setContainer($container);

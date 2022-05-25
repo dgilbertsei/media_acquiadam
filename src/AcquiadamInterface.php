@@ -6,6 +6,8 @@ namespace Drupal\media_acquiadam;
  * Interface AcquiadamInterface.
  *
  * Defines the Acquia dam interface.
+ *
+ * @method string downloadAsset(string $assetID)
  */
 interface AcquiadamInterface {
 

@@ -4,6 +4,8 @@ namespace Drupal\media_acquiadam\Entity;
 
 /**
  * The asset entity describing the asset object shared by Acquia DAM.
+ *
+ * @phpcs:disable Drupal.NamingConventions.ValidVariableName.LowerCamelName
  */
 class Asset implements EntityInterface, \JsonSerializable {
 
@@ -19,7 +21,7 @@ class Asset implements EntityInterface, \JsonSerializable {
    *
    * @var string
    */
-  public $externalId;
+  public $external_id;
 
   /**
    * The filename of the asset.
@@ -33,42 +35,42 @@ class Asset implements EntityInterface, \JsonSerializable {
    *
    * @var string
    */
-  public $createdDate;
+  public $created_date;
 
   /**
    * The latest date the asset has been updated (format: YYYY-MM-DDTHH:MM:SSZ).
    *
    * @var string
    */
-  public $lastUpdateDate;
+  public $last_update_date;
 
   /**
    * The date the file has been uploaded (format: YYYY-MM-DDTHH:MM:SSZ).
    *
    * @var string
    */
-  public $fileUploadDate;
+  public $file_upload_date;
 
   /**
    * The date the asset has been deleted (format: YYYY-MM-DDTHH:MM:SSZ).
    *
    * @var string
    */
-  public $deletedDate;
+  public $deleted_date;
 
   /**
    * Flag assets which are released and not expired.
    *
    * @var bool
    */
-  public $releasedAndNotExpired;
+  public $released_and_not_expired;
 
   /**
    * The link to download the asset.
    *
    * @var array
    */
-  public $downloadLink;
+  public $download_link;
 
   /**
    * An array of thumbnail urls.
@@ -82,12 +84,12 @@ class Asset implements EntityInterface, \JsonSerializable {
    *
    * @var array
    */
-  public $assetProperties;
+  public $asset_properties;
 
   /**
    * A list of urls to embed the asset.
    *
-   * @var array
+   * @var object
    */
   public $embeds;
 
@@ -96,7 +98,7 @@ class Asset implements EntityInterface, \JsonSerializable {
    *
    * @var array
    */
-  public $fileProperties;
+  public $file_properties;
 
   /**
    * The asset's metadata.
@@ -110,14 +112,14 @@ class Asset implements EntityInterface, \JsonSerializable {
    *
    * @var array
    */
-  public $metadataInfo;
+  public $metadata_info;
 
   /**
    * The possible values of the metadata of vocabulary types.
    *
    * @var array
    */
-  public $metadataVocabulary;
+  public $metadata_vocabulary;
 
   /**
    * The asset's security metadata.
@@ -136,7 +138,7 @@ class Asset implements EntityInterface, \JsonSerializable {
   /**
    * Various links related to the asset.
    *
-   * @var array
+   * @var object
    */
   public $links;
 
@@ -232,14 +234,19 @@ class Asset implements EntityInterface, \JsonSerializable {
       'metadata_vocabulary',
       'security',
       'expanded',
-      'links',
+      '_links',
     ];
 
     // Copy all the simple properties.
     $asset = new static();
     foreach ($properties as $property) {
       if (isset($json->{$property})) {
-        $asset->{$property} = $json->{$property};
+        if ($property === '_links') {
+          $asset->links = $json->{$property};
+        }
+        else {
+          $asset->{$property} = $json->{$property};
+        }
       }
     }
 
@@ -252,24 +259,24 @@ class Asset implements EntityInterface, \JsonSerializable {
   public function jsonSerialize():array {
     return [
       'id' => $this->id,
-      'external_id' => $this->externalId,
+      'external_id' => $this->external_id,
       'filename' => $this->filename,
-      'created_date' => $this->createdDate,
-      'last_update_date' => $this->lastUpdateDate,
-      'file_upload_date' => $this->fileUploadDate,
-      'deleted_date' => $this->deletedDate,
-      'released_and_not_expired' => $this->releasedAndNotExpired,
-      'download_link' => $this->downloadLink,
+      'created_date' => $this->created_date,
+      'last_update_date' => $this->last_update_date,
+      'file_upload_date' => $this->file_upload_date,
+      'deleted_date' => $this->deleted_date,
+      'released_and_not_expired' => $this->released_and_not_expired,
+      'download_link' => $this->download_link,
       'thumbnails' => $this->thumbnails,
-      'asset_properties' => $this->assetProperties,
+      'asset_properties' => $this->asset_properties,
       'embeds' => $this->embeds,
-      'file_properties' => $this->fileProperties,
+      'file_properties' => $this->file_properties,
       'metadata' => $this->metadata,
-      'metadata_info' => $this->metadataInfo,
-      'metadata_vocabulary' => $this->metadataVocabulary,
+      'metadata_info' => $this->metadata_info,
+      'metadata_vocabulary' => $this->metadata_vocabulary,
       'security' => $this->security,
       'expanded' => $this->expanded,
-      'links' => $this->links,
+      '_links' => $this->links,
     ];
   }
 

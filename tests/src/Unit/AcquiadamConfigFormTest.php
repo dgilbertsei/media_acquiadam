@@ -213,7 +213,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
     $this->container->set('http_client', $http_client);
-    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('config.factory', $this->getDefaultConfigFactoryStub());
     $this->container->set('datetime.time', $time);
     $this->container->set('plugin.manager.queue_worker', $queue_worker_manager);
     $this->container->set('state', $this->state);

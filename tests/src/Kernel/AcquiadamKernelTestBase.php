@@ -116,12 +116,13 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
         $this->container->get('media_acquiadam.acquiadam'),
         $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
+        $this->container->get('http_client'),
       ])
-      ->setMethods([
-        'phpFileGetContents',
+      ->onlyMethods([
+        'fetchRemoteAssetData',
       ])
       ->getMock();
-    $fileHelper->expects($this->any())->method('phpFileGetContents')->willReturn('File contents');
+    $fileHelper->method('fetchRemoteAssetData')->willReturn('File contents');
     $this->container->set('media_acquiadam.asset_file.helper', $fileHelper);
     \Drupal::setContainer($this->container);
   }

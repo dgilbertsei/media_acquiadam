@@ -21,6 +21,7 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamMockedMediaEntityTrait;
 use Drupal\Tests\UnitTestCase;
+use GuzzleHttp\Client;
 
 /**
  * Tests to validate that our file entity helper works as expected.
@@ -109,6 +110,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
     $this->container->set('media_acquiadam.asset_media.factory',
       $asset_media_factory);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
+    $this->container->set('http_client', new Client());
     \Drupal::setContainer($this->container);
 
     $this->assetFileEntityHelper = $this->getMockedAssetFileEntityHelper();
@@ -189,7 +191,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
 
     $container->set('entity_type.manager', $entity_type_manager);
     $container->set('entity_field.manager', $entity_field_manager);
-    $container->set('config.factory', $this->getConfigFactoryStub());
+    $container->set('config.factory', $this->getDefaultConfigFactoryStub());
     $container->set('file_system', $file_system);
     $container->set('token', $token);
   }
@@ -212,14 +214,15 @@ class AssetFileEntityHelperTest extends UnitTestCase {
         $this->container->get('media_acquiadam.acquiadam'),
         $this->container->get('media_acquiadam.asset_media.factory'),
         $this->container->get('logger.factory'),
+        $this->container->get('http_client'),
       ])
-      ->setMethods([
+      ->onlyMethods([
         'drupalFileSaveData',
-        'phpFileGetContents',
+        'fetchRemoteAssetData',
       ])
       ->getMock();
 
-    $helper->method('phpFileGetContents')->willReturn('File contents');
+    $helper->method('fetchRemoteAssetData')->willReturn('File contents');
     $helper->method('drupalFileSaveData')->willReturn($this->mockedFileEntity);
 
     return $helper;

@@ -94,7 +94,7 @@ class AcquiadamAssetTest extends UnitTestCase {
     $this->container->set('entity_field.manager', $entity_field_manager);
     $this->container->set('plugin.manager.field.field_type',
       $field_type_plugin_manager);
-    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('config.factory', $this->getDefaultConfigFactoryStub());
 
     $this->container->set('media_acquiadam.asset_image.helper',
       $asset_image_helper);

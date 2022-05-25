@@ -2,6 +2,9 @@
 
 namespace Drupal\media_acquiadam\Service;
 
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -60,6 +63,20 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
   protected $mediaStorage;
 
   /**
+   * The config.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
+   * The time service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected $time;
+
+  /**
    * The maximum number of items to return in search API response.
    *
    * @var int
@@ -79,16 +96,22 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
    *   The Queue Factory Service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The EntityTypeManager service.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(AcquiadamInterface $acquiadam, StateInterface $state, LoggerChannelFactoryInterface $logger_factory, QueueFactory $queue_factory, EntityTypeManagerInterface $entity_type_manager, ConfigFactoryInterface $config_factory, TimeInterface $time) {
     $this->acquiadam = $acquiadam;
     $this->state = $state;
     $this->logger = $logger_factory->get('media_acquiadam');
     $this->queue = $queue_factory->get($this->getQueueName());
     $this->mediaStorage = $entity_type_manager->getStorage('media');
+    $this->config = $config_factory->get('media_acquiadam.settings');
+    $this->time = $time;
   }
 
   /**
@@ -100,7 +123,9 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
       $container->get('state'),
       $container->get('logger.factory'),
       $container->get('queue'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('config.factory'),
+      $container->get('datetime.time')
     );
   }
 
@@ -171,12 +196,28 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
         $offset = $this->getRequestLimit() * ($page - 1);
 
         // @todo Check if timezone needs to be accounted.
-        $date = date('Y-m-d\TH:i:s\Z', $this->state->get('media_acquiadam.last_sync'));
+        $last_sync = DrupalDateTime::createFromTimestamp($this->state->get('media_acquiadam.last_sync', 0));
+        if ($this->config->get('transcode') === 'transcode') {
+          // Updates to an asset can take one hour to become consistent across
+          // the CDN. This ensures the CDN is correct by only processing assets
+          // updated since our last sync, but not within the last hour.
+          $cutoff = DrupalDateTime::createFromTimestamp($this->time->getCurrentTime());
+          $cutoff->modify('-1 hour');
+          // If the cut-off is before the last sync check, there is nothing to
+          // query for.
+          if ($cutoff < $last_sync) {
+            return [];
+          }
+          $query = "(lastEditDate:[after {$last_sync->format('Y-m-d\TH:i:s\Z')}]) AND (lastEditDate:[before {$cutoff->format('Y-m-d\TH:i:s\Z')}])";
+        }
+        else {
+          $query = "lastEditDate:[after {$last_sync->format('Y-m-d\TH:i:s\Z')}]";
+        }
 
         $response = $this->acquiadam->searchAssets([
           'limit' => $this->getRequestLimit(),
           'offset' => $offset,
-          'query' => "lastEditDate:[after $date]",
+          'query' => $query,
           'include_deleted' => 'true',
           'include_archived' => 'true',
         ]);

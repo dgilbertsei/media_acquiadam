@@ -2,16 +2,20 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\Null\Query;
+use Drupal\Core\Language\Language;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Queue\DatabaseQueue;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\State\State;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\Exception\InvalidCredentialsException;
 use Drupal\media_acquiadam\Service\AssetRefreshManager;
+use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamLoggerFactoryTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Exception\GuzzleException;
@@ -25,9 +29,9 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class AssetRefreshManagerTest extends UnitTestCase {
 
-  use AcquiadamLoggerFactoryTrait;
+  use AcquiadamLoggerFactoryTrait, AcquiadamConfigTrait;
 
-  protected const LAST_EDITED_TIME = "lastEditDate:[after 1970-01-01T10:00:00Z]";
+  protected const LAST_EDITED_DATE_QUERY = '(lastEditDate:[after 2022-05-24T19:14:42Z]) AND (lastEditDate:[before 2022-05-25T00:17:00Z])';
 
   protected const REQUEST_TIME = 1560000000;
 
@@ -153,6 +157,132 @@ class AssetRefreshManagerTest extends UnitTestCase {
   }
 
   /**
+   * Tests when the cut-off is before the last sync time.
+   *
+   * @param string $last_sync_offset
+   *   The offset for \DateTime::modify().
+   * @param bool $expect_results
+   *   TRUE if results expected, FALSE if not.
+   *
+   * @dataProvider provideTimeOffsets
+   */
+  public function testCutoffBeforeLastSync(string $last_sync_offset, bool $expect_results) {
+    $real_time = new \DateTime('now');
+    $sync_time = new \DateTime('now');
+    $sync_time->modify($last_sync_offset);
+    $state = $this->getMockBuilder(State::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $state->method('get')
+      ->with('media_acquiadam.last_sync')
+      ->willReturn($sync_time->getTimestamp());
+    $time = $this->getMockBuilder(TimeInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $time->method('getCurrentTime')
+      ->willReturn($real_time->getTimestamp());
+    $asset_before_time = $real_time->modify('-1 hour');
+
+    $this->setupApiResponseStub([
+      'limit' => 3,
+      'offset' => 0,
+      'query' => "(lastEditDate:[after {$sync_time->format('Y-m-d\TH:i:s\Z')}]) AND (lastEditDate:[before {$asset_before_time->format('Y-m-d\TH:i:s\Z')}])",
+      'include_deleted' => 'true',
+      'include_archived' => 'true',
+    ], [
+      'total_count' => 3,
+      'assets' => [
+        (object) ['id' => '3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+        (object) ['id' => '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+        (object) ['id' => '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+      ],
+    ]);
+    $this->setupMediaEntityExpectations(
+      ['3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+      3
+    );
+
+    $asset_refresh_manager = new AssetRefreshManager(
+      $this->container->get('media_acquiadam.acquiadam'),
+      $state,
+      $this->container->get('logger.factory'),
+      $this->container->get('queue'),
+      $this->container->get('entity_type.manager'),
+      $this->container->get('config.factory'),
+      $time
+    );
+    $asset_refresh_manager->setRequestLimit(3);
+    $actual = $asset_refresh_manager->updateQueue($this->getAssetIdFieldsStub());
+    $this->assertEquals($expect_results ? 3 : 0, $actual);
+  }
+
+  /**
+   * Provides time offsets for verifying cut-off preflight check.
+   *
+   * The offset is for the last sync time from the current test time.
+   *
+   * @return \Generator
+   *   The test data sets.
+   */
+  public function provideTimeOffsets() {
+    yield '-55 minutes' => ['-55 minutes', FALSE];
+    yield '+2 minutes' => ['+2 minutes', FALSE];
+    yield '-1 hour' => ['-1 hour', TRUE];
+    yield '-90 minutes' => ['-90 minutes', TRUE];
+  }
+
+  /**
+   * Tests that transcoding at 'original' does not delay sync.
+   */
+  public function testNoDelayOnOriginal() {
+    $this->setupApiResponseStub([
+      'limit' => 3,
+      'offset' => 0,
+      'query' => 'lastEditDate:[after 2022-05-24T19:14:42Z]',
+      'include_deleted' => 'true',
+      'include_archived' => 'true',
+    ], [
+      'total_count' => 3,
+      'assets' => [
+        (object) ['id' => '3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+        (object) ['id' => '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+        (object) ['id' => '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+      ],
+    ]);
+    $this->setupMediaEntityExpectations(
+      ['3f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '4f9bf79b-4fee-49f1-a852-3fdb7ca60f2a', '5f9bf79b-4fee-49f1-a852-3fdb7ca60f2a'],
+      3
+    );
+    $config_factory = $this->getConfigFactoryStub([
+      'media_acquiadam.settings' => [
+        'token' => 'demo/121someRandom1342test32st',
+        'sync_interval' => 3600,
+        'sync_method' => "updated_date",
+        'transcode' => 'original',
+        'sync_perform_delete' => 1,
+        'size_limit' => 1280,
+        'report_asset_usage' => 1,
+        'domain' => 'subdomain.widencollective.com',
+        'client_id' => 'a3mf039fd77dw67886459q90098z0980.app.widen.com',
+      ],
+      'system.file' => ['default_scheme' => 'public'],
+      'media.settings' => ['icon_base_uri' => 'public://media-icons'],
+    ]);
+    $asset_refresh_manager = new AssetRefreshManager(
+      $this->container->get('media_acquiadam.acquiadam'),
+      $this->container->get('state'),
+      $this->container->get('logger.factory'),
+      $this->container->get('queue'),
+      $this->container->get('entity_type.manager'),
+      $config_factory,
+      $this->container->get('datetime.time')
+    );
+    $asset_refresh_manager->setRequestLimit(3);
+    $actual = $asset_refresh_manager->updateQueue($this->getAssetIdFieldsStub());
+    $this->assertEquals(3, $actual);
+  }
+
+  /**
    * Tests an "interrupted API fetch (a result set exceeds the limit)" scenario.
    *
    * @param array $request_query_options
@@ -210,7 +340,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
         [
           'limit' => 3,
           'offset' => 0,
-          'query' => self::LAST_EDITED_TIME,
+          'query' => self::LAST_EDITED_DATE_QUERY,
           'include_deleted' => 'true',
           'include_archived' => 'true',
         ],
@@ -230,7 +360,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
         [
           'limit' => 3,
           'offset' => 0,
-          'query' => self::LAST_EDITED_TIME,
+          'query' => self::LAST_EDITED_DATE_QUERY,
           'include_deleted' => 'true',
           'include_archived' => 'true',
         ],
@@ -263,7 +393,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
         [
           'limit' => 3,
           'offset' => 0,
-          'query' => self::LAST_EDITED_TIME,
+          'query' => self::LAST_EDITED_DATE_QUERY,
           'include_deleted' => 'true',
           'include_archived' => 'true',
         ],
@@ -381,6 +511,10 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->state = $this->getMockBuilder(State::class)
       ->disableOriginalConstructor()
       ->getMock();
+    $this->state->method('get')
+      ->with('media_acquiadam.last_sync')
+      // 2022-05-24T09:14:42Z UTC.
+      ->willReturn('1653383682');
 
     $this->queue = $this->getMockBuilder(DatabaseQueue::class)
       ->disableOriginalConstructor()
@@ -409,12 +543,28 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ['media', $entity_storage],
     ]);
 
+    $language_manager = $this->getMockBuilder(LanguageManagerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $language_manager->method('getCurrentLanguage')
+      ->willReturn(new Language(Language::$defaultValues));
+
+    $time = $this->getMockBuilder(TimeInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+    $time->method('getCurrentTime')
+      // 2022-05-24T15:17:00Z UTC.
+      ->willReturn('1653405420');
+
     $this->container = new ContainerBuilder();
+    $this->container->set('config.factory', $this->getDefaultConfigFactoryStub());
     $this->container->set('state', $this->state);
     $this->container->set('logger.factory', $this->getLoggerFactoryStub());
     $this->container->set('queue', $queue_factory);
     $this->container->set('entity_type.manager', $entity_type_manager);
     $this->container->set('media_acquiadam.acquiadam', $this->acquiadamClient);
+    $this->container->set('language_manager', $language_manager);
+    $this->container->set('datetime.time', $time);
     \Drupal::setContainer($this->container);
 
     $this->assetRefreshManager = AssetRefreshManager::create($this->container);

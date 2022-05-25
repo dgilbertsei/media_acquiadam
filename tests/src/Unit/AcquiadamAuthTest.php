@@ -108,7 +108,7 @@ class AcquiadamAuthTest extends UnitTestCase {
     $this->container = new ContainerBuilder();
     \Drupal::setContainer($this->container);
     $this->container->set('http_client', $http_client);
-    $this->container->set('config.factory', $this->getConfigFactoryStub());
+    $this->container->set('config.factory', $this->getDefaultConfigFactoryStub());
     $this->container->set('messenger', $messenger);
     $this->container->set('media_acquiadam.auth', $acquidamAuth);
     $this->acquidamAuth = \Drupal::service('media_acquiadam.auth');
