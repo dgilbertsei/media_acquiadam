@@ -297,7 +297,21 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     }
 
     try {
-      $response = $this->httpClient->get($download_url);
+      $response = $this->httpClient->get($download_url, [
+        'allow_redirects' => [
+          'track_redirects' => TRUE,
+        ],
+      ]);
+      $size = $response->getBody()->getSize();
+      if ($size === NULL || $size === 0) {
+        $this->loggerChannel->error('Unable to download contents for asset ID @asset_id. Received zero-byte response for download URL @url with redirects to @history',
+        [
+          '@asset_id' => $asset->id,
+          '@url' => $download_url,
+          '@history' => $download_url->getHeaderLine('X-Guzzle-Redirect-History'),
+        ]);
+        return FALSE;
+      }
       $file_contents = (string) $response->getBody();
       if ($response->hasHeader('Content-Disposition')) {
         $disposition = $response->getHeader('Content-Disposition')[0];
