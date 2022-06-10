@@ -166,7 +166,8 @@ class Client {
       }
     }
     elseif (!$this->account->isAuthenticated() && !empty($this->config->get('token'))
-      && (PHP_SAPI === 'cli' || $request->attributes->get(RouteObjectInterface::ROUTE_NAME) === 'system.cron_settings')) {
+      && (PHP_SAPI === 'cli' || $request->attributes->get(RouteObjectInterface::ROUTE_NAME) === 'system.cron_settings'
+      || $request->attributes->get(RouteObjectInterface::ROUTE_NAME) === 'entity.ultimate_cron_job.run')) {
       $token = $this->config->get('token');
     }
 
