@@ -5,6 +5,7 @@ namespace Drupal\media_acquiadam;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -18,6 +19,8 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    * Temporary asset data storage.
    *
    * @var array
+   *
+   * @phpstan-var array<string, \Drupal\media_acquiadam\Entity\Asset|null>
    */
   protected static $cachedAssets = [];
 
@@ -68,7 +71,16 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Gets asset data from the DAM.
+   *
+   * @param string $assetId
+   *   The asset ID.
+   *
+   * @return \Drupal\media_acquiadam\Entity\Asset
+   *   The asset.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   * @throws \Exception
    */
   public function getAsset(string $assetId) {
     $asset = $this->staticAssetCache('get', $assetId);
@@ -78,17 +90,11 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
         $this->staticAssetCache(
           'set',
           $assetId,
-          $this->acquiaDamClient->getAsset($assetId) ?? FALSE
+          $this->acquiaDamClient->getAsset($assetId)
         );
       }
     }
     catch (ClientException $x) {
-      // We want specific handling for 404 errors so we can provide a more
-      // relateable error message.
-      if (404 != $x->getCode()) {
-        throw $x;
-      }
-
       $this->loggerChannel->warning(
         'Received a missing asset response when trying to load asset @assetID. Was the asset deleted in Acquia DAM? DAM API client returned a @code exception code with the following message: %message',
         [
@@ -97,10 +103,25 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
           '%message' => $x->getMessage(),
         ]
       );
+      throw $x;
+    }
+    catch (ServerException $exception) {
+      $this->loggerChannel->warning('Server error when reaching the DAM to load asset @assetID. @code %message', [
+        '@assetID' => $assetId,
+        '@code' => $exception->getCode(),
+        '%message' => $exception->getMessage(),
+      ]);
+      throw $exception;
     }
     catch (\Exception $x) {
-      $this->staticAssetCache('set', $assetId, FALSE);
-      $this->loggerChannel->debug($x->getMessage());
+      $this->loggerChannel->debug(
+        'Unexpected exception when trying to load asset @assetID. @code %message', [
+          '@assetID' => $assetId,
+          '@code' => $x->getCode(),
+          '%message' => $x->getMessage(),
+        ]
+      );
+      throw $x;
     }
 
     return $this->staticAssetCache('get', $assetId);
@@ -115,17 +136,18 @@ class Acquiadam implements AcquiadamInterface, ContainerInjectionInterface {
    *   The operation to perform. One of get, set, or clear.
    * @param string|null $assetId
    *   The asset ID when using get or set.
-   * @param \Drupal\media_acquiadam\Entity\Asset|false|null $asset
+   * @param \Drupal\media_acquiadam\Entity\Asset|null $asset
    *   The data to store under the given asset ID.
    *
-   * @return mixed|null
+   * @return \Drupal\media_acquiadam\Entity\Asset|null
    *   The static cache or NULL if unset.
    */
   public function staticAssetCache(string $op, string $assetId = NULL, $asset = NULL) {
     if ('set' == $op) {
       return static::$cachedAssets[$assetId] = $asset;
     }
-    elseif ('clear' == $op) {
+
+    if ('clear' == $op) {
       static::$cachedAssets = [];
     }
 

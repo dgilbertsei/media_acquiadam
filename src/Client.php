@@ -277,33 +277,23 @@ class Client {
    * @return \Drupal\media_acquiadam\Entity\Asset
    *   The asset entity.
    *
+   * @throws \GuzzleHttp\Exception\RequestException
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAsset(string $assetId, array $expands = []): ?Asset {
+  public function getAsset(string $assetId, array $expands = []): Asset {
     $this->checkAuth();
 
     $required_expands = Asset::getRequiredExpands();
     $allowed_expands = Asset::getAllowedExpands();
     $expands = array_intersect(array_unique($expands + $required_expands), $allowed_expands);
 
-    $asset = NULL;
-    try {
-      $response = $this->client->request(
-        "GET",
-        $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
-        ['headers' => $this->getDefaultHeaders()]
-      );
+    $response = $this->client->request(
+      "GET",
+      $this->baseUrl . '/assets/' . $assetId . '?expand=' . implode('%2C', $expands),
+      ['headers' => $this->getDefaultHeaders()]
+    );
 
-      $asset = Asset::fromJson((string) $response->getBody());
-    }
-    catch (\Exception $e) {
-      \Drupal::logger('media_acquiadam')->error('Unable to retrieve asset %asset_id. Exception message: %message', [
-        '%asset_id' => $assetId,
-        '%message' => $e->getMessage(),
-      ]);
-    }
-
-    return $asset;
+    return Asset::fromJson((string) $response->getBody());
   }
 
   /**
@@ -550,9 +540,21 @@ class Client {
     $this->checkAuth();
 
     $response = $this->getAsset($assetID);
-    $file_content = file_get_contents(str_replace('&download=true', '', $response->embeds->original->url));
+    if ($response === NULL) {
+      return '';
+    }
 
-    return $file_content;
+    $url = str_replace('&download=true', '', $response->embeds->original->url);
+    $response = $this->client->request('GET', $url, [
+      'allow_redirects' => [
+        'track_redirects' => TRUE,
+      ],
+    ]);
+    $size = $response->getBody()->getSize();
+    if ($size === NULL || $size === 0) {
+      return '';
+    }
+    return (string) $response->getBody();
   }
 
   /**

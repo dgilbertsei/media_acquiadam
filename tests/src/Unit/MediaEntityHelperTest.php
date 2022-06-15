@@ -100,7 +100,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     // Change our source field to simulate a missing asset.
     $media = $this->getMockedMediaEntity($this->getAssetData()->id,
       'phpunit_test_fail');
-    $this->assertFalse($this->getNewMediaEntityHelper($media)->getAsset());
+    $this->assertNull($this->getNewMediaEntityHelper($media)->getAsset());
   }
 
   /**

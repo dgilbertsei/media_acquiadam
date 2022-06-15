@@ -5,9 +5,9 @@ namespace Drupal\media_acquiadam\Controller;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\media_acquiadam\AcquiadamInterface;
-use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\media_acquiadam\Service\AssetMetadataHelper;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -115,11 +115,13 @@ class AcquiadamController extends ControllerBase {
    * @param string $assetId
    *   The asset ID for the asset to render details for.
    *
-   * @return \Drupal\media_acquiadam\Entity\Asset|false
-   *   The asset or FALSE on failure.
+   * @return \Drupal\media_acquiadam\Entity\Asset
+   *   The asset or NULL on failure.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   protected function getAsset(string $assetId) {
-    if (!isset($this->asset)) {
+    if ($this->asset === NULL) {
       $this->asset = $this->acquiadam->getAsset($assetId);
     }
 
@@ -140,9 +142,10 @@ class AcquiadamController extends ControllerBase {
     // Fetch the asset details via the API.
     // @todo Check that asset is known by Drupal to avoid exposing assets
     // which are not used in Drupal.
-    $asset = $this->getAsset($assetId);
-
-    if (!($asset instanceof Asset)) {
+    try {
+      $asset = $this->getAsset($assetId);
+    }
+    catch (GuzzleException $exception) {
       throw new NotFoundHttpException('Asset does not exist.');
     }
 

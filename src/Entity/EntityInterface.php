@@ -13,7 +13,7 @@ interface EntityInterface {
    * @param string|object $json
    *   Either a JSON string or a json_decode()'d object.
    *
-   * @return EntityInterface
+   * @return static
    *   An instance of whatever class this method is being called on.
    */
   public static function fromJson($json);

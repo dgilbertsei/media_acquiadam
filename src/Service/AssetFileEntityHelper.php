@@ -308,7 +308,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
         [
           '@asset_id' => $asset->id,
           '@url' => $download_url,
-          '@history' => $download_url->getHeaderLine('X-Guzzle-Redirect-History'),
+          '@history' => $response->getHeaderLine('X-Guzzle-Redirect-History'),
         ]);
         return FALSE;
       }
@@ -322,6 +322,18 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       }
     }
     catch (RequestException $exception) {
+      $message = 'Unable to download contents for asset ID @asset_id: %message. Attempted download URL @url with redirects to @history';
+      $context = [
+        '@asset_id' => $asset->id,
+        '%message' => $exception->getMessage(),
+        '@url' => $download_url,
+        '@history' => '[empty request, cannot determine redirects]',
+      ];
+      $response = $exception->getResponse();
+      if ($response) {
+        $context['@history'] = $response->getHeaderLine('X-Guzzle-Redirect-History');
+      }
+      $this->loggerChannel->error($message, $context);
       return FALSE;
     }
 

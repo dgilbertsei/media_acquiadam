@@ -171,7 +171,7 @@ function media_acquiadam_media_presave(MediaInterface $entity) {
   }
 
   $asset = $media_helper->getAsset();
-  if (empty($asset)) {
+  if ($asset === NULL) {
     \Drupal::logger('media_acquiadam')
       ->warning('Unable to retrieve asset @assetID.', [
         '@assetID' => $assetID,

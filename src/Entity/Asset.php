@@ -238,7 +238,7 @@ class Asset implements EntityInterface, \JsonSerializable {
     ];
 
     // Copy all the simple properties.
-    $asset = new static();
+    $asset = new self();
     foreach ($properties as $property) {
       if (isset($json->{$property})) {
         if ($property === '_links') {

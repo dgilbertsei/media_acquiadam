@@ -13,6 +13,7 @@ use Drupal\media\MediaSourceBase;
 use Drupal\media_acquiadam\Service\AssetImageHelper;
 use Drupal\media_acquiadam\Service\AssetMediaFactory;
 use Drupal\media_acquiadam\Service\AssetMetadataHelper;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -31,9 +32,9 @@ class AcquiadamAsset extends MediaSourceBase {
   /**
    * The asset that we're going to render details for.
    *
-   * @var \Drupal\media_acquiadam\Entity\Asset
+   * @var \Drupal\media_acquiadam\Entity\Asset|null
    */
-  protected $currentAsset = NULL;
+  protected $currentAsset;
 
   /**
    * Acquia DAM asset image helper service.
@@ -195,14 +196,20 @@ class AcquiadamAsset extends MediaSourceBase {
         return $is_file ? $file->id() : NULL;
     }
 
-    if (empty($this->currentAsset)) {
-      $asset = $this->assetMediaFactory->get($media)->getAsset();
-      if (empty($asset)) {
-        return NULL;
+    if ($this->currentAsset === NULL) {
+      try {
+        $asset = $this->assetMediaFactory->get($media)->getAsset();
+        $this->currentAsset = $asset;
       }
-      $this->currentAsset = $asset;
+      catch (GuzzleException $exception) {
+        // Do nothing.
+      }
     }
 
+    // If we don't have the asset, we can't return additional metadata.
+    if ($this->currentAsset === NULL) {
+      return NULL;
+    }
     return $this->assetMetadataHelper->getMetadataFromAsset(
       $this->currentAsset,
       $name

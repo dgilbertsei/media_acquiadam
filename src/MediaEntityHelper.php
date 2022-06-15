@@ -5,6 +5,7 @@ namespace Drupal\media_acquiadam;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media_acquiadam\Service\AssetFileEntityHelper;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Class MediaEntityHelper.
@@ -83,10 +84,17 @@ class MediaEntityHelper {
     // If there is already a file on the media entity then we should use that.
     $file = $this->getExistingFile();
 
+    // If there is an error fetching the asset, rely on existing file.
+    try {
+      $asset = $this->getAsset();
+    }
+    catch (GuzzleException $exception) {
+      return $file;
+    }
+
     // If we're getting an updated version of the asset we need to grab a new
     // version of the file.
-    $asset = $this->getAsset();
-    if (!empty($asset)) {
+    if ($asset !== NULL) {
       $is_different_version = $this->assetData->isUpdatedAsset($asset);
 
       if (empty($file) || $is_different_version) {
@@ -155,13 +163,15 @@ class MediaEntityHelper {
   /**
    * Get the asset from a media entity.
    *
-   * @return bool|\Drupal\media_acquiadam\Entity\Asset
-   *   The asset or FALSE on failure.
+   * @return \Drupal\media_acquiadam\Entity\Asset|null
+   *   The asset or NULL on failure.
    */
   public function getAsset() {
     $assetId = $this->getAssetId();
-    return !empty($assetId) ? $this->acquiaDamClient->getAsset($assetId) :
-      FALSE;
+    if (empty($assetId)) {
+      return NULL;
+    }
+    return $this->acquiaDamClient->getAsset($assetId);
   }
 
   /**
