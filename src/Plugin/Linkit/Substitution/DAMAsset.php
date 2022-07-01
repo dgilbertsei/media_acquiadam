@@ -4,6 +4,7 @@ namespace Drupal\media_acquiadam\Plugin\Linkit\Substitution;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\GeneratedUrl;
 use Drupal\file\FileInterface;
 use Drupal\linkit\Plugin\Linkit\Substitution\Media;
@@ -32,6 +33,13 @@ class DAMAsset extends Media {
   protected $entityTypeManager;
 
   /**
+   * The file URL generator.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
@@ -44,10 +52,15 @@ class DAMAsset extends Media {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration,
+    $instance = new static($configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity_type.manager'));
+      $container->get('entity_type.manager')
+    );
+    if ($container->has('file_url_generator')) {
+      $instance->fileUrlGenerator = $container->get('file_url_generator');
+    }
+    return $instance;
   }
 
   /**
@@ -67,9 +80,14 @@ class DAMAsset extends Media {
           // This is the original LinkIt behavior.
           if (!empty($file) && $file instanceof FileInterface) {
             $url = new GeneratedUrl();
-            // Deprecated after 9.3, module still supports 8.x.
-            // @phpstan-ignore-next-line
-            $url->setGeneratedUrl(file_create_url($file->getFileUri()));
+            if ($this->fileUrlGenerator instanceof FileUrlGeneratorInterface) {
+              $generated_url = $this->fileUrlGenerator->generateAbsoluteString($file->getFileUri());
+            }
+            else {
+              // @phpstan-ignore-next-line
+              $generated_url = file_create_url($file->getFileUri());
+            }
+            $url->setGeneratedUrl($generated_url);
             $url->addCacheableDependency($entity);
             return $url;
           }

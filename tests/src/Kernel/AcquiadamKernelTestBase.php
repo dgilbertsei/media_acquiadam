@@ -26,7 +26,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'fallback_formatter',
     'file',
     'image',
@@ -94,7 +94,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
 
     $asset_data = $this->getMockBuilder(AssetData::class)
       ->disableOriginalConstructor()
-      ->setMethods(['get', 'set', 'isUpdatedAsset'])
+      ->onlyMethods(['get', 'set', 'isUpdatedAsset'])
       ->getMock();
     $asset_data->expects($this->any())
       ->method('get')->willReturn(function ($assetId, $name) {
@@ -122,6 +122,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
         'fetchRemoteAssetData',
       ])
       ->getMock();
+    $fileHelper->setFileRepository($this->container->get('file.repository'));
     $fileHelper->method('fetchRemoteAssetData')->willReturn('File contents');
     $this->container->set('media_acquiadam.asset_file.helper', $fileHelper);
     \Drupal::setContainer($this->container);

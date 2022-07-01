@@ -1,7 +1,6 @@
 name: "Media: Acquia DAM - Example Configuration"
 description: "Example configuration of the Media: Acquia DAM module."
-core: 8.x
-core_version_requirement: '^8 || ^9'
+core_version_requirement: '^8.9 || ^9.2 || ^10'
 type: module
 package: Media
 dependencies:

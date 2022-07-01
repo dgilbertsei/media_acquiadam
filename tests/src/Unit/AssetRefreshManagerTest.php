@@ -447,7 +447,6 @@ class AssetRefreshManagerTest extends UnitTestCase {
    */
   protected function setupApiResponseStub(array $request_query_options, array $response) {
     $this->acquiadamClient
-      ->expects($this->any())
       ->method('searchAssets')
       ->with($request_query_options)
       ->willReturn($response);
@@ -504,7 +503,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['searchAssets'])
+      ->addMethods(['searchAssets'])
       ->disableOriginalConstructor()
       ->getMock();
 
@@ -527,7 +526,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
       ->willReturn($this->queue);
 
     $this->entityQuery = $this->getMockBuilder(Query::class)
-      ->setMethods(['orConditionGroup', 'condition', 'execute', 'get'])
+      ->onlyMethods(['orConditionGroup', 'condition', 'execute'])
       ->disableOriginalConstructor()
       ->getMock();
 

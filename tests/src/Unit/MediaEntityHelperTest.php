@@ -7,6 +7,7 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
+use Drupal\media\MediaTypeInterface;
 use Drupal\media_acquiadam\Acquiadam;
 use Drupal\media_acquiadam\AssetData;
 use Drupal\media_acquiadam\Entity\Asset;
@@ -139,7 +140,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     parent::setUp();
 
     $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['getAsset'])
+      ->onlyMethods(['getAsset'])
       ->disableOriginalConstructor()
       ->getMock();
 
@@ -179,9 +180,7 @@ class MediaEntityHelperTest extends UnitTestCase {
    */
   protected function setMockedDrupalServices(ContainerBuilder $container) {
 
-    $media_bundle = $this->getMockBuilder(\stdClass::class)
-      ->setMethods(['getFieldMap'])
-      ->getMock();
+    $media_bundle = $this->createStub(MediaTypeInterface::class);
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
 

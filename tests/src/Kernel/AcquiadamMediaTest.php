@@ -58,7 +58,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $dir_path = 'public://acquiadam/';
     $contents = 'test';
     $this->container->get('file_system')->prepareDirectory($dir_path, FileSystemInterface::CREATE_DIRECTORY);
-    file_save_data($contents, $dir_path . $this->asset->filename);
+    $this->container->get('file_system')->saveData($contents, $dir_path . $this->asset->filename);
 
     $this->testClient->addAsset($this->asset);
     $this->media = $this->createMedia($this->asset->id);

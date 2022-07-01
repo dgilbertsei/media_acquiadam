@@ -234,7 +234,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   protected function getMockedAcquidamConfig() {
 
     $messenger = $this->getMockBuilder(Messenger::class)
-      ->setMethods([
+      ->onlyMethods([
         'addWarning',
         'addStatus',
       ])
@@ -250,7 +250,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
         $this->container->get('plugin.manager.queue_worker'),
         $this->container->get('state'),
       ])
-      ->setMethods([
+      ->onlyMethods([
         'batchSet',
         'getActiveMediaIds',
         'messenger',

@@ -4,7 +4,6 @@
     "description": "Example configuration of the Media: Acquia DAM module.",
     "license": "GPL-2.0-or-later",
     "require": {
-        "drupal/core": "^8.7 || ^9",
         "drupal/fallback_formatter": "^1.0"
     }
 }

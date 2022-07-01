@@ -6,13 +6,13 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\File\MimeType\MimeTypeGuesser;
 use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Class AssetImageHelper.
@@ -195,11 +195,10 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The MIME type information or FALSE on failure.
    */
   public function getMimeTypeFromFileUri(string $uri) {
-    if ($this->mimeTypeGuesser instanceof MimeTypeGuesser) {
+    if ($this->mimeTypeGuesser instanceof MimeTypeGuesserInterface) {
       $mimetype = $this->mimeTypeGuesser->guessMimeType($uri);
     }
     else {
-      @trigger_error('\Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface is deprecated in drupal:9.1.0 and is removed from drupal:10.0.0. Implement \Symfony\Component\Mime\MimeTypeGuesserInterface instead. See https://www.drupal.org/node/3133341', E_USER_DEPRECATED);
       $mimetype = $this->mimeTypeGuesser->guess($uri);
     }
 
@@ -269,7 +268,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   protected function setFallbackThumbnail($uri) {
     // Drupal core prevents generating image styles from module directories,
     // so we need to copy our placeholder to the files directory first.
-    $source = $this->getAcquiaDamModulePath() . '/img/widen.png';
+    $source = realpath(__DIR__) . '/../../img/widen.png';
     if (!$this->phpFileExists($uri)) {
       $uri = $this->fileSystem->copy($source, $uri);
       if (!empty($uri)) {
@@ -278,19 +277,6 @@ class AssetImageHelper implements ContainerInjectionInterface {
     }
 
     return $uri;
-  }
-
-  /**
-   * Get the path to the Acquia DAM module.
-   *
-   * This call is broken out for better flexibility when writing tests.
-   *
-   * @return string
-   *   The path to the Acquia DAM module.
-   */
-  protected function getAcquiaDamModulePath() {
-    // @phpstan-ignore-next-line
-    return drupal_get_path('module', 'media_acquiadam');
   }
 
   /**

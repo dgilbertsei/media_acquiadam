@@ -179,7 +179,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->setMethods(['prepareDirectory'])
+      ->onlyMethods(['prepareDirectory'])
       ->getMockForAbstractClass();
     $file_system->method('prepareDirectory')->willReturnMap([
       [

@@ -55,7 +55,7 @@ class AssetDataTest extends UnitTestCase {
 
     $asset_data = $this->getMockBuilder(AssetData::class)
       ->disableOriginalConstructor()
-      ->setMethods(['get', 'set'])
+      ->onlyMethods(['get', 'set'])
       ->getMock();
     $asset_data->method('get')->willReturnMap([
       ["34asd3q2-e294-4908-bbd9-f43f433d2e23", 'file_upload_date', 1632508262],

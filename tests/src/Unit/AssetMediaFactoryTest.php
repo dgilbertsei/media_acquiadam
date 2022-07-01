@@ -193,9 +193,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
 
     $this->mediaEntity = $this->getMockedMediaEntity($asset->id);
 
-    $media_bundle = $this->getMockBuilder(MediaTypeInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media_bundle = $this->createStub(MediaTypeInterface::class);
     $media_bundle->method('getSource')->willReturn($this->mediaEntity->getSource());
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
@@ -248,7 +246,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
       ->setConstructorArgs([
         $this->container->get('entity_type.manager'),
       ])
-      ->setMethods(['getMediaBundleFields'])
+      ->onlyMethods(['getMediaBundleFields'])
       ->getMock();
 
     $this->assetMediaFactory->method('getMediaBundleFields')->willReturnMap([

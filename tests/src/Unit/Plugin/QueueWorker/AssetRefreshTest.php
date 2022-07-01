@@ -18,7 +18,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
-use Psr\Log\Test\TestLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * Tests the asset refresh queue worker.
@@ -28,7 +28,13 @@ use Psr\Log\Test\TestLogger;
 final class AssetRefreshTest extends UnitTestCase {
 
   public function testMissingEntity(): void {
-    $logger = new TestLogger();
+    $logger = $this->createMock(LoggerInterface::class);
+    $logger->expects($this->once())
+      ->method('error')
+      ->with(
+        'Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?',
+        ['@media_id' => '1234']
+      );
 
     $storage = $this->createMock(EntityStorageInterface::class);
     $storage->expects($this->once())
@@ -51,16 +57,6 @@ final class AssetRefreshTest extends UnitTestCase {
       $cf
     );
     $sut->processItem(['media_id' => '1234']);
-
-    self::assertTrue($logger->hasErrorRecords());
-    self::assertTrue($logger->hasError(
-      [
-        'message' => 'Unable to load media entity @media_id in order to refresh the associated asset. Was the media entity deleted within Drupal?',
-        'context' => [
-          '@media_id' => '1234',
-        ],
-      ],
-    ));
   }
 
   /**
@@ -70,7 +66,7 @@ final class AssetRefreshTest extends UnitTestCase {
     \Exception $thrown_exception,
     ?\Exception $expected_exception
   ): void {
-    $logger = new TestLogger();
+    $logger = $this->createStub(LoggerInterface::class);
 
     $storage = $this->createMock(EntityStorageInterface::class);
     $storage->expects($this->once())
@@ -119,7 +115,8 @@ final class AssetRefreshTest extends UnitTestCase {
     yield '4xx without a response' => [
       new ClientException(
         '',
-        $this->createStub(RequestInterface::class)
+        $this->createStub(RequestInterface::class),
+        new Response(400)
       ),
       new RequeueException(),
     ];

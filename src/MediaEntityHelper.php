@@ -212,9 +212,9 @@ class MediaEntityHelper {
       /** @var \Drupal\Core\Field\FieldItemInterface $item */
       $item = $this->mediaEntity->{$fieldName}->first();
       if (!empty($item)) {
-        $property_name = $item->mainPropertyName();
-        if (isset($this->mediaEntity->{$fieldName}->{$property_name})) {
-          return $this->mediaEntity->{$fieldName}->{$property_name};
+        $property_name = $item::mainPropertyName();
+        if (isset($item->{$property_name})) {
+          return $item->{$property_name};
         }
       }
     }

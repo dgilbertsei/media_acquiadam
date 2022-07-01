@@ -437,6 +437,7 @@ function media_acquiadam_get_active_media_ids(): array {
   $media_ids = [];
   foreach ($asset_id_fields as $bundle => $field) {
     $media_id_query = \Drupal::entityQuery('media')
+      ->accessCheck(FALSE)
       ->condition('bundle', $bundle);
     $media_ids = array_merge($media_ids, $media_id_query->execute());
   }

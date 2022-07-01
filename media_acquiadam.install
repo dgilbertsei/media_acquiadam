@@ -262,9 +262,7 @@ function media_acquiadam_update_8201() {
   }
 
   // Update Acquiadam Config Object.
-  // Deprecated after 9.3, module still supports 8.x.
-  /** @phpstan-ignore-next-line */
-  $config_path = drupal_get_path('module', 'media_acquiadam') . '/config/install/media_acquiadam.settings.yml';
+  $config_path = realpath(__DIR__) . '/config/install/media_acquiadam.settings.yml';
   $data = Yaml::parseFile($config_path);
   $config_factory->getEditable('media_acquiadam.settings')->setData($data)->save(TRUE);
 }

@@ -95,9 +95,11 @@ class AcquiadamAuthTest extends UnitTestCase {
       ->method('getStatusCode')
       ->willReturn('200');
 
+    // `post` was a `__call` in Guzzle 6, it's now on ClientTrait in Guzzle 7.
+    $methods_call = method_exists(Client::class, 'post') ? 'onlyMethods' : 'addMethods';
     $http_client = $this->getMockBuilder(Client::class)
       ->disableOriginalConstructor()
-      ->setMethods(['post'])
+      ->$methods_call(['post'])
       ->getMock();
     $http_client->expects($this->any())->method('post')->willReturn($response);
 

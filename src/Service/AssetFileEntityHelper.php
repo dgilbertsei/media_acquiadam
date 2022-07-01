@@ -11,6 +11,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\file\FileInterface;
+use Drupal\file\FileRepositoryInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use GuzzleHttp\Client;
@@ -102,6 +103,13 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   protected $httpClient;
 
   /**
+   * The file repository.
+   *
+   * @var \Drupal\file\FileRepositoryInterface
+   */
+  protected $fileRepository;
+
+  /**
    * AssetFileEntityHelper constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -153,7 +161,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
+    $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('entity_field.manager'),
       $container->get('config.factory'),
@@ -165,6 +173,20 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       $container->get('logger.factory'),
       $container->get('http_client')
     );
+    if ($container->has('file.repository')) {
+      $instance->setFileRepository($container->get('file.repository'));
+    }
+    return $instance;
+  }
+
+  /**
+   * Sets the file repository service, introduced in 9.3.
+   *
+   * @param \Drupal\file\FileRepositoryInterface $file_repository
+   *   The file repository.
+   */
+  public function setFileRepository(FileRepositoryInterface $file_repository) {
+    $this->fileRepository = $file_repository;
   }
 
   /**
@@ -401,8 +423,9 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   A file entity, or FALSE on error.
    */
   protected function drupalFileSaveData($data, $destination = NULL) {
-    // Deprecated after 9.3, module still supports 8.x.
-    // @phpstan-ignore-next-line
+    if ($this->fileRepository instanceof FileRepositoryInterface) {
+      return $this->fileRepository->writeData($data, $destination, FileSystemInterface::EXISTS_REPLACE);
+    }
     return file_save_data($data, $destination, FileSystemInterface::EXISTS_REPLACE);
   }
 
