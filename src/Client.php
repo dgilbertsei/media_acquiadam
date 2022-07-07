@@ -3,13 +3,13 @@
 namespace Drupal\media_acquiadam;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Routing\RouteObjectInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\Entity\Category;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
-use Symfony\Cmf\Component\Routing\RouteObjectInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
