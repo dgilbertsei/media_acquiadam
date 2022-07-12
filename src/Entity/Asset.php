@@ -256,7 +256,7 @@ class Asset implements EntityInterface, \JsonSerializable {
   /**
    * {@inheritdoc}
    */
-  public function jsonSerialize():array {
+  public function jsonSerialize(): array {
     return [
       'id' => $this->id,
       'external_id' => $this->external_id,

@@ -101,7 +101,7 @@ class Category implements EntityInterface, \JsonSerializable {
    * @return array
    *   Array contain category properties.
    */
-  public function jsonSerialize() {
+  public function jsonSerialize(): array {
     $properties = [
       'id' => $this->id,
       'type' => 'category',
