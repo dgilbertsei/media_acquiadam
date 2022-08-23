@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "drupal/fallback_formatter": "1.x-dev"
+        "drupal/fallback_formatter": "^1.0"
     },
     "require-dev": {
         "drupal/entity_browser": "2.x-dev"
