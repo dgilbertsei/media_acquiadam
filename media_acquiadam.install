@@ -367,6 +367,45 @@ function media_acquiadam_entity_get_form_display($entity_type, $bundle, $form_mo
 }
 
 /**
+ * Add index to media__field_acquiadam_asset_id.
+ */
+function media_acquiadam_update_8203() {
+  $index = [
+    'fields' => [
+      'field_acquiadam_asset_id_value' => [
+        'description' => 'The asset ID.',
+        'default' => '',
+        'type' => 'varchar_ascii',
+        'not null' => TRUE,
+        'length' => 128,
+      ],
+    ],
+    'indexes' => [
+      'field_acquiadam_asset_id_value' => [
+        'field_acquiadam_asset_id_value',
+      ],
+    ],
+  ];
+
+  $tables = [
+    'media__field_acquiadam_asset_id',
+    'media_revision__field_acquiadam_asset_id',
+  ];
+
+  $db_schema = Drupal::database()->schema();
+  foreach ($tables as $table) {
+    if (!$db_schema->indexExists($table, 'field_acquiadam_asset_id_value')) {
+      $db_schema->addIndex(
+        $table,
+        'field_acquiadam_asset_id_value',
+        ['field_acquiadam_asset_id_value'],
+        $index
+      );
+    }
+  }
+}
+
+/**
  * Update data type of media type source-field.
  *
  * @param object $database

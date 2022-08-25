@@ -153,13 +153,15 @@ class AcquiadamAsset extends MediaSourceBase {
     $default_field_name = $this->defaultConfiguration()['source_field'];
 
     // Create the field.
-    return $this->entityTypeManager->getStorage('field_storage_config')->create(
-      [
+    /** @var \Drupal\field\FieldStorageConfigInterface $storage */
+    return $this->entityTypeManager->getStorage('field_storage_config')
+      ->create([
         'entity_type' => 'media',
         'field_name' => $default_field_name,
         'type' => reset($this->pluginDefinition['allowed_field_types']),
-      ]
-    );
+      ])->setIndexes([
+        'value' => ['value'],
+      ]);
   }
 
   /**
