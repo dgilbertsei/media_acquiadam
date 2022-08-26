@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit\Plugin\QueueWorker;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityStorageInterface;
@@ -54,7 +55,8 @@ final class AssetRefreshTest extends UnitTestCase {
       $logger,
       $etm,
       new AssetMediaFactory($etm),
-      $cf
+      $cf,
+      $this->createMock(TimeInterface::class)
     );
     $sut->processItem(['media_id' => '1234']);
   }
@@ -95,7 +97,8 @@ final class AssetRefreshTest extends UnitTestCase {
       $logger,
       $etm,
       $amf,
-      $cf
+      $cf,
+      $this->createMock(TimeInterface::class)
     );
 
     if ($expected_exception) {
@@ -156,6 +159,54 @@ final class AssetRefreshTest extends UnitTestCase {
       new \RuntimeException('unknown method'),
       NULL,
     ];
+  }
+
+  /**
+   * Tests that the media's changed timestamp is updated when processed.
+   */
+  public function testMediaChangedTimeSet(): void {
+    $logger = $this->createStub(LoggerInterface::class);
+
+    $time = $this->createMock(TimeInterface::class);
+    $time->expects($this->once())->method('getCurrentTime')->willReturn(1661438634);
+
+    $sut = $this->createMock(MediaInterface::class);
+    $sut->expects($this->once())->method('setChangedTime')->with(1661438634);
+
+    $storage = $this->createMock(EntityStorageInterface::class);
+    $storage->expects($this->once())
+      ->method('load')
+      ->with('1234')
+      ->willReturn($sut);
+    $etm = $this->createMock(EntityTypeManagerInterface::class);
+    $etm->expects($this->once())
+      ->method('getStorage')
+      ->willReturn($storage);
+    $wrapped_media = $this->createMock(MediaEntityHelper::class);
+    $wrapped_media->method('getAssetId')->willReturn('ABCD');
+    $wrapped_media->method('getAsset')->willReturn((object) [
+      'released_and_not_expired' => TRUE,
+    ]);
+    $amf = $this->createMock(AssetMediaFactory::class);
+    $amf->method('get')->with($this->anything())->willReturn($wrapped_media);
+    $cf = $this->createMock(ConfigFactoryInterface::class);
+    $cf
+      ->method('get')
+      ->with('media_acquiadam.settings')
+      ->willReturn($this->createStub(ImmutableConfig::class));
+
+    $sut = new AssetRefresh(
+      [],
+      'media_acquiadam_asset_refresh',
+      ['cron' => ['time' => 30]],
+      $logger,
+      $etm,
+      $amf,
+      $cf,
+      $time
+    );
+
+    $sut->processItem(['media_id' => '1234']);
   }
 
 }

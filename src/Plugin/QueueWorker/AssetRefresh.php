@@ -2,6 +2,7 @@
 
 namespace Drupal\media_acquiadam\Plugin\QueueWorker;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -57,14 +58,22 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
   protected $configFactory;
 
   /**
+   * The time.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected $time;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetMediaFactory $assetMediaFactory, ConfigFactoryInterface $config_factory) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $loggerChannel, EntityTypeManagerInterface $entityTypeManager, AssetMediaFactory $assetMediaFactory, ConfigFactoryInterface $config_factory, TimeInterface $time) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->loggerChannel = $loggerChannel;
     $this->entityTypeManager = $entityTypeManager;
     $this->assetMediaFactory = $assetMediaFactory;
     $this->configFactory = $config_factory;
+    $this->time = $time;
   }
 
   /**
@@ -78,7 +87,8 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
       $container->get('logger.factory')->get('media_acquiadam'),
       $container->get('entity_type.manager'),
       $container->get('media_acquiadam.asset_media.factory'),
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('datetime.time')
     );
   }
 
@@ -204,7 +214,9 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
 
     try {
       // Re-save the entity, prompting the clearing and redownloading of
-      // metadata and asset file.
+      // metadata and asset file. We always modify the changed time to help
+      // indicate the last time this media entity had a refresh performed.
+      $entity->setChangedTime($this->time->getCurrentTime());
       $entity->save();
     }
     catch (\Exception $x) {
