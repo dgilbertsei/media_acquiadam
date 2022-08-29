@@ -496,19 +496,22 @@ class Client {
    * @param array $params
    *   An array used as query parameter. Valid parameters are documented on
    *   https://widenv2.docs.apiary.io/#reference/assets/assets/list-by-search-query.
+   * @param bool $released_not_expired
+   *   Add filter to verify if asset is released and not expired.
    *
    * @return array
    *   A list of assets.
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function searchAssets(array $params): array {
+  public function searchAssets(array $params, bool $released_not_expired = TRUE): array {
     $this->checkAuth();
 
     $date = date('m/d/Y');
-    $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
-    $params['query'] .= 'rd:([before ' . $date . '] OR [' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
-
+    if ($released_not_expired) {
+      $params['query'] = $params['query'] ? $params['query'] . ' AND ' : '';
+      $params['query'] .= 'rd:([before ' . $date . '] OR [' . $date . ']) AND ed:((isEmpty) OR [after ' . $date . '])';
+    }
     $response = $this->client->request(
       "GET",
       $this->baseUrl . '/assets/search',

@@ -220,7 +220,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
           'query' => $query,
           'include_deleted' => 'true',
           'include_archived' => 'true',
-        ]);
+        ], FALSE);
       }
       catch (GuzzleException | InvalidCredentialsException $e) {
         $this->logger->error('Failed to fetch asset ids: @message.',

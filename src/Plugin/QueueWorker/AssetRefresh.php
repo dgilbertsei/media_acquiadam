@@ -196,7 +196,6 @@ class AssetRefresh extends QueueWorkerBase implements ContainerFactoryPluginInte
           '@media_id' => $data['media_id'],
         ]
       );
-      return FALSE;
     }
 
     // If the asset does not exist anymore in Acquia DAM, log the information
