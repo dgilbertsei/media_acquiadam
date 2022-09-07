@@ -115,7 +115,23 @@ class Acquiadam extends WidgetBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('event_dispatcher'), $container->get('entity_type.manager'), $container->get('entity_field.manager'), $container->get('plugin.manager.entity_browser.widget_validation'), $container->get('media_acquiadam.acquiadam_user_creds'), $container->get('current_user'), $container->get('language_manager'), $container->get('module_handler'), $container->get('plugin.manager.media.source'), $container->get('user.data'), $container->get('request_stack'), $container->get('config.factory'));
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('event_dispatcher'),
+      $container->get('entity_type.manager'),
+      $container->get('entity_field.manager'),
+      $container->get('plugin.manager.entity_browser.widget_validation'),
+      $container->get('media_acquiadam.acquiadam_user_creds'),
+      $container->get('current_user'),
+      $container->get('language_manager'),
+      $container->get('module_handler'),
+      $container->get('plugin.manager.media.source'),
+      $container->get('user.data'),
+      $container->get('request_stack'),
+      $container->get('config.factory')
+    );
   }
 
   /**
@@ -808,8 +824,6 @@ class Acquiadam extends WidgetBase {
         'status' => 1,
         'name' => $asset->filename,
         $source_field => $asset->id,
-        'created' => strtotime($asset->created_date),
-        'changed' => strtotime($asset->last_update_date),
       ];
 
       // Create a new entity to represent the asset.
