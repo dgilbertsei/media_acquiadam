@@ -2,9 +2,11 @@
 
 namespace Drupal\media_acquiadam\Service;
 
+use DateTime;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -167,7 +169,11 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     switch ($name) {
       case 'expiration_date':
       case 'release_date':
-        return $asset->security->{$name} ?? NULL;
+        if (!$date = $asset->security->{$name}) {
+          return NULL;
+        }
+        $date = DateTime::createFromFormat(DateTime::ISO8601, $date);
+        return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
 
       case 'popularity':
         return $asset->asset_properties->popularity ?? NULL;
