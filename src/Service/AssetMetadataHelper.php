@@ -2,7 +2,6 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use DateTime;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -172,7 +171,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         if (!$date = $asset->security->{$name}) {
           return NULL;
         }
-        $date = DateTime::createFromFormat(DateTime::ISO8601, $date);
+        $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
         return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
 
       case 'popularity':
