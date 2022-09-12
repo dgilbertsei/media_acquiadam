@@ -166,13 +166,13 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     $additional_properties = isset($asset->file_properties->image_properties) ? 'image_properties' : 'video_properties';
 
     switch ($name) {
+      case 'created_date':
+      case 'last_update_date':
+        return $asset->{$name} ? $this->formatDateForDateField($asset->{$name}) : NULL;
+
       case 'expiration_date':
       case 'release_date':
-        if (!$date = $asset->security->{$name}) {
-          return NULL;
-        }
-        $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
-        return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
+        return $asset->security->{$name} ? $this->formatDateForDateField($asset->security->{$name}) : NULL;
 
       case 'popularity':
         return $asset->asset_properties->popularity ?? NULL;
@@ -191,8 +191,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         $property_name_mapping = [
           'external_id' => 'external_id',
           'filename' => 'filename',
-          'created_date' => 'created_date',
-          'last_update_date' => 'last_update_date',
           'file_upload_date' => 'file_upload_date',
           'deleted_date' => 'deleted_date',
           'released_and_not_expired' => 'released_and_not_expired',
@@ -204,6 +202,20 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     }
 
     return NULL;
+  }
+
+  /**
+   * Formats date coming from DAM to save into date field.
+   *
+   * @param string $date
+   *   Date string coming from API in ISO8601 format.
+   *
+   * @return string
+   *   Date to save into date field value.
+   */
+  protected function formatDateForDateField(string $date): string {
+    $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
+    return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
   }
 
 }
