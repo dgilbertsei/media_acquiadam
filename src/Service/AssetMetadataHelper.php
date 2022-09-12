@@ -168,6 +168,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     switch ($name) {
       case 'created_date':
       case 'last_update_date':
+      case 'file_upload_date':
+      case 'deleted_date':
         return $asset->{$name} ? $this->formatDateForDateField($asset->{$name}) : NULL;
 
       case 'expiration_date':
@@ -191,8 +193,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         $property_name_mapping = [
           'external_id' => 'external_id',
           'filename' => 'filename',
-          'file_upload_date' => 'file_upload_date',
-          'deleted_date' => 'deleted_date',
           'released_and_not_expired' => 'released_and_not_expired',
         ];
         if (array_key_exists($name, $property_name_mapping)) {
@@ -205,7 +205,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   }
 
   /**
-   * Formats date coming from DAM to save into date field.
+   * Formats date coming from DAM to save into storage format.
    *
    * @param string $date
    *   Date string coming from API in ISO8601 format.
