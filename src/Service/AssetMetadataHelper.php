@@ -2,6 +2,7 @@
 
 namespace Drupal\media_acquiadam\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -42,16 +43,26 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   protected $specificMetadataFields = [];
 
   /**
+   * System date config.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
    * AssetImageHelper constructor.
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   A Drupal date formatter service.
    * @param \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client $acquiadam
    *   A configured API object.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   Config factory.
    */
-  public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam) {
+  public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam, ConfigFactoryInterface $configFactory) {
     $this->dateFormatter = $dateFormatter;
     $this->acquiadam = $acquiadam;
+    $this->config = $configFactory->get('system.date');
   }
 
   /**
@@ -60,7 +71,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('date.formatter'),
-      $container->get('media_acquiadam.acquiadam')
+      $container->get('media_acquiadam.acquiadam'),
+      $container->get('config.factory')
     );
   }
 
@@ -215,6 +227,7 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    */
   protected function formatDateForDateField(string $date): string {
     $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
+    $date->setTimezone(new \DateTimeZone($this->config->get('timezone.default')));
     return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
   }
 
