@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
@@ -146,11 +148,26 @@ class AssetMetadataHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $config_factory = $this->getMockBuilder(ConfigFactoryInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $config = $this->getMockBuilder(ImmutableConfig::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $config_factory->method('get')
+      ->willReturn($config);
+
+    $config->method('get')
+      ->willReturn('UTC');
+
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
     $this->container->set('date.formatter', $date_formatter);
     $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
+    $this->container->set('config.factory', $config_factory);
     \Drupal::setContainer($this->container);
 
     $this->assetMetadataHelper = AssetMetadataHelper::create($this->container);
