@@ -2,9 +2,11 @@
 
 namespace Drupal\media_acquiadam\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\media_acquiadam\AcquiadamInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -41,16 +43,26 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   protected $specificMetadataFields = [];
 
   /**
+   * System date config.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
    * AssetImageHelper constructor.
    *
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
    *   A Drupal date formatter service.
    * @param \Drupal\media_acquiadam\AcquiadamInterface|\Drupal\media_acquiadam\Client $acquiadam
    *   A configured API object.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   Config factory.
    */
-  public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam) {
+  public function __construct(DateFormatterInterface $dateFormatter, AcquiadamInterface $acquiadam, ConfigFactoryInterface $configFactory) {
     $this->dateFormatter = $dateFormatter;
     $this->acquiadam = $acquiadam;
+    $this->config = $configFactory->get('system.date');
   }
 
   /**
@@ -59,7 +71,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('date.formatter'),
-      $container->get('media_acquiadam.acquiadam')
+      $container->get('media_acquiadam.acquiadam'),
+      $container->get('config.factory')
     );
   }
 
@@ -165,9 +178,15 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     $additional_properties = isset($asset->file_properties->image_properties) ? 'image_properties' : 'video_properties';
 
     switch ($name) {
+      case 'created_date':
+      case 'last_update_date':
+      case 'file_upload_date':
+      case 'deleted_date':
+        return $asset->{$name} ? $this->formatDateForDateField($asset->{$name}) : NULL;
+
       case 'expiration_date':
       case 'release_date':
-        return $asset->security->{$name} ?? NULL;
+        return $asset->security->{$name} ? $this->formatDateForDateField($asset->security->{$name}) : NULL;
 
       case 'popularity':
         return $asset->asset_properties->popularity ?? NULL;
@@ -186,10 +205,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         $property_name_mapping = [
           'external_id' => 'external_id',
           'filename' => 'filename',
-          'created_date' => 'created_date',
-          'last_update_date' => 'last_update_date',
-          'file_upload_date' => 'file_upload_date',
-          'deleted_date' => 'deleted_date',
           'released_and_not_expired' => 'released_and_not_expired',
         ];
         if (array_key_exists($name, $property_name_mapping)) {
@@ -199,6 +214,21 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
     }
 
     return NULL;
+  }
+
+  /**
+   * Formats date coming from DAM to save into storage format.
+   *
+   * @param string $date
+   *   Date string coming from API in ISO8601 format.
+   *
+   * @return string
+   *   Date to save into date field value.
+   */
+  protected function formatDateForDateField(string $date): string {
+    $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
+    $date->setTimezone(new \DateTimeZone($this->config->get('timezone.default')));
+    return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
   }
 
 }

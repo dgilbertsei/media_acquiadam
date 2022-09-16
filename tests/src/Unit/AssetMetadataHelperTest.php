@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\media_acquiadam\Acquiadam;
@@ -81,19 +83,25 @@ class AssetMetadataHelperTest extends UnitTestCase {
         'filename'));
 
     // Check date properties.
-    $this->assertEquals('2021-09-24T18:31:02Z',
+    $this->assertEquals('2021-09-24T18:31:02',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'created_date'));
-    $this->assertEquals('2021-09-27T12:21:21Z',
+    $this->assertEquals('2021-09-24T18:31:02',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'release_date'));
+    $this->assertEquals('2026-09-24T18:31:02',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'expiration_date'));
+    $this->assertEquals('2021-09-27T12:21:21',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'last_update_date'));
-    $this->assertEquals('2021-09-24T18:31:02Z',
+    $this->assertEquals('2021-09-24T18:31:02',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'file_upload_date'));
-
-    $this->assertEquals(NULL,
+    $this->assertEquals('2021-09-24T18:31:02',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'deleted_date'));
+
     $this->assertEquals(TRUE,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'released_and_not_expired'));
@@ -140,11 +148,26 @@ class AssetMetadataHelperTest extends UnitTestCase {
       ->disableOriginalConstructor()
       ->getMock();
 
+    $config_factory = $this->getMockBuilder(ConfigFactoryInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $config = $this->getMockBuilder(ImmutableConfig::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
+    $config_factory->method('get')
+      ->willReturn($config);
+
+    $config->method('get')
+      ->willReturn('UTC');
+
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
       $this->getStringTranslationStub());
     $this->container->set('date.formatter', $date_formatter);
     $this->container->set('media_acquiadam.acquiadam', $acquiadam_client);
+    $this->container->set('config.factory', $config_factory);
     \Drupal::setContainer($this->container);
 
     $this->assetMetadataHelper = AssetMetadataHelper::create($this->container);

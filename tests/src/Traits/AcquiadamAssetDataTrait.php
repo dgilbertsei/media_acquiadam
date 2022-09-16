@@ -27,7 +27,7 @@ trait AcquiadamAssetDataTrait {
       'created_date' => '2021-09-24T18:31:02Z',
       'last_update_date' => '2021-09-27T12:21:21Z',
       'file_upload_date' => '2021-09-24T18:31:02Z',
-      'deleted_date' => NULL,
+      'deleted_date' => '2021-09-24T18:31:02Z',
       'released_and_not_expired' => TRUE,
       'asset_properties' => [
         "favorite" => FALSE,
@@ -52,7 +52,7 @@ trait AcquiadamAssetDataTrait {
       ],
       'metadata_info' => NULL,
       'security' => [
-        'expiration_date' => NULL,
+        'expiration_date' => '2026-09-24T18:31:02Z',
         'release_date' => '2021-09-24T18:31:02Z',
         'asset_groups' => [
           0 => 'public',
