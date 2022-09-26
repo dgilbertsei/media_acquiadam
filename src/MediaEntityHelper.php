@@ -98,7 +98,13 @@ class MediaEntityHelper {
       $is_different_version = $this->assetData->isUpdatedAsset($asset);
 
       if (empty($file) || $is_different_version) {
-        $destination_folder = $this->getAssetFileDestination();
+        $destination_folder = $this
+          ->assetFileHelper
+          ->getDestinationFromEntity(
+            $this->mediaEntity,
+            $this->getAssetFileField(),
+            $asset->file_upload_date
+          );
         $file = $this->assetFileHelper->createNewFile($asset, $destination_folder);
 
         if ($file) {
@@ -185,17 +191,6 @@ class MediaEntityHelper {
       ->getSourceFieldDefinition($this->mediaEntity->get('bundle')->entity)
       ->getName();
     return $this->getFieldPropertyValue($sourceField) ?? FALSE;
-  }
-
-  /**
-   * Gets the destination path for Acquia DAM assets.
-   *
-   * @return string
-   *   The final folder to store the asset locally.
-   */
-  public function getAssetFileDestination() {
-    return $this->assetFileHelper->getDestinationFromEntity($this->mediaEntity,
-      $this->getAssetFileField());
   }
 
   /**

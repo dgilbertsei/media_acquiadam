@@ -20,7 +20,6 @@ source ../../../orca/bin/travis/_includes.sh
 # Target the deprecated code scan job.
 if [[ "$ORCA_JOB" = "LOOSE_DEPRECATED_CODE_SCAN" || "$ORCA_JOB" = "STRICT_DEPRECATED_CODE_SCAN" ]]; then
   (
-    composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/entity_browser
     composer --working-dir="$ORCA_FIXTURE_DIR" require drupal/linkit:~5.0
   )
 fi

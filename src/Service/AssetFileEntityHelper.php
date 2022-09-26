@@ -192,17 +192,26 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
   /**
    * Get a destination uri from the given entity and field combo.
    *
+   * Following will be concatenated to create the path:
+   *  - scheme
+   *  - acquiadam_assets
+   *  - Upload year from DAM
+   *  - Upload month from DAM.
+   *
+   * Example: public://acquiadam_assets/2022-12
+   *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to check the field configuration on.
    * @param string $fileField
    *   The name of the file field.
+   * @param string $upload_date
+   *   Upload date of the asset from DAM (ISO8601).
    *
    * @return string
-   *   The uri to use. Defaults to public://acquiadam_assets
+   *   The uri to use.
    */
-  public function getDestinationFromEntity(EntityInterface $entity, $fileField) {
+  public function getDestinationFromEntity(EntityInterface $entity, string $fileField, string $upload_date): string {
     $scheme = $this->configFactory->get('system.file')->get('default_scheme');
-    $file_directory = 'acquiadam_assets';
 
     // Load the field definitions for this bundle.
     $field_definitions = $this->entityFieldManager->getFieldDefinitions(
@@ -213,15 +222,11 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     if (!empty($field_definitions[$fileField])) {
       $definition = $field_definitions[$fileField]->getItemDefinition();
       $scheme = $definition->getSetting('uri_scheme');
-      $file_directory = $definition->getSetting('file_directory');
     }
 
-    // Replace the token for file directory.
-    if (!empty($file_directory)) {
-      $file_directory = $this->token->replace($file_directory);
-    }
+    $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $upload_date);
 
-    return sprintf('%s://%s', $scheme, $file_directory);
+    return sprintf('%s://%s/%s', $scheme, 'acquiadam_assets', $date->format('Y-m'));
   }
 
   /**

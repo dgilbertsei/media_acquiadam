@@ -181,7 +181,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   protected function getAssetUri(Asset $asset, MediaInterface $media) {
     $destination_folder = $this->container
       ->get('media_acquiadam.asset_file.helper')
-      ->getDestinationFromEntity($media, 'field_acquiadam_asset_file');
+      ->getDestinationFromEntity($media, 'field_acquiadam_asset_file', $asset->file_upload_date);
 
     return sprintf('%s/%s', $destination_folder, $asset->filename);
   }

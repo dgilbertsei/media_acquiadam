@@ -101,7 +101,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $file_system = $this->container->get('file_system');
 
     // Makes directory read only so file save fails.
-    $directory = $asset_file_helper->getDestinationFromEntity($this->media, 'field_acquiadam_asset_file');
+    $directory = $asset_file_helper->getDestinationFromEntity($this->media, 'field_acquiadam_asset_file', '2021-09-24T18:31:02Z');
     $file_system->chmod($directory, 0000);
 
     // Attempts to save new version of asset while directory isn't accessible.

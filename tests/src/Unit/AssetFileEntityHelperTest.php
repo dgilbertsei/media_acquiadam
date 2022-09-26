@@ -57,15 +57,24 @@ class AssetFileEntityHelperTest extends UnitTestCase {
    * Validates that the file destination builds correctly.
    */
   public function testGetDestinationFromEntity() {
-    $media = $this->getMockedMediaEntity($this->getAssetData()->id);
+    $asset_data = $this->getAssetData();
+    $media = $this->getMockedMediaEntity($asset_data->id);
 
-    $this->assertEquals('private://assets/replaced',
-      $this->assetFileEntityHelper->getDestinationFromEntity($media,
-        'phpunit_file_field'));
+    $this->assertEquals('private://acquiadam_assets/2021-09',
+      $this->assetFileEntityHelper->getDestinationFromEntity(
+        $media,
+        'phpunit_file_field',
+        $asset_data->file_upload_date
+      )
+    );
 
-    $this->assertEquals('public://acquiadam_assets',
-      $this->assetFileEntityHelper->getDestinationFromEntity($media,
-        'phpunit_test_fail'));
+    $this->assertEquals('public://acquiadam_assets/2021-09',
+      $this->assetFileEntityHelper->getDestinationFromEntity(
+        $media,
+        'phpunit_test_fail',
+        $asset_data->file_upload_date
+      )
+    );
   }
 
   /**
