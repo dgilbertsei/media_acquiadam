@@ -165,12 +165,23 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    */
   public function getMetadataFromAsset(Asset $asset, $name) {
     $specificMetadataFields = $this->getSpecificMetadataFields();
-    if (array_key_exists($name, $specificMetadataFields)) {
-      if (is_array($asset->metadata->fields->{$name}) && !empty($asset->metadata->fields->{$name})) {
-        return reset($asset->metadata->fields->{$name});
+    if ($asset->metadata !== NULL && property_exists($asset->metadata, 'fields') && array_key_exists($name, $specificMetadataFields)) {
+      if (empty($asset->metadata->fields->{$name})) {
+        return NULL;
+      }
+      if (is_array($asset->metadata->fields->{$name})) {
+        $value = reset($asset->metadata->fields->{$name});
+      }
+      else {
+        $value = $asset->metadata->fields->{$name};
       }
 
-      return !empty($asset->metadata->fields->{$name}) ? $asset->metadata->fields->{$name} : NULL;
+      $type = $specificMetadataFields[$name]['type'];
+      if ($type === 'datetime') {
+        $value = $this->formatDateForDateField($value);
+      }
+
+      return $value;
     }
 
     // Some properties are available either in image_properties or
@@ -226,6 +237,12 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *   Date to save into date field value.
    */
   protected function formatDateForDateField(string $date): string {
+    // The metadata field may be datetime and only be used to select a date.
+    // Currently, the API does not provide a valid date time format when the
+    // value is date only, but still reports as `datetime`.
+    if (!str_contains($date, 'T')) {
+      $date .= 'T00:00:00Z';
+    }
     $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $date);
     $date->setTimezone(new \DateTimeZone($this->config->get('timezone.default')));
     return $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);

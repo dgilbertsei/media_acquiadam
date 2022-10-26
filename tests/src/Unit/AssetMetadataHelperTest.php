@@ -73,6 +73,14 @@ class AssetMetadataHelperTest extends UnitTestCase {
         'label' => "author",
         'type' => "string",
       ],
+      'date_sent' => [
+        'label' => 'Date sent',
+        'type' => 'datetime',
+      ],
+      'date_approved' => [
+        'label' => 'Date approved',
+        'type' => 'datetime',
+      ],
     ]);
 
     $this->assertEquals("demoextid",
@@ -101,6 +109,12 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertEquals('2021-09-24T18:31:02',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'deleted_date'));
+    $this->assertEquals('2022-06-19T00:00:00',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'date_sent'));
+    $this->assertEquals('2022-06-19T12:33:12',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'date_approved'));
 
     $this->assertEquals(TRUE,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),

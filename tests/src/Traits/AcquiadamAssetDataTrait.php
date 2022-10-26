@@ -48,6 +48,12 @@ trait AcquiadamAssetDataTrait {
       'metadata' => [
         'fields' => [
           "author" => [],
+          'date_sent' => [
+            '2022-06-19',
+          ],
+          'date_approved' => [
+            '2022-06-19T12:33:12Z',
+          ],
         ],
       ],
       'metadata_info' => NULL,
