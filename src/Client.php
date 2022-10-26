@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Provides the integration with Acquia DAM.
+ * @phpcs:disable Drupal.Commenting.Deprecated
  */
 class Client {
 
@@ -644,7 +645,7 @@ class Client {
   }
 
   /**
-   * Edit an asset.
+   * Edit an asset metadata.
    *
    * If an asset is uploaded and its required fields are not filled in, the
    * asset is in onhold status and cannot be activated until all required fields
@@ -654,17 +655,16 @@ class Client {
    * @param string $assetID
    *   The asset to edit.
    * @param array $data
-   *   An array of values to set.
-   *    filename       string  The new filename for the asset.
-   *    status         string  The new status of the asset. Either active or
-   *                           inactive.
-   *    name           string  The new name for the asset.
-   *    description    string  The new description of the asset.
-   *    folder         long    The id of the folder to move asset to.
-   *    thumbnail_ttl  string  Time to live for thumbnails
-   *                             Default: Set by the account admin
-   *                             Values: '+3 min', '+15 min', '+2 hours',
-   *                             '+1 day', '+2 weeks', 'no-expiration'.
+   *   Contains lists of fields and data.
+   *
+   *   The $data should be an array keyed by metadata field names with an array
+   *   of values.
+   *
+   * @code
+   *    $data = [
+   *         'Color' => ['Red'],
+   *    ];
+   *  @endcode
    *
    * @return \Drupal\media_acquiadam\Entity\Asset|bool
    *   An asset object on success, or FALSE on failure.
@@ -672,15 +672,15 @@ class Client {
    * @throws \GuzzleHttp\Exception\GuzzleException
    * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
    */
-  public function editAsset(string $assetID, array $data) {
+  public function editAssetMetadata(string $assetID, array $data) {
     $this->checkAuth();
 
     $response = $this->client->request(
       'PUT',
-      $this->baseUrl . '/assets/' . $assetID,
+      $this->baseUrl . "/assets/$assetID/metadata",
       [
         'headers' => $this->getDefaultHeaders(),
-        RequestOptions::JSON => $data,
+        RequestOptions::JSON => ['fields' => $data],
       ]
     );
 
@@ -691,6 +691,24 @@ class Client {
     $asset = Asset::fromJson((string) $response->getBody());
 
     return $asset;
+  }
+
+  /**
+   * Edit an asset.
+   *
+   * @deprecated in media_acquia_dam:2.0.7 and will not be replaced. Call
+   *  `editAssetMetadata` directly.
+   *
+   * @see Client::editAssetMetadata()
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *
+   * @throws \Drupal\media_acquiadam\Exception\InvalidCredentialsException
+   */
+  public function editAsset(string $assetID, array $data) {
+    // phpcs:ignore Drupal.Semantics.FunctionTriggerError
+    @trigger_error('Client::editAsset() is deprecated in media_acquia_dam:2.0.7 and will not be replaced. Call Client::editAssetMetadata directly.', E_USER_DEPRECATED);
+    return $this->editAssetMetadata($assetID, $data);
   }
 
   /**
