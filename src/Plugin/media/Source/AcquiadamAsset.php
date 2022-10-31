@@ -242,14 +242,14 @@ class AcquiadamAsset extends MediaSourceBase {
       'release_date',
     ];
     if (in_array($name, $datetime_properties, TRUE)) {
-      $value = $this->transformMetadataForStorage($value,'datetime', $field_definition);
+      $value = $this->transformMetadataForStorage($value, 'datetime', $field_definition);
     }
     elseif (isset($specificMetadataFields[$name])) {
       $type = $specificMetadataFields[$name]['type'];
       // The v1 API reports date metadata types as `datetime`, but they are
       // only dates.
       if ($type === 'datetime') {
-        $value = $this->transformMetadataForStorage($value,'date', $field_definition);
+        $value = $this->transformMetadataForStorage($value, 'date', $field_definition);
       }
     }
     return $value;
@@ -312,7 +312,7 @@ class AcquiadamAsset extends MediaSourceBase {
    *   The date time format.
    *
    * @return string
-   *  The formatted date.
+   *   The formatted date.
    */
   private function formatDateForDateField(string $value, string $source_format, string $format): string {
     try {
