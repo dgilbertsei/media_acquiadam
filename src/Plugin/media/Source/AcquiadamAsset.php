@@ -3,10 +3,14 @@
 namespace Drupal\media_acquiadam\Plugin\media\Source;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItem;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\file\FileInterface;
 use Drupal\media\MediaInterface;
 use Drupal\media\MediaSourceBase;
@@ -212,10 +216,128 @@ class AcquiadamAsset extends MediaSourceBase {
     if ($this->currentAsset === NULL) {
       return NULL;
     }
-    return $this->assetMetadataHelper->getMetadataFromAsset(
+    $specificMetadataFields = $this->assetMetadataHelper->getSpecificMetadataFields();
+    $value = $this->assetMetadataHelper->getMetadataFromAsset(
       $this->currentAsset,
       $name
     );
+    if ($value === NULL) {
+      return $value;
+    }
+
+    // The field mapping is used by some attributes to transform values for
+    // better storage compatibility.
+    $field_map = $media->bundle->entity->getFieldMap();
+    $field_definition = NULL;
+    if (isset($field_map[$name])) {
+      $field_definition = $media->getFieldDefinition($field_map[$name]);
+    }
+
+    $datetime_properties = [
+      'created_date',
+      'last_update_date',
+      'file_upload_date',
+      'deleted_date',
+      'expiration_date',
+      'release_date',
+    ];
+    if (in_array($name, $datetime_properties, TRUE)) {
+      $value = $this->transformMetadataForStorage($value, 'datetime', $field_definition);
+    }
+    elseif (isset($specificMetadataFields[$name])) {
+      $type = $specificMetadataFields[$name]['type'];
+      // The v1 API reports date metadata types as `datetime`, but they are
+      // only dates.
+      if ($type === 'datetime') {
+        $value = $this->transformMetadataForStorage($value, 'date', $field_definition);
+      }
+    }
+    return $value;
+  }
+
+  /**
+   * Transforms metadata values for field storage.
+   *
+   * @param string|array $value
+   *   The metadata's value.
+   * @param string $metadata_type
+   *   The metadata's type.
+   * @param \Drupal\Core\Field\FieldDefinitionInterface|null $field_definition
+   *   The field definition, if metadata is mapped to a field.
+   *
+   * @return string|array
+   *   The transformed metadata values.
+   */
+  private function transformMetadataForStorage($value, string $metadata_type, ?FieldDefinitionInterface $field_definition) {
+    if ($field_definition === NULL) {
+      return $value;
+    }
+    $field_type = $field_definition->getType();
+    $field_storage_definition = $field_definition->getFieldStorageDefinition();
+
+    if (in_array($metadata_type, ['date', 'datetime'])) {
+      $source_format = $metadata_type === 'date' ? 'Y-m-d' : \DateTimeInterface::ATOM;
+      if ($field_type === 'datetime') {
+        $datetime_type = $field_storage_definition->getSetting('datetime_type');
+        $format = $datetime_type === DateTimeItem::DATETIME_TYPE_DATETIME ? DateTimeItemInterface::DATETIME_STORAGE_FORMAT : DateTimeItemInterface::DATE_STORAGE_FORMAT;
+      }
+      elseif ($field_type === 'timestamp') {
+        $format = 'U';
+      }
+      else {
+        return $value;
+      }
+
+      if (is_array($value)) {
+        $value = array_map(function ($value) use ($source_format, $format) {
+          return $this->formatDateForDateField($value, $source_format, $format);
+        }, $value);
+      }
+      else {
+        $value = $this->formatDateForDateField($value, $source_format, $format);
+      }
+    }
+
+    return $value;
+  }
+
+  /**
+   * Formats date coming from DAM to save into storage.
+   *
+   * @param string $value
+   *   Date string coming from API in ISO8601 format.
+   * @param string $source_format
+   *   The source date time format.
+   * @param string $format
+   *   The date time format.
+   *
+   * @return string
+   *   The formatted date.
+   */
+  private function formatDateForDateField(string $value, string $source_format, string $format): string {
+    try {
+      $date = DrupalDateTime::createFromFormat(
+        $source_format,
+        $value,
+        'UTC',
+        [
+          // We do not want to validate the format. Incoming ISO8601 has the Z
+          // timezone offset, while PHP may return +00:00 when comparing the
+          // output with the `P` option.
+          'validate_format' => FALSE,
+        ]
+      );
+      // If the format did not include an explicit time portion, then the time
+      // will be set from the current time instead. Provide a default for
+      // consistent values.
+      if (!str_contains($value, 'T')) {
+        $date->setDefaultDateTime();
+      }
+    }
+    catch (\InvalidArgumentException | \UnexpectedValueException $exception) {
+      return $value;
+    }
+    return $date->format($format);
   }
 
 }

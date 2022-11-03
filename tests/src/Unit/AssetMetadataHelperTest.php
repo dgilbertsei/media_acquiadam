@@ -73,6 +73,14 @@ class AssetMetadataHelperTest extends UnitTestCase {
         'label' => "author",
         'type' => "string",
       ],
+      'date_sent' => [
+        'label' => 'Date sent',
+        'type' => 'datetime',
+      ],
+      'date_approved' => [
+        'label' => 'Date approved',
+        'type' => 'datetime',
+      ],
     ]);
 
     $this->assertEquals("demoextid",
@@ -83,24 +91,30 @@ class AssetMetadataHelperTest extends UnitTestCase {
         'filename'));
 
     // Check date properties.
-    $this->assertEquals('2021-09-24T18:31:02',
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'created_date'));
-    $this->assertEquals('2021-09-24T18:31:02',
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'release_date'));
-    $this->assertEquals('2026-09-24T18:31:02',
+    $this->assertEquals('2026-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'expiration_date'));
-    $this->assertEquals('2021-09-27T12:21:21',
+    $this->assertEquals('2021-09-27T12:21:21Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'last_update_date'));
-    $this->assertEquals('2021-09-24T18:31:02',
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'file_upload_date'));
-    $this->assertEquals('2021-09-24T18:31:02',
+    $this->assertEquals('2021-09-24T18:31:02Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'deleted_date'));
+    $this->assertEquals('2022-06-19',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'date_sent'));
+    $this->assertEquals('2022-06-19T12:33:12Z',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'date_approved'));
 
     $this->assertEquals(TRUE,
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),

@@ -103,7 +103,7 @@ class Asset implements EntityInterface, \JsonSerializable {
   /**
    * The asset's metadata.
    *
-   * @var array
+   * @var object
    */
   public $metadata;
 
