@@ -14,7 +14,8 @@
         "drupal/fallback_formatter": "^1.0"
     },
     "require-dev": {
-        "drupal/entity_browser": "2.x-dev"
+        "drupal/entity_browser": "2.x-dev",
+        "drupal/linkit": "6.0.x-dev"
     },
     "extra": {
         "branch-alias": {
