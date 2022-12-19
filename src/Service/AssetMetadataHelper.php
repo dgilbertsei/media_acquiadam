@@ -126,6 +126,8 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
       'width' => $this->t('Width'),
       'popularity' => $this->t('Popularity'),
       'duration' => $this->t('Duration'),
+      'format' => $this->t('Format'),
+      'format_type' => $this->t('Format Type'),
     ];
 
     // Add specific metadata fields to fields array.
@@ -185,6 +187,10 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
         return $asset->asset_properties->popularity ?? NULL;
 
       case 'size_in_kbytes':
+        return $asset->file_properties->{$name} ?? NULL;
+
+      case 'format':
+      case 'format_type':
         return $asset->file_properties->{$name} ?? NULL;
 
       case 'height':

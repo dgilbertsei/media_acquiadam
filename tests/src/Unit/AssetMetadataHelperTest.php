@@ -62,6 +62,8 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertArrayHasKey('popularity', $attributes);
     $this->assertArrayHasKey('author', $attributes);
     $this->assertArrayNotHasKey('missing_attribute', $attributes);
+    $this->assertArrayHasKey('format', $attributes);
+    $this->assertArrayHasKey('format_type', $attributes);
   }
 
   /**
@@ -89,6 +91,13 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertEquals('theHumanRaceMakesSense.jpg',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'filename'));
+
+    $this->assertEquals("JPEG",
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'format'));
+    $this->assertEquals('image',
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'format_type'));
 
     // Check date properties.
     $this->assertEquals('2021-09-24T18:31:02Z',
