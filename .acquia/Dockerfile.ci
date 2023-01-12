@@ -1,8 +1,8 @@
-ARG BASE_IMAGE=devops-orca-container:latest
+ARG BASE_IMAGE=devops-orca-container:php81
 
 ARG REPO_LOCATION
 
-ARG ORCA_VERSION=^3
+ARG ORCA_VERSION=3.26.0
 
 FROM ${REPO_LOCATION}${BASE_IMAGE}
 
