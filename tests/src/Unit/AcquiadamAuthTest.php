@@ -61,8 +61,8 @@ class AcquiadamAuthTest extends UnitTestCase {
   public function testAuthenticate() {
     $authResponse = $this->acquidamAuth::authenticate('n00y84cn9gto9989hrh89e3606c89yui');
 
-    $this->assertObjectHasAttribute('access_token', $authResponse);
-    $this->assertObjectHasAttribute('username', $authResponse);
+    self::assertTrue(property_exists($authResponse, 'access_token'));
+    self::assertTrue(property_exists($authResponse, 'username'));
     $this->assertNotEmpty($authResponse->access_token);
     $this->assertStringContainsString('subdomain/l0p94ab7m05646d0a7f2dc023b94nm90', $authResponse->access_token);
     $this->assertStringContainsString('abc@abc.com', $authResponse->username);

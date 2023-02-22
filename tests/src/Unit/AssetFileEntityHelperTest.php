@@ -60,7 +60,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
     $asset_data = $this->getAssetData();
     $media = $this->getMockedMediaEntity($asset_data->id);
 
-    $this->assertEquals('private://acquiadam_assets/2021-09',
+    $this->assertEquals('private://assets/replaced',
       $this->assetFileEntityHelper->getDestinationFromEntity(
         $media,
         'phpunit_file_field',
@@ -68,7 +68,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
       )
     );
 
-    $this->assertEquals('public://acquiadam_assets/2021-09',
+    $this->assertEquals('public://acquiadam_assets/[date:custom:Y]-[date:custom:m]',
       $this->assetFileEntityHelper->getDestinationFromEntity(
         $media,
         'phpunit_test_fail',

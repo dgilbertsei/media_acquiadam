@@ -212,6 +212,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    */
   public function getDestinationFromEntity(EntityInterface $entity, string $fileField, string $upload_date): string {
     $scheme = $this->configFactory->get('system.file')->get('default_scheme');
+    $file_directory = 'acquiadam_assets/[date:custom:Y]-[date:custom:m]';
 
     // Load the field definitions for this bundle.
     $field_definitions = $this->entityFieldManager->getFieldDefinitions(
@@ -222,11 +223,15 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
     if (!empty($field_definitions[$fileField])) {
       $definition = $field_definitions[$fileField]->getItemDefinition();
       $scheme = $definition->getSetting('uri_scheme');
+      $file_directory = $definition->getSetting('file_directory');
     }
 
-    $date = \DateTime::createFromFormat(\DateTimeInterface::ISO8601, $upload_date);
+    // Replace the token for file directory.
+    if (!empty($file_directory)) {
+      $file_directory = $this->token->replace($file_directory);
+    }
 
-    return sprintf('%s://%s/%s', $scheme, 'acquiadam_assets', $date->format('Y-m'));
+    return sprintf('%s://%s', $scheme, $file_directory);
   }
 
   /**
