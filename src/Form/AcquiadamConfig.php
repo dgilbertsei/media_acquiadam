@@ -239,6 +239,7 @@ class AcquiadamConfig extends ConfigFormBase {
           'png' => $this->t('PNG'),
           'jpeg' => $this->t('JPEG'),
           'gif' => $this->t('GIF'),
+          'webp' => $this->t('WEBP'),
         ],
         '#default_value' => $config->get('image_format') ?? 'png',
       ];
