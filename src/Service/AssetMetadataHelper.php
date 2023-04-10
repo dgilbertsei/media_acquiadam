@@ -148,24 +148,21 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
    *   The asset to get metadata from.
    * @param string $name
    *   The name of the metadata item to retrieve.
+   * @param bool $is_multiple
+   *   Determines whether media field is multi value field or not.
    *
    * @return mixed
    *   Result will vary based on the metadata item.
    */
-  public function getMetadataFromAsset(Asset $asset, $name) {
+  public function getMetadataFromAsset(Asset $asset, $name, $is_multiple = FALSE) {
     $specificMetadataFields = $this->getSpecificMetadataFields();
     if ($asset->metadata !== NULL && property_exists($asset->metadata, 'fields') && array_key_exists($name, $specificMetadataFields)) {
       if (empty($asset->metadata->fields->{$name})) {
         return NULL;
       }
-      if (is_array($asset->metadata->fields->{$name})) {
-        $value = reset($asset->metadata->fields->{$name});
-      }
-      else {
-        $value = $asset->metadata->fields->{$name};
-      }
+      $value = $asset->metadata->fields->{$name};
 
-      return $value;
+      return $is_multiple ? $value : implode(', ', $value);
     }
 
     // Some properties are available either in image_properties or

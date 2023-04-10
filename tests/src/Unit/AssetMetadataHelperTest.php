@@ -121,6 +121,9 @@ class AssetMetadataHelperTest extends UnitTestCase {
     $this->assertEquals('2022-06-19',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'date_sent'));
+    $this->assertEquals(['2022-06-19'],
+      $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
+        'date_sent', TRUE));
     $this->assertEquals('2022-06-19T12:33:12Z',
       $this->assetMetadataHelper->getMetadataFromAsset($this->getAssetData(),
         'date_approved'));

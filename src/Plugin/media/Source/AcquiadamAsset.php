@@ -216,14 +216,6 @@ class AcquiadamAsset extends MediaSourceBase {
     if ($this->currentAsset === NULL) {
       return NULL;
     }
-    $specificMetadataFields = $this->assetMetadataHelper->getSpecificMetadataFields();
-    $value = $this->assetMetadataHelper->getMetadataFromAsset(
-      $this->currentAsset,
-      $name
-    );
-    if ($value === NULL) {
-      return $value;
-    }
 
     // The field mapping is used by some attributes to transform values for
     // better storage compatibility.
@@ -231,6 +223,19 @@ class AcquiadamAsset extends MediaSourceBase {
     $field_definition = NULL;
     if (isset($field_map[$name])) {
       $field_definition = $media->getFieldDefinition($field_map[$name]);
+    }
+
+    // True if mapped field is multivalue otherwise false.
+    $is_multiple = $field_definition && $field_definition->getFieldStorageDefinition()->isMultiple();
+
+    $specificMetadataFields = $this->assetMetadataHelper->getSpecificMetadataFields();
+    $value = $this->assetMetadataHelper->getMetadataFromAsset(
+      $this->currentAsset,
+      $name,
+      $is_multiple
+    );
+    if ($value === NULL) {
+      return $value;
     }
 
     $datetime_properties = [
