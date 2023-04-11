@@ -289,6 +289,12 @@ class AcquiadamConfig extends ConfigFormBase {
       '#description' => $this->t('Report to Acquia DAM when a Media Entity using an Acquia DAM asset is created.'),
       '#default_value' => $config->get('report_asset_usage') ?? 1,
     ];
+    $form['misc']['exact_category_search'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Use exact search for categories'),
+      '#description' => $this->t('Use exact search instead of phrase search when retrieving assets from categories.'),
+      '#default_value' => $config->get('exact_category_search') ?? TRUE,
+    ];
 
     // Need to replace the original validate to prevent it running when the ajax
     // callback is running.
@@ -331,6 +337,7 @@ class AcquiadamConfig extends ConfigFormBase {
       ->set('sync_perform_delete', $form_state->getValue('sync_perform_delete'))
       ->set('num_assets_per_page', $form_state->getValue('num_assets_per_page'))
       ->set('report_asset_usage', $form_state->getValue('report_asset_usage'))
+      ->set('exact_category_search', $form_state->getValue('exact_category_search'))
       ->save();
 
     parent::submitForm($form, $form_state);

@@ -383,7 +383,8 @@ class Acquiadam extends WidgetBase {
       if (count($current_category->parts) > 0) {
         $category_name = implode('/', $current_category->parts);
       }
-      $category_assets = $this->acquiadam->getAssetsByCategory($category_name, $params);
+      $exact_search = $config->get('exact_category_search') ?? TRUE;
+      $category_assets = $this->acquiadam->getAssetsByCategory($category_name, $params, $exact_search);
       if ($total_category == 0 || $total_category <= $offset || $total_category < $num_per_page) {
         $items = $category_assets['assets'] ?? [];
       }

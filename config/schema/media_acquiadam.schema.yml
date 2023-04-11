@@ -39,7 +39,9 @@ media_acquiadam.settings:
     report_asset_usage:
       type: integer
       label: 'Report asset usage'
-
+    exact_category_search:
+      type: boolean
+      label: 'Use exact search for categories'
 media.source.acquiadam_asset:
   type: media.source.field_aware
   label: 'Acquia DAM asset media source configuration'

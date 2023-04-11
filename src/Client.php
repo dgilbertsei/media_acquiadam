@@ -446,6 +446,8 @@ class Client {
    *   Category name.
    * @param array $params
    *   Additional query parameters for the request.
+   * @param bool $exact_search
+   *   Use exact search instead of phrase search.
    *
    * @return array
    *   Contains the following keys:
@@ -453,11 +455,18 @@ class Client {
    *       pages.
    *     - assets: an array of Asset objects.
    *
+   * @link https://community.widen.com/collective/s/article/How-do-I-search-for-assets
+   *
    * @throws \GuzzleHttp\Exception\GuzzleException
    */
-  public function getAssetsByCategory(string $category_name, array $params = []): array {
+  public function getAssetsByCategory(string $category_name, array $params = [], bool $exact_search = TRUE): array {
     if ($category_name) {
-      $params['query'] = 'category:' . $category_name;
+      if ($exact_search) {
+        $params['query'] = 'category:({' . $category_name . '})';
+      }
+      else {
+        $params['query'] = 'category:' . $category_name;
+      }
     }
 
     // Fetch all assets of current category.

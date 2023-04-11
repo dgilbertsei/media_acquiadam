@@ -9,3 +9,4 @@ image_format: "original"
 sync_perform_delete: 0
 num_assets_per_page: 12
 report_asset_usage: 1
+exact_category_search: true
