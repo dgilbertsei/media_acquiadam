@@ -52,6 +52,13 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   protected $acquiaAssetData;
 
   /**
+   * The initial asset for this test.
+   *
+   * @var \Drupal\media_acquiadam\Entity\Asset
+   */
+  protected $asset;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -98,7 +105,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
       ->getMock();
     $asset_data->expects($this->any())
       ->method('get')->willReturn(function ($assetId, $name) {
-        return $this->asset->${name};
+        return $this->asset->{$name};
       });
     $asset_data->expects($this->any())
       ->method('isUpdatedAsset')->willReturn(TRUE);

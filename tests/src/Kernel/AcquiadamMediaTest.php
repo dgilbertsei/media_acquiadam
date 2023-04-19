@@ -15,13 +15,6 @@ use Drupal\media_acquiadam\Plugin\media\Source\AcquiadamAsset;
 class AcquiadamMediaTest extends AcquiadamKernelTestBase {
 
   /**
-   * The initial asset for this test.
-   *
-   * @var \Drupal\media_acquiadam\Entity\Asset
-   */
-  protected $asset;
-
-  /**
    * The media entity with mocked asset data.
    *
    * @var \Drupal\media\Entity\Media

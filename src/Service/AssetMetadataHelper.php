@@ -119,7 +119,6 @@ class AssetMetadataHelper implements ContainerInjectionInterface {
       'released_and_not_expired' => $this->t('Released and not expired'),
       'expiration_date' => $this->t('Expiration date'),
       'release_date' => $this->t('Release date'),
-      'format' => $this->t('Format'),
       'file' => $this->t('File'),
       'size_in_kbytes' => $this->t('Filesize (kb)'),
       'height' => $this->t('Height'),

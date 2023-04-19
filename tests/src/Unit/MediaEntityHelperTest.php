@@ -34,6 +34,13 @@ class MediaEntityHelperTest extends UnitTestCase {
   protected $container;
 
   /**
+   * The test client.
+   *
+   * @var \Drupal\media_acquiadam\Acquiadam|\PHPUnit\Framework\MockObject\MockObject
+   */
+  private $acquiadamClient;
+
+  /**
    * Validate we can get file from a media entity.
    */
   public function testGetFile() {

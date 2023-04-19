@@ -23,7 +23,7 @@ class AcquiadamUpdateAssetsReference {
 
     // Build an associative array of all the existing AcquiaDam media. The key
     // is the asset id (from AcquiaDam), the value is the media id (Drupal).
-    $asset_id_fields = acquia_acquiadam_get_bundle_asset_id_fields();
+    $asset_id_fields = media_acquiadam_get_bundle_asset_id_fields();
     $ids = [];
     foreach ($asset_id_fields as $bundle => $field) {
       $query = \Drupal::database()->select('media__' . $field, 'asset')

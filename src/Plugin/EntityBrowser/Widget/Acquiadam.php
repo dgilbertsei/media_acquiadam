@@ -94,11 +94,18 @@ class Acquiadam extends WidgetBase {
   protected $requestStack;
 
   /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
+
+  /**
    * Acquiadam constructor.
    *
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, WidgetValidationManager $validation_manager, AcquiadamInterface $acquiadam, AccountInterface $account, LanguageManagerInterface $languageManager, ModuleHandlerInterface $moduleHandler, MediaSourceManager $sourceManager, UserDataInterface $userData, RequestStack $requestStack, ConfigFactoryInterface $config) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EventDispatcherInterface $event_dispatcher, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, WidgetValidationManager $validation_manager, AcquiadamInterface $acquiadam, AccountInterface $account, LanguageManagerInterface $languageManager, ModuleHandlerInterface $moduleHandler, MediaSourceManager $sourceManager, UserDataInterface $userData, RequestStack $requestStack, ConfigFactoryInterface $config_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $event_dispatcher, $entity_type_manager, $validation_manager);
     $this->acquiadam = $acquiadam;
     $this->user = $account;
@@ -108,7 +115,7 @@ class Acquiadam extends WidgetBase {
     $this->entityFieldManager = $entity_field_manager;
     $this->userData = $userData;
     $this->requestStack = $requestStack;
-    $this->config = $config;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -234,7 +241,7 @@ class Acquiadam extends WidgetBase {
 
     // Start by inheriting parent form.
     $form = parent::getForm($original_form, $form_state, $additional_widget_parameters);
-    $config = $this->config->get('media_acquiadam.settings');
+    $config = $this->configFactory->get('media_acquiadam.settings');
 
     // Attach the modal library.
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';

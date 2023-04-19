@@ -7,6 +7,7 @@ use Drupal\Core\Routing\RouteObjectInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\media_acquiadam\Entity\Asset;
 use Drupal\media_acquiadam\Entity\Category;
+use Drupal\media_acquiadam\Exception\UploadAssetException;
 use Drupal\user\UserDataInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\RequestOptions;
@@ -404,7 +405,7 @@ class Client {
    * @return string
    *   Acquia DAM response (asset id).
    *
-   * @throws UploadAssetException
+   * @throws \Drupal\media_acquiadam\Exception\UploadAssetException
    *   If uploadAsset fails we throw an instance of UploadAssetException
    *   that contains a message for the caller.
    */
