@@ -72,15 +72,16 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
    * Tests updating media entity when new version is available.
    */
   public function testNewVersionUpdate() {
-
+    $original_file_uri = $this->getAssetFileEntity($this->media)->getFileUri();
     $this->saveNewVersion();
 
     $file = $this->getAssetFileEntity($this->media);
     $file_uri = $file->getFileUri();
-    $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
+    $version_filename_asset_uri = $this->getAssetUri($this->asset, $this->media);
 
     $this->assertEquals($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
-    $this->assertEquals($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
+    $this->assertEquals($file_uri, $original_file_uri, 'New version file path matches existing.');
+    $this->assertNotEquals($file_uri, $version_filename_asset_uri, 'File URI not changed to new filename.');
     $this->assertEquals($file->label(), $this->asset->filename, 'File entity label updated as expected.');
   }
 

@@ -246,17 +246,6 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   The created file or FALSE on failure.
    */
   public function createNewFile(Asset $asset, $destination_folder) {
-    // Ensure we can write to our destination directory.
-    if (!$this->fileSystem->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
-      $this->loggerChannel->warning(
-        'Unable to save file for asset ID @asset_id on directory @destination_folder.', [
-          '@asset_id' => $asset->id,
-          '@destination_folder' => $destination_folder,
-        ]
-      );
-      return FALSE;
-    }
-
     // By default, we use the filename attribute as the file name. However,
     // because the actual file format may differ than the file name (specially
     // for the images which are downloaded as png), we pass the filename
@@ -267,13 +256,27 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
       return FALSE;
     }
 
-    $destination_path = sprintf('%s/%s', $destination_folder, $filename);
-
-    $existing = $this->assetMediaFactory->getFileEntity($asset->id);
-
-    $file = $existing instanceof FileInterface ?
-      $this->replaceExistingFile($existing, $file_contents, $destination_path) :
-      $this->drupalFileSaveData($file_contents, $destination_path);
+    $file = $this->assetMediaFactory->getFileEntity($asset->id);
+    if ($file instanceof FileInterface) {
+      $uri = $this->fileSystem->saveData($file_contents, $file->getFileUri(), FileSystemInterface::EXISTS_REPLACE);
+      $file->setFileUri($uri);
+      $file->setFilename($filename);
+      $file->save();
+    }
+    else {
+      // Ensure we can write to our destination directory.
+      if (!$this->fileSystem->prepareDirectory($destination_folder, FileSystemInterface::CREATE_DIRECTORY)) {
+        $this->loggerChannel->warning(
+          'Unable to save file for asset ID @asset_id on directory @destination_folder.', [
+            '@asset_id' => $asset->id,
+            '@destination_folder' => $destination_folder,
+          ]
+        );
+        return FALSE;
+      }
+      $destination_path = sprintf('%s/%s', $destination_folder, $filename);
+      $file = $this->drupalFileSaveData($file_contents, $destination_path);
+    }
 
     if ($file instanceof FileInterface) {
       return $file;
@@ -392,28 +395,6 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
 
     $base_file_name = pathinfo($original_name, PATHINFO_FILENAME);
     return sprintf('%s/%s.%s', $destination, $base_file_name, $ext);
-  }
-
-  /**
-   * Replaces the binary contents of the given file entity.
-   *
-   * @param \Drupal\file\FileInterface $file
-   *   The file entity to replace the binary contents of.
-   * @param mixed $data
-   *   The contents to save.
-   * @param string $destination
-   *   The destination uri to save to.
-   *
-   * @return \Drupal\file\FileInterface
-   *   The file entity that was updated.
-   */
-  protected function replaceExistingFile(FileInterface $file, $data, $destination) {
-    $uri = $this->fileSystem->saveData($data, $destination, FileSystemInterface::EXISTS_REPLACE);
-    $file->setFileUri($uri);
-    $file->setFilename($this->fileSystem->basename($destination));
-    $file->save();
-
-    return $file;
   }
 
   /**
