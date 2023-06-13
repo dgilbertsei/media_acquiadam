@@ -46,17 +46,12 @@ class AssetDataTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $connection = $this->getMockBuilder(Connection::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $connection = $this->createMock(Connection::class);
 
-    $asset_data = $this->getMockBuilder(AssetData::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['get', 'set'])
-      ->getMock();
+    $asset_data = $this->createMock(AssetData::class);
     $asset_data->method('get')->willReturnMap([
       [3455969, 'version', 3],
       [3455970, 'version', 4],

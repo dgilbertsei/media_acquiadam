@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\media_acquiadam\Unit;
 
+use Symfony\Component\Mime\MimeTypesInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\Image\ImageFactory;
@@ -10,7 +11,6 @@ use Drupal\Tests\media_acquiadam\Traits\AcquiadamAssetDataTrait;
 use Drupal\Tests\media_acquiadam\Traits\AcquiadamConfigTrait;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\Client as GuzzleClient;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 
 /**
  * Tests integration of the AssetImageHelper service.
@@ -187,12 +187,10 @@ class AssetImageHelperTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $http_client = $this->getMockBuilder(GuzzleClient::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $http_client = $this->createMock(GuzzleClient::class);
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
@@ -203,9 +201,7 @@ class AssetImageHelperTest extends UnitTestCase {
         return is_string($target) ? $target . '_copy' : $target . '_blah';
       });
 
-    $mime_type_guesser = $this->getMockBuilder(MimeTypeGuesserInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $mime_type_guesser = $this->createMock(MimeTypesInterface::class);
     $mime_type_guesser->method('guess')->willReturnCallback(function ($uri) {
       $map = [
         'public://nothing.jpg' => 'image/jpg',
@@ -216,9 +212,7 @@ class AssetImageHelperTest extends UnitTestCase {
       return $map[$uri] ?? FALSE;
     });
 
-    $image_factory = $this->getMockBuilder(ImageFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $image_factory = $this->createMock(ImageFactory::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('http_client', $http_client);

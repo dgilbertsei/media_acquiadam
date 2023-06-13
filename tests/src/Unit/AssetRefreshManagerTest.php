@@ -562,49 +562,31 @@ class AssetRefreshManagerTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $this->acquiadamClient = $this->getMockBuilder(Acquiadam::class)
-      ->setMethods(['getNotifications'])
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->acquiadamClient = $this->createMock(Acquiadam::class);
 
-    $this->state = $this->getMockBuilder(State::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->state = $this->createMock(State::class);
 
-    $this->queue = $this->getMockBuilder(DatabaseQueue::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->queue = $this->createMock(DatabaseQueue::class);
     /** @var \Drupal\Core\Queue\QueueFactory|\PHPUnit\Framework\MockObject\MockObject $queue_factory */
-    $queue_factory = $this->getMockBuilder(QueueFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $queue_factory = $this->createMock(QueueFactory::class);
     $queue_factory->method('get')
       ->willReturn($this->queue);
 
-    $this->entityQuery = $this->getMockBuilder(Query::class)
-      ->setMethods(['orConditionGroup', 'condition', 'execute', 'get'])
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->entityQuery = $this->createMock(Query::class);
 
-    $entity_storage = $this->getMockBuilder(EntityStorageInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_storage = $this->createMock(EntityStorageInterface::class);
     $entity_storage->method('getQuery')->willReturn($this->entityQuery);
 
-    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
     $entity_type_manager->method('getStorage')->willReturnMap([
       ['media', $entity_storage],
     ]);
 
     /** @var \Drupal\Component\Datetime\Time|\PHPUnit\Framework\MockObject\MockObject $time */
-    $time = $this->getMockBuilder(Time::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $time = $this->createMock(Time::class);
     $time->method('getRequestTime')
       ->willReturn(self::REQUEST_TIME);
 

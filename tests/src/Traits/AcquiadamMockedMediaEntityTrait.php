@@ -29,29 +29,19 @@ trait AcquiadamMockedMediaEntityTrait {
   protected function getMockedMediaEntity($assetId, $sourceField = NULL, $mediaEntityId = 47247625) {
     $sourceField = $sourceField ?? 'phpunit_asset_id_field';
 
-    $source_field_definition = $this->getMockBuilder(FieldDefinitionInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $source_field_definition = $this->createMock(FieldDefinitionInterface::class);
     $source_field_definition->method('getName')
       ->willReturn($sourceField);
 
-    $media_source = $this->getMockBuilder(MediaSourceInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media_source = $this->createMock(MediaSourceInterface::class);
     $media_source->method('getSourceFieldDefinition')
       ->willReturn($source_field_definition);
 
-    $media_bundle = $this->getMockBuilder(MediaTypeInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $bundle_definition = $this->getMockBuilder(EntityReferenceFieldItemListInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media_bundle = $this->createMock(MediaTypeInterface::class);
+    $bundle_definition = $this->createMock(EntityReferenceFieldItemListInterface::class);
     $bundle_definition->entity = $media_bundle;
 
-    $media = $this->getMockBuilder(MediaInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media = $this->createMock(MediaInterface::class);
 
     $media->method('getSource')->willReturn($media_source);
     $media->method('uuid')->willReturn('e63ce44d-4cfe-44d4-af7d-0692821d52cc');
@@ -68,20 +58,14 @@ trait AcquiadamMockedMediaEntityTrait {
       ->with('bundle')
       ->willReturn($bundle_definition);
 
-    $file_field = $this->getMockBuilder(\stdClass::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['first', 'mainPropertyName'])
-      ->getMock();
+    $file_field = $this->createMock(\stdClass::class);
     $file_field->method('first')->willReturnSelf();
     $file_field->method('mainPropertyName')->willReturn('target_id');
 
     $media->phpunit_file_field = $file_field;
     $media->phpunit_file_field->target_id = $this->getMockedFileEntity()->id();
 
-    $asset_id_field = $this->getMockBuilder(\stdClass::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['first', 'mainPropertyName'])
-      ->getMock();
+    $asset_id_field = $this->createMock(\stdClass::class);
     $asset_id_field->method('first')->willReturnSelf();
     $asset_id_field->method('mainPropertyName')->willReturn('value');
 
@@ -98,9 +82,7 @@ trait AcquiadamMockedMediaEntityTrait {
    *   A mocked file entity.
    */
   protected function getMockedFileEntity() {
-    $file_entity = $this->getMockBuilder(FileInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $file_entity = $this->createMock(FileInterface::class);
     $file_entity->method('id')->willReturn(894782578);
 
     return $file_entity;

@@ -363,7 +363,7 @@ class AssetFileEntityHelper implements ContainerInjectionInterface {
    *   A file entity, or FALSE on error.
    */
   protected function drupalFileSaveData($data, $destination = NULL) {
-    return file_save_data($data, $destination, FileSystemInterface::EXISTS_REPLACE);
+    return \Drupal::service('file.repository')->writeData($data, $destination, FileSystemInterface::EXISTS_REPLACE);
   }
 
 }

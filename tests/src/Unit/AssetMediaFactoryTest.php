@@ -186,23 +186,19 @@ class AssetMediaFactoryTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $asset = $this->getAssetData();
 
     $this->mediaEntity = $this->getMockedMediaEntity($asset->id);
 
-    $media_bundle = $this->getMockBuilder(MediaTypeInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media_bundle = $this->createMock(MediaTypeInterface::class);
     $media_bundle->method('getSource')->willReturn($this->mediaEntity->getSource());
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
 
-    $entity_storage = $this->getMockBuilder(EntityStorageInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_storage = $this->createMock(EntityStorageInterface::class);
     $entity_storage->method('loadByProperties')
       ->with(['source' => 'acquiadam_asset'])
       ->willReturn([
@@ -215,26 +211,18 @@ class AssetMediaFactoryTest extends UnitTestCase {
       ['acquiadam', $media_bundle],
     ]);
 
-    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
     $entity_type_manager->method('getStorage')->willReturnMap([
       ['media_type', $entity_storage],
       ['media', $entity_storage],
       ['file', $entity_storage],
     ]);
 
-    $asset_data = $this->getMockBuilder(AssetDataInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_data = $this->createMock(AssetDataInterface::class);
 
-    $acquiadam_client = $this->getMockBuilder(AcquiadamInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam_client = $this->createMock(AcquiadamInterface::class);
 
-    $asset_file_helper = $this->getMockBuilder(AssetFileEntityHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_file_helper = $this->createMock(AssetFileEntityHelper::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('entity_type.manager', $entity_type_manager);

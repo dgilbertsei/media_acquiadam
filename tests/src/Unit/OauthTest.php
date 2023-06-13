@@ -74,12 +74,10 @@ class OauthTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
-    $csrf_token = $this->getMockBuilder(CsrfTokenGenerator::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $csrf_token = $this->createMock(CsrfTokenGenerator::class);
     $csrf_token->expects($this->any())
       ->method('get')
       ->willReturn('testToken112233');
@@ -92,16 +90,12 @@ class OauthTest extends UnitTestCase {
       ->with('testToken112233')
       ->willReturn(TRUE);
 
-    $url_generator = $this->getMockBuilder(UrlGeneratorInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $url_generator = $this->createMock(UrlGeneratorInterface::class);
     $url_generator->expects($this->any())
       ->method('generateFromRoute')
       ->willReturn('some/url/test');
 
-    $unrouted_url_assembler = $this->getMockBuilder(UnroutedUrlAssemblerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $unrouted_url_assembler = $this->createMock(UnroutedUrlAssemblerInterface::class);
     // @BUG: Forcing the UnroutedUrlAssembler return here forces a pass.
     // UnroutedUrlAssembler is called by toString() in setAuthFinishRedirect
     // and is overly complicated to mock/replace.
@@ -109,22 +103,15 @@ class OauthTest extends UnitTestCase {
       ->method('assemble')
       ->willReturn('https://example.com/sub/path?extra=1');
 
-    $response = $this->getMockBuilder(ResponseInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $response = $this->createMock(ResponseInterface::class);
     $response->expects($this->any())
       ->method('getBody')
       ->willReturn('{"access_token":"ACCESS_TOKEN", "token_type":"bearer", "expires_in":3600, "refresh_token": "refresh_token"}');
 
-    $http_client = $this->getMockBuilder(GuzzleClient::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['post'])
-      ->getMock();
+    $http_client = $this->createMock(GuzzleClient::class);
     $http_client->expects($this->any())->method('post')->willReturn($response);
 
-    $current_user = $this->getMockBuilder(AccountProxyInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $current_user = $this->createMock(AccountProxyInterface::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',

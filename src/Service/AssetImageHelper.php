@@ -2,6 +2,7 @@
 
 namespace Drupal\media_acquiadam\Service;
 
+use Symfony\Component\Mime\MimeTypesInterface;
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -11,7 +12,6 @@ use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
 
 /**
  * Class AssetImageHelper.
@@ -45,7 +45,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
   /**
    * Drupal MIME type guesser.
    *
-   * @var \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface
+   * @var \Symfony\Component\Mime\MimeTypesInterface
    */
   protected $mimeTypeGuesser;
 
@@ -65,12 +65,12 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   Drupal filesystem wrapper.
    * @param \GuzzleHttp\ClientInterface $httpClient
    *   Guzzle HTTP Client.
-   * @param \Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface $mimeTypeGuesser
+   * @param \Symfony\Component\Mime\MimeTypesInterface $mimeTypeGuesser
    *   Drupal MIME type guesser.
    * @param \Drupal\Core\Image\ImageFactory $imageFactory
    *   Drupal ImageFactory service.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory) {
+  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypesInterface $mimeTypeGuesser, ImageFactory $imageFactory) {
     $this->httpClient = $httpClient;
     $this->configFactory = $configFactory;
     $this->fileSystem = $fileSystem;
@@ -276,7 +276,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    *   The path to the Media: Acquia DAM module.
    */
   protected function getAcquiaDamModulePath() {
-    return drupal_get_path('module', 'media_acquiadam');
+    return \Drupal::service('extension.list.module')->getPath('media_acquiadam');
   }
 
   /**

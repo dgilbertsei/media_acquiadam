@@ -83,7 +83,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->mockedFileEntity = $this->getMockBuilder(FileInterface::class)
@@ -91,13 +91,9 @@ class AssetFileEntityHelperTest extends UnitTestCase {
       ->getMockForAbstractClass();
     $this->mockedFileEntity->method('id')->willReturn(333);
 
-    $acquiadam = $this->getMockBuilder(Acquiadam::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam = $this->createMock(Acquiadam::class);
 
-    $asset_media_factory = $this->getMockBuilder(AssetMediaFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_media_factory = $this->createMock(AssetMediaFactory::class);
     $asset_media_factory->method('getFileEntity')
       ->willReturn($this->mockedFileEntity->id());
 
@@ -121,9 +117,7 @@ class AssetFileEntityHelperTest extends UnitTestCase {
    *   The container to set mocks into.
    */
   protected function setMockedDrupalServices(ContainerBuilder $container) {
-    $file_storage = $this->getMockBuilder(EntityStorageInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $file_storage = $this->createMock(EntityStorageInterface::class);
     $file_storage->method('load')
       ->with($this->mockedFileEntity->id())
       ->willReturn($this->mockedFileEntity);
@@ -139,37 +133,27 @@ class AssetFileEntityHelperTest extends UnitTestCase {
       ],
     ]);
 
-    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
     $entity_type_manager->method('getStorage')->willReturnMap([
       ['file', $file_storage],
     ]);
 
-    $data_definition = $this->getMockBuilder(DataDefinitionInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $data_definition = $this->createMock(DataDefinitionInterface::class);
     $data_definition->method('getSetting')->willReturnMap([
       ['uri_scheme', 'private'],
       ['file_directory', 'assets/[token]'],
     ]);
 
-    $field_definition = $this->getMockBuilder(FieldDefinitionInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $field_definition = $this->createMock(FieldDefinitionInterface::class);
     $field_definition->method('getItemDefinition')
       ->willReturn($data_definition);
 
-    $entity_field_manager = $this->getMockBuilder(EntityFieldManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_field_manager = $this->createMock(EntityFieldManagerInterface::class);
     $entity_field_manager->method('getFieldDefinitions')->willReturnMap([
       ['media', 'acquiadam', ['phpunit_file_field' => $field_definition]],
     ]);
 
-    $token = $this->getMockBuilder(Token::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $token = $this->createMock(Token::class);
     $token->method('replace')
       ->willReturnCallback(function ($string, $a, $b, $c) {
         return ('assets/[token]' == $string) ? 'assets/replaced' : $string;

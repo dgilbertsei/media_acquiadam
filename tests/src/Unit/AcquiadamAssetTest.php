@@ -54,39 +54,25 @@ class AcquiadamAssetTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
 
-    $entity_field_manager = $this->getMockBuilder(EntityFieldManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_field_manager = $this->createMock(EntityFieldManagerInterface::class);
 
-    $field_type_plugin_manager = $this->getMockBuilder(FieldTypePluginManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $field_type_plugin_manager = $this->createMock(FieldTypePluginManagerInterface::class);
 
-    $asset_image_helper = $this->getMockBuilder(AssetImageHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_image_helper = $this->createMock(AssetImageHelper::class);
 
-    $asset_metadata_helper = $this->getMockBuilder(AssetMetadataHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_metadata_helper = $this->createMock(AssetMetadataHelper::class);
 
-    $asset_media_helper = $this->getMockBuilder(MediaEntityHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_media_helper = $this->createMock(MediaEntityHelper::class);
     $asset_media_helper->method('getAsset')->willReturn($this->getAssetData());
     $asset_media_helper->method('getFile')
       ->willReturn($this->getMockedFileEntity());
 
-    $asset_media_factory = $this->getMockBuilder(AssetMediaFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_media_factory = $this->createMock(AssetMediaFactory::class);
     $asset_media_factory->method('get')->willReturn($asset_media_helper);
 
     $this->container = new ContainerBuilder();

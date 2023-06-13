@@ -224,12 +224,10 @@ class AcquiadamServiceTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $dam_client = $this->getMockBuilder(Client::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $dam_client = $this->createMock(Client::class);
     $dam_client->expects($this->any())
       ->method('getFolder')
       ->willReturnCallback(function ($folderId) {
@@ -244,16 +242,12 @@ class AcquiadamServiceTest extends UnitTestCase {
     ]);
 
     // We need to make sure we get our mocked class instead of the original.
-    $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam_client_factory = $this->createMock(ClientFactory::class);
     $acquiadam_client_factory->expects($this->any())
       ->method('get')
       ->willReturn($dam_client);
 
-    $acquiadam_asset_data = $this->getMockBuilder(AssetDataInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam_asset_data = $this->createMock(AssetDataInterface::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
@@ -271,7 +265,7 @@ class AcquiadamServiceTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  public function tearDown() {
+  public function tearDown(): void {
     // Reset the static cache because it will persist between tests.
     $this->acquiaDamClient->staticAssetCache('clear');
   }

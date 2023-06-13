@@ -53,9 +53,7 @@ class MediaEntityHelperTest extends UnitTestCase {
     $this->assertInstanceOf(FileInterface::class,
       $this->getNewMediaEntityHelper()->getExistingFile());
 
-    $media = $this->getMockBuilder(MediaInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media = $this->createMock(MediaInterface::class);
 
     /** @var \Drupal\media\MediaInterface|\PHPUnit\Framework\MockObject\MockObject $media */
     $this->assertFalse($this->getNewMediaEntityHelper($media)
@@ -70,9 +68,7 @@ class MediaEntityHelperTest extends UnitTestCase {
       $this->getNewMediaEntityHelper()->getExistingFileId());
 
     /** @var \Drupal\media\MediaInterface|\PHPUnit\Framework\MockObject\MockObject $media */
-    $media = $this->getMockBuilder(MediaInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media = $this->createMock(MediaInterface::class);
 
     $this->assertFalse($this->getNewMediaEntityHelper($media)
       ->getExistingFileId());
@@ -86,9 +82,7 @@ class MediaEntityHelperTest extends UnitTestCase {
       $this->getNewMediaEntityHelper()->getAssetFileField());
 
     /** @var \Drupal\media\MediaInterface|\PHPUnit\Framework\MockObject\MockObject $media */
-    $media = $this->getMockBuilder(MediaInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $media = $this->createMock(MediaInterface::class);
 
     $this->assertFalse($this->getNewMediaEntityHelper($media)
       ->getAssetFileField());
@@ -123,7 +117,7 @@ class MediaEntityHelperTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->container = new ContainerBuilder();
@@ -161,15 +155,11 @@ class MediaEntityHelperTest extends UnitTestCase {
    */
   protected function setMockedDrupalServices(ContainerBuilder $container) {
 
-    $media_bundle = $this->getMockBuilder(\stdClass::class)
-      ->setMethods(['getFieldMap'])
-      ->getMock();
+    $media_bundle = $this->createMock(\stdClass::class);
     $media_bundle->method('getFieldMap')
       ->willReturn(['file' => 'phpunit_file_field']);
 
-    $entity_storage = $this->getMockBuilder(EntityStorageInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_storage = $this->createMock(EntityStorageInterface::class);
     $entity_storage->method('load')->willReturnMap([
       [$this->getMockedFileEntity()->id(), $this->getMockedFileEntity()],
       ['acquiadam', $media_bundle],
@@ -185,9 +175,7 @@ class MediaEntityHelperTest extends UnitTestCase {
       ],
     ]);
 
-    $entity_type_manager = $this->getMockBuilder(EntityTypeManagerInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
     $entity_type_manager->method('getStorage')->willReturnMap([
       ['file', $entity_storage],
       ['media_type', $entity_storage],
@@ -203,22 +191,16 @@ class MediaEntityHelperTest extends UnitTestCase {
    *   The container to set mocks into.
    */
   protected function setMockedAcquiaDamServices(ContainerBuilder $container) {
-    $asset_data = $this->getMockBuilder(AssetData::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_data = $this->createMock(AssetData::class);
     $asset_data->method('isUpdatedAsset')->willReturnOnConsecutiveCalls(FALSE,
       TRUE);
 
-    $acquiadam = $this->getMockBuilder(Acquiadam::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam = $this->createMock(Acquiadam::class);
     $acquiadam->method('getAsset')->willReturnMap([
       [$this->getAssetData()->id, TRUE, $this->getAssetData()],
     ]);
 
-    $asset_file_helper = $this->getMockBuilder(AssetFileEntityHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_file_helper = $this->createMock(AssetFileEntityHelper::class);
     $asset_file_helper->method('getDestinationFromEntity')
       ->willReturn('private://assets/replaced');
     $asset_file_helper->method('createNewFile')->with($this->anything(),

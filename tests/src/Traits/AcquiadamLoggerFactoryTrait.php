@@ -17,13 +17,9 @@ trait AcquiadamLoggerFactoryTrait {
    *   A mock LoggerChannelFactoryInstance with a media_acquiadam channel.
    */
   protected function getLoggerFactoryStub() {
-    $logger_channel = $this->getMockBuilder(LoggerChannelInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $logger_channel = $this->createMock(LoggerChannelInterface::class);
 
-    $logger_factory = $this->getMockBuilder(LoggerChannelFactoryInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $logger_factory = $this->createMock(LoggerChannelFactoryInterface::class);
     $logger_factory->method('get')
       ->with('media_acquiadam')
       ->willReturn($logger_channel);

@@ -165,12 +165,10 @@ class AssetMetadataHelperTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $date_formatter = $this->getMockBuilder(DateFormatterInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $date_formatter = $this->createMock(DateFormatterInterface::class);
     $date_formatter->method('format')
       ->willReturnCallback(function ($timestamp, $type, $format) {
         if ('custom' == $type) {
@@ -181,10 +179,7 @@ class AssetMetadataHelperTest extends UnitTestCase {
         return FALSE;
       });
 
-    $acquiadam_client = $this->getMockBuilder(Acquiadam::class)
-      ->disableOriginalConstructor()
-      ->setMethods(['getActiveXmpFields'])
-      ->getMock();
+    $acquiadam_client = $this->createMock(Acquiadam::class);
     $acquiadam_client->method('getActiveXmpFields')->willReturn([]);
 
     $this->container = new ContainerBuilder();

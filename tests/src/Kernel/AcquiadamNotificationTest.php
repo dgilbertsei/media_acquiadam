@@ -15,7 +15,7 @@ class AcquiadamNotificationTest extends AcquiadamKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     $this->enableNotificationSync();
   }
@@ -66,7 +66,7 @@ class AcquiadamNotificationTest extends AcquiadamKernelTestBase {
     foreach (Media::loadMultiple($mids) as $media) {
       $asset_id = (int) $media->get('field_acquiadam_asset_id')->getString();
       $asset = $this->testClient->getAsset($asset_id);
-      $this->assertEqual($media->label(), $asset->filename, 'Media entity updated correctly.');
+      $this->assertEquals($media->label(), $asset->filename, 'Media entity updated correctly.');
     }
   }
 

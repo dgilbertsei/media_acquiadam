@@ -24,7 +24,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'fallback_formatter',
     'file',
     'image',
@@ -43,7 +43,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
 
     parent::setUp();
 
@@ -62,9 +62,7 @@ abstract class AcquiadamKernelTestBase extends EntityKernelTestBase {
   protected function setTestClient() {
     $this->testClient = new TestClient();
 
-    $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam_client_factory = $this->createMock(ClientFactory::class);
     $acquiadam_client_factory->expects($this->any())
       ->method('get')
       ->willReturn($this->testClient);

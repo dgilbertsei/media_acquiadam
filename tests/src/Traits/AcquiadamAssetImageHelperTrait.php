@@ -16,9 +16,7 @@ trait AcquiadamAssetImageHelperTrait {
    *   The stubbed service.
    */
   public function getAssetImageHelperStub() {
-    $asset_image_helper = $this->getMockBuilder(AssetImageHelper::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $asset_image_helper = $this->createMock(AssetImageHelper::class);
     $asset_image_helper->method('getMimeTypeFromFileType')->willReturnMap([
       ['jpg', ['discrete' => 'image', 'sub' => 'jpg']],
       ['mov', ['discrete' => 'quicktime', 'sub' => 'mov']],

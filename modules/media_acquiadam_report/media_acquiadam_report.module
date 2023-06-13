@@ -70,8 +70,5 @@ function media_acquiadam_report_theme_registry_alter(&$theme_registry) {
   $theme_registry[$template] = $theme_registry['views_view_field'];
   $theme_registry[$template]['template'] = $template_hyphen;
   $theme_registry[$template]['variables']['acquiadam_asset_url'] = $dam_asset_url;
-  $theme_registry[$template]['path'] = drupal_get_path(
-      'module',
-      'media_acquiadam_report'
-    ) . '/templates';
+  $theme_registry[$template]['path'] = \Drupal::service('extension.list.module')->getPath('media_acquiadam_report') . '/templates';
 }

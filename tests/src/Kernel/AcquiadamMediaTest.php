@@ -45,7 +45,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->sourceReflectionClass = new \ReflectionClass(AcquiadamAsset::class);
@@ -58,7 +58,7 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $dir_path = 'public://acquiadam/';
     $contents = 'test';
     $this->container->get('file_system')->prepareDirectory($dir_path, FileSystemInterface::CREATE_DIRECTORY);
-    file_save_data($contents, $dir_path . $this->asset->filename);
+    \Drupal::service('file.repository')->writeData($contents, $dir_path . $this->asset->filename);
 
     $this->testClient->addAsset($this->asset);
     $this->media = $this->createMedia($this->asset->id);
@@ -72,9 +72,9 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $media_file_uri = $this->getAssetFileEntity($this->media)->getFileUri();
     $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
 
-    $this->assertEqual($this->media->label(), $this->asset->filename, 'Media name mapped to asset filename as expected.');
-    $this->assertEqual($media_description, $this->asset->description, 'Media description mapped to asset description as expected.');
-    $this->assertEqual($media_file_uri, $expected_asset_uri, 'Media file URI mapped as expected.');
+    $this->assertEquals($this->media->label(), $this->asset->filename, 'Media name mapped to asset filename as expected.');
+    $this->assertEquals($media_description, $this->asset->description, 'Media description mapped to asset description as expected.');
+    $this->assertEquals($media_file_uri, $expected_asset_uri, 'Media file URI mapped as expected.');
   }
 
   /**
@@ -91,10 +91,10 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $expected_asset_uri = $this->getAssetUri($this->asset, $this->media);
     $new_version = $asset_data->get($this->asset->id, 'version');
 
-    $this->assertEqual($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
-    $this->assertEqual($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
-    $this->assertEqual($file->label(), $this->asset->filename, 'File entity label updated as expected.');
-    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
+    $this->assertEquals($this->media->label(), $this->asset->filename, 'Media name updated as expected.');
+    $this->assertEquals($file_uri, $expected_asset_uri, 'Media asset file updated as expected.');
+    $this->assertEquals($file->label(), $this->asset->filename, 'File entity label updated as expected.');
+    $this->assertEquals($this->asset->version, $new_version, 'Asset version updated as expected.');
   }
 
   /**
@@ -119,15 +119,15 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
     $this->saveNewVersion();
     $new_version = $asset_data->get($this->asset->id, 'version');
 
-    $this->assertEqual($old_version, $new_version, 'Asset version unchanged as expected.');
+    $this->assertEquals($old_version, $new_version, 'Asset version unchanged as expected.');
 
     // Restore permissions to directory and resave entity.
     $file_system->chmod($directory, FileSystem::CHMOD_DIRECTORY);
     $this->reSaveMedia();
     $new_version = $asset_data->get($this->asset->id, 'version');
 
-    $this->assertNotEqual($old_version, $new_version, 'New version different from old version.');
-    $this->assertEqual($this->asset->version, $new_version, 'Asset version updated as expected.');
+    $this->assertNotEquals($old_version, $new_version, 'New version different from old version.');
+    $this->assertEquals($this->asset->version, $new_version, 'Asset version updated as expected.');
   }
 
   /**
@@ -157,10 +157,10 @@ class AcquiadamMediaTest extends AcquiadamKernelTestBase {
 
     // Re-loads FID to assert it's unchanged.
     $actual_fid = $this->getAssetFileEntity($this->media)->id();
-    $this->assertEqual($actual_fid, $expected_fid, 'First media entity still has reference to the expected file.');
+    $this->assertEquals($actual_fid, $expected_fid, 'First media entity still has reference to the expected file.');
 
     // Asserts second media file is still correct.
-    $this->assertEqual($other_file->getFileUri(), $this->getAssetUri($other_asset, $other_media), 'Second media entity still has the expected URI.');
+    $this->assertEquals($other_file->getFileUri(), $this->getAssetUri($other_asset, $other_media), 'Second media entity still has the expected URI.');
   }
 
   /**

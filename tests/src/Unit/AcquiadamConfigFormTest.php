@@ -108,8 +108,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
    */
   public function testPerformManualSync() {
     $form = [];
-    $form_state = $this->getMockBuilder(FormStateInterface::class)
-      ->getMock();
+    $form_state = $this->createMock(FormStateInterface::class);
 
     $this->assertFalse($this->acquiaDamConfig->performManualSync($form, $form_state));
 
@@ -196,13 +195,11 @@ class AcquiadamConfigFormTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     // We need to override the DAM client so that we can fake authentication.
-    $dam_client = $this->getMockBuilder(Client::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $dam_client = $this->createMock(Client::class);
 
     // We do not actually care about validating anything at this point, but
     // the validateForm method does a basic "does authentication work" check.
@@ -211,32 +208,22 @@ class AcquiadamConfigFormTest extends UnitTestCase {
       ->willReturn([]);
 
     // We need to make sure we get our mocked class instead of the original.
-    $acquiadam_client_factory = $this->getMockBuilder(ClientFactory::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $acquiadam_client_factory = $this->createMock(ClientFactory::class);
     $acquiadam_client_factory->expects($this->any())
       ->method('getWithCredentials')
       ->willReturn($dam_client);
 
-    $time = $this->getMockBuilder(Time::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $time = $this->createMock(Time::class);
     $time->method('getRequestTime')
       ->willReturn(1560000000);
 
-    $this->queueWorker = $this->getMockBuilder(AssetRefresh::class)
-      ->disableOriginalConstructor()
-      ->getMock();
-    $queue_worker_manager = $this->getMockBuilder(QueueWorkerManager::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->queueWorker = $this->createMock(AssetRefresh::class);
+    $queue_worker_manager = $this->createMock(QueueWorkerManager::class);
     $queue_worker_manager->expects($this->any())
       ->method('createInstance')
       ->willReturn($this->queueWorker);
 
-    $this->state = $this->getMockBuilder(State::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $this->state = $this->createMock(State::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
@@ -263,13 +250,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
    */
   protected function getMockedAcquidamConfig() {
 
-    $messenger = $this->getMockBuilder(Messenger::class)
-      ->setMethods([
-        'addWarning',
-        'addStatus',
-      ])
-      ->disableOriginalConstructor()
-      ->getMock();
+    $messenger = $this->createMock(Messenger::class);
 
     $config = $this->getMockBuilder(AcquiadamConfig::class)
       ->setConstructorArgs([

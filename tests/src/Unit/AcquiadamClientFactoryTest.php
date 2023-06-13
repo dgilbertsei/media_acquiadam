@@ -64,20 +64,14 @@ class AcquiadamClientFactoryTest extends UnitTestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
-    $current_user = $this->getMockBuilder(AccountProxyInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $current_user = $this->createMock(AccountProxyInterface::class);
 
-    $http_client = $this->getMockBuilder(ClientInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $http_client = $this->createMock(ClientInterface::class);
 
-    $user_data = $this->getMockBuilder(UserDataInterface::class)
-      ->disableOriginalConstructor()
-      ->getMock();
+    $user_data = $this->createMock(UserDataInterface::class);
 
     $this->container = new ContainerBuilder();
     $this->container->set('string_translation',
