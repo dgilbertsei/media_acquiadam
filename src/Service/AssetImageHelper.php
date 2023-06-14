@@ -2,7 +2,7 @@
 
 namespace Drupal\media_acquiadam\Service;
 
-use Symfony\Component\Mime\MimeTypesInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 use cweagans\webdam\Entity\Asset;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -70,7 +70,7 @@ class AssetImageHelper implements ContainerInjectionInterface {
    * @param \Drupal\Core\Image\ImageFactory $imageFactory
    *   Drupal ImageFactory service.
    */
-  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypesInterface $mimeTypeGuesser, ImageFactory $imageFactory) {
+  public function __construct(ConfigFactoryInterface $configFactory, FileSystemInterface $fileSystem, ClientInterface $httpClient, MimeTypeGuesserInterface $mimeTypeGuesser, ImageFactory $imageFactory) {
     $this->httpClient = $httpClient;
     $this->configFactory = $configFactory;
     $this->fileSystem = $fileSystem;
@@ -188,12 +188,19 @@ class AssetImageHelper implements ContainerInjectionInterface {
    */
   public function getMimeTypeFromFileType($fileType) {
     $fake_name = sprintf('public://nothing.%s', $fileType);
-    $mimetype = $this->mimeTypeGuesser->guess($fake_name);
+    // D9 / D10 toggle.
+    if (method_exists($this->mimeTypeGuesser, 'guessMimeType')) {
+      $mimetype = $this->mimeTypeGuesser->guessMimeType($fake_name);
+    }
+    else {
+      $mimetype = $this->mimeTypeGuesser->guess($fake_name);
+    }
+
     if (empty($mimetype)) {
       return FALSE;
     }
 
-    list($discrete_type, $subtype) = explode('/', $mimetype, 2);
+    [$discrete_type, $subtype] = explode('/', $mimetype, 2);
 
     return [
       'discrete' => $discrete_type,
