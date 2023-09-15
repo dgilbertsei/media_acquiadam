@@ -187,6 +187,7 @@ class AssetRefreshManager implements AssetRefreshManagerInterface, ContainerInje
           ->condition($field, $asset_ids, 'IN')
       );
     }
+    $media_query->accessCheck();
     $media_ids = $media_query->execute();
 
     foreach ($media_ids as $media_id) {

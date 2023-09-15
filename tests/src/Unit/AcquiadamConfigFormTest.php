@@ -135,7 +135,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     }, $media_ids);
     $this->queueWorker->expects($this->any())
       ->method('processItem')
-      ->withConsecutive(...$queue_worker_expected_arguments)
+      ->willReturnOnConsecutiveCalls(...$queue_worker_expected_arguments)
       ->willReturn(TRUE);
 
     // Emulate the three consecutive batch runs.
@@ -148,7 +148,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
     // Verify the batch finish operation.
     $this->state->expects($this->exactly(3))
       ->method('set')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         [$this->equalTo('media_acquiadam.notifications_starttime'), $this->equalTo(1560000000)],
         [$this->equalTo('media_acquiadam.notifications_endtime'), $this->equalTo(NULL)],
         [$this->equalTo('media_acquiadam.notifications_next_page'), $this->equalTo(NULL)]
@@ -261,7 +261,7 @@ class AcquiadamConfigFormTest extends UnitTestCase {
         $this->container->get('plugin.manager.queue_worker'),
         $this->container->get('state'),
       ])
-      ->setMethods([
+      ->addMethods([
         'batchSet',
         'getActiveMediaIds',
         'messenger',

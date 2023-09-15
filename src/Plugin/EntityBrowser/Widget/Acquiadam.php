@@ -784,6 +784,7 @@ class Acquiadam extends WidgetBase {
     // Query for existing entities.
     $existing_ids = $this->entityTypeManager->getStorage('media')
       ->getQuery()
+      ->accessCheck()
       ->condition('bundle', $media_type->id())
       ->condition($source_field, $asset_ids, 'IN')
       ->execute();

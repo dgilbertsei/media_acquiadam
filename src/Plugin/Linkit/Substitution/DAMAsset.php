@@ -4,6 +4,7 @@ namespace Drupal\media_acquiadam\Plugin\Linkit\Substitution;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\GeneratedUrl;
 use Drupal\file\FileInterface;
 use Drupal\linkit\Plugin\Linkit\Substitution\Media;
@@ -32,12 +33,20 @@ class DAMAsset extends Media {
   protected $entityTypeManager;
 
   /**
+   * The file generator service.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected FileUrlGeneratorInterface $fileGenerator;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, FileUrlGeneratorInterface $file_generator) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->entityTypeManager = $entity_type_manager;
+    $this->fileGenerator = $file_generator;
   }
 
   /**
@@ -47,7 +56,9 @@ class DAMAsset extends Media {
     return new static($configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity_type.manager'));
+      $container->get('entity_type.manager'),
+      $container->get('file_url_generator')
+    );
   }
 
   /**
@@ -67,7 +78,7 @@ class DAMAsset extends Media {
           // This is the original LinkIt behavior.
           if (!empty($file) && $file instanceof FileInterface) {
             $url = new GeneratedUrl();
-            $url->setGeneratedUrl(file_create_url($file->getFileUri()));
+            $url->setGeneratedUrl($this->fileGenerator->generateAbsoluteString($file->getFileUri()));
             $url->addCacheableDependency($entity);
             return $url;
           }

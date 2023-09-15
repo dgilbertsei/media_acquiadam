@@ -156,7 +156,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
     $this->entityQuery->expects($this->any())
       ->method('condition')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         [$this->equalTo('bundle'), $this->equalTo('test_bundle')],
         [$this->equalTo('field_1'), $this->equalTo($expected_asset_ids)])
       ->will($this->returnSelf());
@@ -200,7 +200,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->setupMediaEntityExpectations($expected_asset_ids, $expected_total);
 
     $this->state->method('set')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         ['media_acquiadam.notifications_starttime', self::LAST_READ_TIMESTAMP],
         ['media_acquiadam.notifications_starttime', self::REQUEST_TIME],
         ['media_acquiadam.notifications_endtime', NULL],
@@ -245,7 +245,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
     $this->setupMediaEntityExpectations($expected_asset_ids, $expected_total);
 
     $this->state->method('set')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         ['media_acquiadam.notifications_next_page', 2],
         ['media_acquiadam.notifications_endtime', self::REQUEST_TIME]);
 
@@ -530,7 +530,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
     $this->entityQuery->expects($this->any())
       ->method('condition')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         [$this->equalTo('bundle'), $this->equalTo('test_bundle')],
         [$this->equalTo('field_1'), $this->equalTo($expected_asset_ids)]
       )
@@ -554,7 +554,7 @@ class AssetRefreshManagerTest extends UnitTestCase {
 
     $this->queue->expects($this->any())
       ->method('createItem')
-      ->withConsecutive(
+      ->willReturnOnConsecutiveCalls(
         ...$expected_queue_items
       );
   }

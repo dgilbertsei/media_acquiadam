@@ -182,6 +182,7 @@ class AssetMediaFactory implements ContainerInjectionInterface {
    */
   protected function getMediaBundleFields($bundle, $field, $assetId) {
     return $this->mediaStorage->getQuery()
+      ->accessCheck()
       ->condition('bundle', $bundle)
       ->condition($field, $assetId)
       ->execute();

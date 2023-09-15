@@ -236,7 +236,7 @@ class AssetMediaFactoryTest extends UnitTestCase {
       ->setConstructorArgs([
         $this->container->get('entity_type.manager'),
       ])
-      ->setMethods(['getMediaBundleFields'])
+      ->addMethods(['getMediaBundleFields'])
       ->getMock();
 
     $this->assetMediaFactory->method('getMediaBundleFields')->willReturnMap([

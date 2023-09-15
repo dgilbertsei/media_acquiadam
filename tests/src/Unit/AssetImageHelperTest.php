@@ -131,19 +131,19 @@ class AssetImageHelperTest extends UnitTestCase {
    * Validate that we can get proper mime types based on a file extension.
    */
   public function testGetMimeTypeFromFileType() {
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'image',
       'sub' => 'jpg',
     ],
       $this->assetImageHelper->getMimeTypeFromFileType('jpg'));
 
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'video',
       'sub' => 'quicktime',
     ],
       $this->assetImageHelper->getMimeTypeFromFileType('mov'));
 
-    $this->assertArrayEquals([
+    $this->assertEquals([
       'discrete' => 'application',
       'sub' => 'pdf',
     ],
@@ -170,7 +170,7 @@ class AssetImageHelperTest extends UnitTestCase {
         $this->container->get('file.mime_type.guesser'),
         $this->container->get('image.factory'),
       ])
-      ->setMethods([
+      ->addMethods([
         'phpFileExists',
         'getAcquiaDamModulePath',
         'saveFallbackThumbnail',
@@ -194,7 +194,7 @@ class AssetImageHelperTest extends UnitTestCase {
 
     $file_system = $this->getMockBuilder(FileSystem::class)
       ->disableOriginalConstructor()
-      ->setMethods(['copy'])
+      ->addMethods(['copy'])
       ->getMockForAbstractClass();
     $file_system->method('copy')
       ->willReturnCallback(function ($source, $target) {

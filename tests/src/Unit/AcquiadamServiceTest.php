@@ -87,12 +87,12 @@ class AcquiadamServiceTest extends UnitTestCase {
   public function testGetFlattenedFolderList() {
     // Test that the top level flattening works as expected.
     $folders = $this->acquiaDamClient->getFlattenedFolderList();
-    $this->assertArrayEquals($this->getFlattenedTopLevelFoldersData(),
+    $this->assertEquals($this->getFlattenedTopLevelFoldersData(),
       $folders);
 
     // Test that a parent item gets its proper child items.
     $folders = $this->acquiaDamClient->getFlattenedFolderList(90672);
-    $this->assertArrayEquals([
+    $this->assertEquals([
       90673 => 'Slideshows',
       90674 => 'Ad Ideas',
     ],
@@ -100,7 +100,7 @@ class AcquiadamServiceTest extends UnitTestCase {
 
     // Test that a parent item gets its proper child items.
     $folders = $this->acquiaDamClient->getFlattenedFolderList(90786);
-    $this->assertArrayEquals([
+    $this->assertEquals([
       90787 => 'Spreadsheets',
       90788 => 'Logos',
     ],
@@ -108,11 +108,11 @@ class AcquiadamServiceTest extends UnitTestCase {
 
     // Test that items with no children reflect that.
     $folders = $this->acquiaDamClient->getFlattenedFolderList(90832);
-    $this->assertArrayEquals([], $folders);
+    $this->assertEquals([], $folders);
 
     // Test that child items with no subchildren reflect that.
     $folders = $this->acquiaDamClient->getFlattenedFolderList(90673);
-    $this->assertArrayEquals([], $folders);
+    $this->assertEquals([], $folders);
   }
 
   /**
@@ -121,12 +121,10 @@ class AcquiadamServiceTest extends UnitTestCase {
   public function testSelfGetFolderData() {
     // Test that we can get parent folders.
     $folder = $this->getFolderData(90786);
-    $this->assertObjectHasAttribute('id', $folder);
     $this->assertEquals(90786, $folder->id);
 
     // Test that we can get child folders.
     $folder = $this->getFolderData(90788);
-    $this->assertObjectHasAttribute('id', $folder);
     $this->assertEquals(90788, $folder->id);
   }
 
