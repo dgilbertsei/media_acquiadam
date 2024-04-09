@@ -93,6 +93,13 @@ class Acquiadam extends WidgetBase {
   protected $requestStack;
 
   /**
+   * The config for Acquiadam.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
    * Acquiadam constructor.
    *
    * {@inheritdoc}
