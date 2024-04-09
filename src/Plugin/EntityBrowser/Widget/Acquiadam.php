@@ -101,6 +101,13 @@ class Acquiadam extends WidgetBase {
   protected ConfigFactoryInterface $configFactory;
 
   /**
+   * The config for advagg_bundler.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
    * Acquiadam constructor.
    *
    * {@inheritdoc}
